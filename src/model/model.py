@@ -1,48 +1,53 @@
 from .field import Field
 from .cell import Cell
 from .player import Player
+from .bot import Bot
+
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
 # It links the actions of the players to consequences in the field and updates information.
 
 class Model(object):
-	def __init__(self):
-		self.listeners = []
+    def __init__(self, width, height):
+        self.listeners = []
 
-		self.bots = []
-		self.human = Null
-		self.players = []
-		self.field = Field()
+        self.bots = []
+        self.human = None
+        self.players = []
+        self.field = Field()
 
-	def addBot(self):
-		self.bots.append( computerPlayer() )
+        self.screenWidth = width
+        self.screenHeight = height
 
-	def addHuman(self): 
-		self.human = humanPlayer
+    def addBot(self):
+        self.bots.append( Bot() )
 
-	def update(self):
-		# Get the decisions of the bots/human. Update the field accordingly.
-		for bot in self.bots:
-			bot.update()
+    def addHuman(self): 
+        self.human = Player()
+
+    def update(self):
+        # Get the decisions of the bots/human. Update the field accordingly.
+        for bot in self.bots:
+            bot.update()
         if( self.hasHuman() ):
-        	self.getHumanInput()
+            self.getHumanInput()
 
         self.field.update()
         self.notify(None)
 
     def updateHumanInput():
-    	for event in pygame.event.get():
-    		if( event.type == KEY_DOWN ):
-    			if( event.key = pygame.K_SPACE  and human.canSplit() ):
-    				human.split()
-    			elif( event.key == pygame.K_w and human.canEject() ):
-    				human.eject()
-    	mousePos = pygame.mouse.get_pos()
-    	difference = mousePos - human.getPos()
+        for event in pygame.event.get():
+            if( event.type == KEY_DOWN ):
+                if( event.key == pygame.K_SPACE  and human.canSplit() ):
+                    human.split()
+                elif( event.key == pygame.K_w and human.canEject() ):
+                       human.eject()
+        mousePos = pygame.mouse.get_pos()
+        difference = mousePos - (screenWidth / 2,screenHeight / 2)
 
 
     def hasHuman(self):
-    	return human != Null
+        return human != Null
 
 
     # MVC related method
