@@ -11,3 +11,26 @@ class Field(object):
         self.collectibles = []
         self.players = []
         self.viruses = []
+
+    # Setters:
+    def addPlayer(self, player):
+        self.players.append(player)
+
+    # Getters:
+    def getWidth(self):
+        return self.width
+
+    def getHeight(self):
+        return self.height
+
+    def getCollectibles(self):
+        return self.collectibles
+
+    def getViruses(self):
+        return self.viruses
+
+    def getPlayerCells(self):
+        cells = []
+        for player in self.players:
+            cells += player.getCells()
+        return cells

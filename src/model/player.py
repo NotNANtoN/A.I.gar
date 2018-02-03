@@ -8,28 +8,23 @@ class Player(object):
 
 
     """docstring for Player"""
-    def __init__(self, name, x, y):
+    def __init__(self, name, x, y, field):
         self.color = (randint(0,255), randint(0,255), randint(0,255))
         self.name = name
-        startCell = Cell(x,y, STARTRADIUS, self.color)
+        startCell = Cell(x,y, STARTRADIUS, self.color, self)
+        self.field = field
         self.cells = [startCell]
         self.canSplit = False
         self.canEject = False
         self.fovCenter = (x,y)
         self.fovSize = (150,120)
 
-        self.commands = (-1, -1, 0, 0) # x, y, split, ejectMass
+        self.commands = (-1, -1, False, False) # x, y, split, ejectMass
 
 
     def update(self):
         for cell in self.cells:
-            cell.updatePos(10000, 1000) # CHANGE THIS!!!!
-
-    def canSplit(self):
-        return False
-
-    def canEject(self):
-        return False
+            cell.updatePos(field.getWidth(), field.getHeight()) 
 
     def split(self):
         for cell in self.cells:
@@ -41,10 +36,32 @@ class Player(object):
             if( cell.canEject() ):
                 cell.eject()
 
+    # Setters:
     def addCell(self, cell):
         self.cells.append(cell)
 
     def removeCell(self, cell):
         self.cells.remove(cell)
+
+    def setCommands(self, x, y, split, eject):
+        self.commands = (x,y,split,eject)
+
+    # Checks:
+    def canSplit(self):
+        return False
+
+    def canEject(self):
+        return False
+
+    # Getters:
+    def getFov(self):
+
+        
+        xAvg = avg(self.getCells() )
+
+    def getCells(self):
+        return self.cells
+
+
 
         

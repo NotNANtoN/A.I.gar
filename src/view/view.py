@@ -12,11 +12,21 @@ class View():
         self.screen = pygame.display.set_mode((640,480))
         pygame.display.set_caption('A.I.gar')
         
+    def drawCells(self, cells):
+        for cell in cells:
+            pygame.draw.circle(self.screen, cell.getColor(), cell.getPos(), cell.getRadius(), width = 0 )
+
+
+    def drawAllCells(self):
+        self.drawCells(model.getCollectibles())
+        self.drawCells(model.getViruses())
+        self.drawCells(model.getPlayerCells())
+
     def draw(self):
         self.screen.fill(WHITE)
-        for blob in model.getBlobs():
-            pygame.draw.circle(self.screen, blob.getColor(), blob.getPos(), blobl.getRadius(), width = 0 )
+        self.drawAllCells()
 
+        
 
     def model_event(self, event_name):
         self.draw()
