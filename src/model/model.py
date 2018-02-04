@@ -2,6 +2,7 @@ from .field import Field
 from .cell import Cell
 from .player import Player
 from .bot import Bot
+import numpy
 
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
@@ -34,15 +35,26 @@ class Model(object):
         self.notify(None)
         self.run()
 
-    def updateHumanInput():
+    # Find the point where the player clicked, taking into account that he only sees the fov
+    def isRelativeClick(self):
+        mousePos = pygame.mouse.get_pos()
+        fovPos = self.human.getFovPos()
+        fovDims = self.human.getFovDims()
+        difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
+        command = numpy.add(difference, fovPos[0], fovPos[1])
+
+    def handleKeyInput(self):
         for event in pygame.event.get():
             if( event.type == KEY_DOWN ):
                 if( event.key == pygame.K_SPACE  and human.canSplit() ):
-                    human.split()
+                    human.setSplit(True)
                 elif( event.key == pygame.K_w and human.canEject() ):
-                       human.eject()
-        mousePos = pygame.mouse.get_pos()
-        difference = mousePos - (screenWidth / 2,screenHeight / 2)
+                    human.setEject(True)
+
+    def updateHumanInput():
+        handleKeyInput()
+        command = isRelativeClick()
+        return command
 
     # Setters:
     def createPlayer(self, name):

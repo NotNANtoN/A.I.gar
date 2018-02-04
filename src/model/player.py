@@ -8,23 +8,29 @@ class Player(object):
 
 
     """docstring for Player"""
-    def __init__(self, name, x, y, field):
+    def __init__(self, name, x, y):
         self.color = (randint(0,255), randint(0,255), randint(0,255))
         self.name = name
-        startCell = Cell(x,y, STARTRADIUS, self.color, self)
+        startCell = Cell(x,y, STARTRADIUS, self.color)
         self.field = field
         self.cells = [startCell]
         self.canSplit = False
         self.canEject = False
         self.fovCenter = (x,y)
         self.fovSize = (150,120)
+         # Commands:
+        self.moveCellsTowards = [-1, -1]
+        self.split = False
+        self.eject = False
 
-        self.commands = (-1, -1, False, False) # x, y, split, ejectMass
-
-
-    def update(self):
+    def update(self, fieldWidth, fieldHeight, moveCellTowards, split, eject):
         for cell in self.cells:
-            cell.updatePos(field.getWidth(), field.getHeight()) 
+            cell.setMoveDirection(moveCellTowards)
+            if( split and cell.canSplit() ):
+                cell.split()
+            elif( eject and cell.canEject() ):
+                cell.eject()
+            cell.updatePos(fieldWidth, fieldHeight) 
 
     def split(self):
         for cell in self.cells:
@@ -44,7 +50,12 @@ class Player(object):
         self.cells.remove(cell)
 
     def setCommands(self, x, y, split, eject):
-        self.commands = (x,y,split,eject)
+        self.moveCellsTowards = [x,y]
+        self.split = split
+        self.eject = eject
+
+    def setSplit(self, bool):
+        self.split = bool
 
     # Checks:
     def canSplit(self):
@@ -54,11 +65,21 @@ class Player(object):
         return False
 
     # Getters:
+    def getFovPos():
+        meanX = sum(cell.getX() for cell in self.cells) / len(self.cells)
+        meanY = sum(cell.getY() for cell in self.cells) / len(self.cells)
+        return (meanX, meanY)
+
+    def getFovdims():
+        width = self.radius * 5
+        height = width
+        return (width, height)
+
     def getFov(self):
-
+        fovPos = self.getFovPos()
+        fovDims = self.getFovDims()
+        return (fovPos, fovDims)
         
-        xAvg = avg(self.getCells() )
-
     def getCells(self):
         return self.cells
 

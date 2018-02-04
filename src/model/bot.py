@@ -10,12 +10,12 @@ class Bot(object):
 
 	def update(self):
 		# This bot does random stuff
-		fov = self.player.getFov()
-		midPoint = fov[0]
+		midPoint = self.player.getFovPos()
+		dims = self.player.getFovDims()
 		x = midPoint[0]
 		y = midPoint[1]
-		width = fov[1][0]
-		height = fov[1][1]
+		width = dims[0]
+		height = dims[1]
 		xChoice = randint(x - width, x + width)
 		yChoice = randint(y - width, y + width)
 		splitChoice = True if random.uniform(0, 1) > 0.95 else False
