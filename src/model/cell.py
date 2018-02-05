@@ -1,10 +1,9 @@
 import numpy
 
+MOVESPEED = 5
+SPLITSPEED = 2 # Speed of just spawned cell
 
 class Cell(object):
-    MOVESPEED = 1
-    SPLITSPEED = 2 # Speed of just spawned cell
-
     def __init__(self, x, y, radius, color):
         self.radius = radius
         self.x = x
@@ -15,7 +14,7 @@ class Cell(object):
 
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
-        angle = numpy.arctan2(differece[1], difference[0])
+        angle = numpy.arctan2(difference[1], difference[0])
         self.vx = MOVESPEED * numpy.sin(angle)
         self.vy = MOVESPEED * numpy.cos(angle)
 
@@ -30,9 +29,17 @@ class Cell(object):
 
  
     def updatePos(self, maxX, maxY):
-        self.x += self.updateDirection(self.x, self.vx, maxX)
-        self.y += self.updateDirection(self.y, self.vy, maxY)
+        print("maxX: ", maxX)
+        self.x = self.updateDirection(self.x, self.vx, maxX)
+        self.y = self.updateDirection(self.y, self.vy, maxY)
 
+
+    # Checks:
+    def canSplit(self):
+        return False
+
+    def canEject(self):
+        return False
 
     # Setters:
     def setPos(self, x , y):
@@ -50,7 +57,7 @@ class Cell(object):
         return self.y
 
     def getPos(self):
-        return (x,y)
+        return [self.x, self.y]
 
     def getColor(self):
         return self.color

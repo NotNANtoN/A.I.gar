@@ -5,31 +5,44 @@ from random import randint
 class Player(object):
     STARTRADIUS = 10
 
-
-
     """docstring for Player"""
-    def __init__(self, name, x, y):
+    def __init__(self, name):
         self.color = (randint(0,255), randint(0,255), randint(0,255))
         self.name = name
-        startCell = Cell(x,y, STARTRADIUS, self.color)
-        self.field = field
-        self.cells = [startCell]
+        self.cells = []
         self.canSplit = False
         self.canEject = False
-        self.fovCenter = (x,y)
-        self.fovSize = (150,120)
          # Commands:
         self.moveCellsTowards = [-1, -1]
         self.split = False
         self.eject = False
 
-    def update(self, fieldWidth, fieldHeight, moveCellTowards, split, eject):
+    def update(self, fieldWidth, fieldHeight):
+        self.updateCellsMoveDir()
+        self.updateCellsSplit()
+        self.updateCellsEject()
+        self.updateCellsMovement(fieldWidth, fieldHeight)
+
+    def updateCellsMoveDir(self):
         for cell in self.cells:
-            cell.setMoveDirection(moveCellTowards)
-            if( split and cell.canSplit() ):
+            cell.setMoveDirection(self.moveCellsTowards)
+
+    def updateCellsSplit(self):
+        if( self.split == False ):
+            return
+        for cell in self.cells:
+            if( cell.canSplit() ):
                 cell.split()
-            elif( eject and cell.canEject() ):
+
+    def updateCellsEject(self):
+        if( self.eject == False ):
+            return
+        for cell in self.cells:
+            if( cell.canEject() ):
                 cell.eject()
+
+    def updateCellsMovement(self, fieldWidth, fieldHeight):
+        for cell in self.cells:
             cell.updatePos(fieldWidth, fieldHeight) 
 
     def split(self):
@@ -43,6 +56,9 @@ class Player(object):
                 cell.eject()
 
     # Setters:
+    def setMoveTowards(self, relativeMousePos):
+        self.moveCellsTowards = relativeMousePos
+
     def addCell(self, cell):
         self.cells.append(cell)
 
@@ -58,20 +74,22 @@ class Player(object):
         self.split = bool
 
     # Checks:
-    def canSplit(self):
-        return False
-
-    def canEject(self):
-        return False
+  
 
     # Getters:
-    def getFovPos():
+    def getCanSplit(self):
+        return False
+
+    def getCanEject(self):
+        return False
+        
+    def getFovPos(self):
         meanX = sum(cell.getX() for cell in self.cells) / len(self.cells)
         meanY = sum(cell.getY() for cell in self.cells) / len(self.cells)
         return (meanX, meanY)
 
-    def getFovdims():
-        width = self.radius * 5
+    def getFovDims(self):
+        width = max(self.cells, key = lambda p: p.getRadius()).getRadius() * 5
         height = width
         return (width, height)
 
@@ -82,6 +100,12 @@ class Player(object):
         
     def getCells(self):
         return self.cells
+
+    def getColor(self):
+        return self.color
+
+    def getName(self):
+        return self.name
 
 
 
