@@ -29,7 +29,6 @@ class Cell(object):
         return min(maxX, max(0, x + v))
 
     def updatePos(self, maxX, maxY):
-        print("maxX: ", maxX)
         self.x = self.updateDirection(self.x, self.vx, maxX)
         self.y = self.updateDirection(self.y, self.vy, maxY)
 
