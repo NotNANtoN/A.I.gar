@@ -47,7 +47,7 @@ if __name__ == '__main__':
     if( fitsLimitations(numberOfHumans, MAXHUMANPLAYERS)):
         createHumans(numberOfHumans, model)
 
-    view = View(SCREEN_HEIGHT)
+    view = View(model)
     controller = Controller(model, view)
 
     model.initialize()

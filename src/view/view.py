@@ -8,7 +8,7 @@ class View:
 
     def __init__(self, model):
         self.model = model
-        model.register_listener(self.model_event)
+        self.model.register_listener(self.model_event)
         self.screen = pygame.display.set_mode((640, 480))
         pygame.display.set_caption('A.I.gar')
 
@@ -17,12 +17,14 @@ class View:
         fovDims = self.model.getFovDims()
         for cell in cells:
             if self.isInFov(cell, fovPos, fovDims):
-                print("One cell in the fov! :)")
                 pos = cell.getPos()
                 roundedPos = [int(pos[0]), int(pos[1])]
                 roundedRad = int(cell.getRadius())
-                print("pos: ", pos[0], "-", pos[1], " raidus: ", roundedRad)
                 pygame.draw.circle(self.screen, cell.getColor(), roundedPos, roundedRad)
+                if(self.model.getDebugStatus()):
+                    print("One cell in the fov! :)")
+                    print("pos: ", pos[0], "-", pos[1], " raidus: ", roundedRad)
+
 
     def drawAllCells(self):
         self.drawCells(self.model.getCollectibles())
@@ -35,7 +37,8 @@ class View:
         pygame.display.update()
 
     def model_event(self):
-        print("Draw some stuff")
+        if(self.model.getDebugStatus()):
+            print("Draw some stuff:")
         self.draw()
 
     # Checks:
