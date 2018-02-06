@@ -8,7 +8,8 @@ from .cell import Cell
 
 START_RADIUS = 30
 MAX_COLLECTIBLE_SPAWN_PER_UPDATE = 5
-COLLECTIBLE_SIZE = 30
+COLLECTIBLE_SIZE = 4
+MAXCOLLECTIBECOUNT = 100
 
 
 class Field(object):
@@ -18,6 +19,7 @@ class Field(object):
         self.collectibles = []
         self.players = []
         self.viruses = []
+        self.maxCollectibleCount = MAXCOLLECTIBECOUNT
 
     def initializePlayer(self, player):
         x = randint(0, self.width)
@@ -29,13 +31,13 @@ class Field(object):
         for player in self.players:
             self.initializePlayer(player)
 
-        self.spawnStuff()
+        self.spawnStuff(99999999)
 
     def update(self):
         self.updateViruses()
         self.updatePlayers()
 
-        self.spawnStuff()
+        self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
 
     def updateViruses(self):
         for virus in self.viruses:
@@ -45,13 +47,13 @@ class Field(object):
         for player in self.players:
             player.update(self.width, self.height)
 
-    def spawnStuff(self):
-        self.spawnCollectibles()
-        self.spawnViruses()
+    def spawnStuff(self, maxSpawns):
+        self.spawnCollectibles(maxSpawns)
+        self.spawnViruses(maxSpawns)
 
-    def spawnCollectibles(self):
+    def spawnCollectibles(self, maxSpawns):
         count = 0
-        while len(self.collectibles) < 100 and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
+        while len(self.collectibles) < self.maxCollectibleCount and count < maxSpawns:
             self.spawnCollectible()
             count += 1
 
@@ -65,7 +67,7 @@ class Field(object):
     def addCollectible(self, collectible):
         self.collectibles.append(collectible)
 
-    def spawnViruses(self):
+    def spawnViruses(self, maxSpawns):
         pass
 
     # Setters:
