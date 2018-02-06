@@ -17,9 +17,13 @@ if __name__ == '__main__':
     SCREEN_HEIGHT = 900
     MAXBOTS = 1000
     MAXHUMANPLAYERS = 2
+    DEBUGMODE = False
 
-    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT)
-    
+    debug = int(input("Display debug info?: (1 == yes)\n"))
+    if(debug == 1):
+        DEBUGMODE = True
+
+    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, DEBUGMODE)
 
     numberOfBots= int(input("Please enter the number of bots:\n"))
     if not(numberOfBots > MAXBOTS):

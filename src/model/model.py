@@ -11,8 +11,9 @@ import time
 
 
 class Model(object):
-    def __init__(self, width, height):
+    def __init__(self, width, height, debug):
         self.listeners = []
+        self.debug = debug
 
         self.players = []
         self.bots = []
@@ -36,36 +37,14 @@ class Model(object):
         # Get the decisions of the bots/human. Update the field accordingly.
         for bot in self.bots:
             bot.update()
-        if( self.hasHuman() ):
-            self.setHumanInput()
-
         self.field.update()
         self.notify(None)
         #wait = input("PRESS ENTER TO CONTINUE.")
         time.sleep(0.2)
-        self.printDebugInfo()
+        if(self.debug == True):
+            self.printDebugInfo()
 
-    # Find the point where the player clicked, taking into account that he only sees the fov
-    def setRelativeMousePos(self):
-        mousePos = pygame.mouse.get_pos()
-        fovPos = self.human.getFovPos()
-        fovDims = self.human.getFovDims()
-        difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
-        relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
-        self.human.setMoveTowards(relativeMousePos)
-
-
-    # def handleKeyInput(self):
-    #     for event in pygame.event.get():
-    #         if( event.type == pygame.KEYDOWN ):
-    #             if( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
-    #                 human.setSplit(True)
-    #             elif( event.key == pygame.K_w and self.human.getCanEject()):
-    #                 human.setEject(True)
-
-    #         if event.type == pygame.QUIT:
-    #             quit()
-
+    # def handleKeyInp
     def setHumanInput(self):
     #    self.handleKeyInput()
         self.setRelativeMousePos()
