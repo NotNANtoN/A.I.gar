@@ -17,24 +17,24 @@ class Controller:
     def process_input(self):
         human = self.model.getHuman()
         for event in pygame.event.get():
+            # Event types
             if event.type == pygame.QUIT:
                 self.running = False
-            if( human is not None ):
-                if( event.type == pygame.KEYDOWN ):
-                    if( event.key == pygame.K_SPACE  and human.getCanSplit()):
-                        human.setSplit(True)
-                    elif( event.key == pygame.K_w and human.getCanEject()):
-                        human.setEject(True)
+            if( event.type == pygame.KEYDOWN ):
+                if( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
+                    human.setSplit(True)
+                elif( event.key == pygame.K_w and self.human.getCanEject()):
+                    human.setEject(True)
 
-                #elif event.type == pygame.MOUSEBUTTONDOWN:
-                    #if pygame.mouse.get_pressed()[0]:
-                    #    pass
-                # Find the point where the player clicked, taking into account that he only sees the fov
-                elif event.type == pygame.MOUSEMOTION:
-                    mousePos = pygame.mouse.get_pos()
-                    fovPos = human.getFovPos()
-                    fovDims = human.getFovDims()
-                    difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
-                    relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
-                    human.setMoveTowards(relativeMousePos)
+        if( self.model.hasHuman() ):
+            self.mousePosition()
+
+    # Find the point where the player moved, taking into account that he only sees the fov
+    def mousePosition(self):
+        mousePos = pygame.mouse.get_pos()
+        fovPos = self.model.human.getFovPos()
+        fovDims = self.model.human.getFovDims()                 
+        difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
+        relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
+        self.model.human.setMoveTowards(relativeMousePos)
 

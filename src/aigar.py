@@ -7,7 +7,7 @@ import os
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 900
 MAXBOTS = 1000
-MAXHUMANPLAYERS = 2
+MAXHUMANPLAYERS = 1
 
 def fitsLimitations(number, limit):
     if number < 0:
