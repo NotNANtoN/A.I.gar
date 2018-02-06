@@ -4,57 +4,48 @@ from controller.controller import Controller
 import sys
 import os
 
+SCREEN_WIDTH = 1200
+SCREEN_HEIGHT = 900
+MAXBOTS = 1000
+MAXHUMANPLAYERS = 2
 
-def quitGame():
-    print("Exitting...")
-    sys.exit()
+def fitsLimitations(number, limit):
+    if number < 0:
+        print("Number can't be negative.")
+        quit()
+    if number > limit:
+        print("Number can't be larger than ", limit, ".")
+        quit()
+    return True
 
+
+def createHumans(number, model):
+    for i in range(numberOfHumans):
+        name = input("Player" + str(i + 1) + " name:\n")
+        model.createHuman(name)
+
+def createBots(number, model):
+    for i in range(numberOfBots):
+        model.createBot()
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
 
-    SCREEN_WIDTH = 1200
-    SCREEN_HEIGHT = 900
-    MAXBOTS = 1000
-    MAXHUMANPLAYERS = 2
-    DEBUGMODE = False
 
     debug = int(input("Display debug info?: (1 == yes)\n"))
-    if(debug == 1):
-        DEBUGMODE = True
+    debug = (debug == 1)
 
-    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, DEBUGMODE)
+    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, debug)
 
-    numberOfBots= int(input("Please enter the number of bots:\n"))
-    if not(numberOfBots > MAXBOTS):
-        if not(numberOfBots < 0):
-            for i in range(0,numberOfBots):
-
-                model.createBot()
-        else:
-            print("Number of bots can't be negative.")
-            quitGame()
-    else:
-        print("Too many bots.")
-        quitGame()
+    numberOfBots = int(input("Please enter the number of bots:\n"))
+    if( fitsLimitations(numberOfBots, MAXBOTS)):
+        createBots(numberOfBots, model)
 
     numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
-    if numberOfHumans <= MAXHUMANPLAYERS:
-        if numberOfHumans >= 0:
-            if numberOfHumans > 0:
-                for i in range(1, numberOfHumans + 1):
-                    name = input("Player" + str(i) + " name:\n")
-                    model.createHuman(name)
-            else:
-                pass
-        else:
-            print("Number of humans can't be negative.")
-            quitGame()
-    else:
-        print("Too many humans.")
-        quitGame()
+    if( fitsLimitations(numberOfHumans, MAXHUMANPLAYERS)):
+        createHumans(numberOfHumans, model)
 
     view = View(SCREEN_HEIGHT)
     controller = Controller(model, view)
