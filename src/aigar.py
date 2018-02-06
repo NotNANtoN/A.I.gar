@@ -56,7 +56,7 @@ if __name__ == '__main__':
         print("Too many humans.")
         quitGame()
 
-    view = View(SCREEN_HEIGHT)
+    view = View(model)
     controller = Controller(model, view)
 
     model.initialize()

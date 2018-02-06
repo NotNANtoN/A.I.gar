@@ -15,7 +15,7 @@ import time
 class Model(object):
     def __init__(self, width, height, debug):
         self.listeners = []
-        self.debug = debug
+        self.debugStatus = debug
 
         self.players = []
         self.bots = []
@@ -40,10 +40,10 @@ class Model(object):
         for bot in self.bots:
             bot.update()
         self.field.update()
-        self.notify(None)
+        self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
         time.sleep(0.2)
-        if(self.debug == True):
+        if(self.debugStatus == True):
             self.printDebugInfo()
 
     # def handleKeyInp
@@ -100,10 +100,13 @@ class Model(object):
     def getPlayerCells(self):
         return self.field.getPlayerCells()
 
+    def getDebugStatus(self):
+        return self.debugStatus
+
     # MVC related method
     def register_listener(self, listener):
         self.listeners.append(listener)
 
-    def notify(self, event_name):
+    def notify(self):
         for listener in self.listeners:
-            listener(event_name)
+            listener()
