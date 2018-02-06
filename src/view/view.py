@@ -1,18 +1,17 @@
-import pygame 
-import os
+import pygame
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+
 class View:
 
-
-    def __init__(self, sizeX, sizeY, model):
+    def __init__(self, model):
         self.model = model
         model.register_listener(self.model_event)
-        self.screen = pygame.display.set_mode((640,480))
+        self.screen = pygame.display.set_mode((640, 480))
         pygame.display.set_caption('A.I.gar')
-        
+
     def drawCells(self, cells):
         fovPos = self.model.getFovPos()
         fovDims = self.model.getFovDims()
@@ -25,7 +24,6 @@ class View:
                 print("pos: ", pos[0], "-", pos[1], " raidus: ", roundedRad)
                 pygame.draw.circle(self.screen, cell.getColor(), roundedPos, roundedRad)
 
-
     def drawAllCells(self):
         self.drawCells(self.model.getCollectibles())
         self.drawCells(self.model.getViruses())
@@ -36,11 +34,9 @@ class View:
         self.drawAllCells()
         pygame.display.update()
 
-    def model_event(self, event_name):
+    def model_event(self):
         print("Draw some stuff")
         self.draw()
-
-
 
     # Checks:
     def isInFov(self, cell, fovPos, fovDims):
@@ -54,4 +50,3 @@ class View:
         if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
             return False
         return True
-     

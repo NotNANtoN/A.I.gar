@@ -1,5 +1,7 @@
 from random import randint
+
 from .cell import Cell
+
 # The Field class is the main field on which cells of all sizes will move
 # Its size depends on how many players are in the game
 # It always contains a certain number of viruses and collectibles and regulates their number and spawnings
@@ -7,6 +9,7 @@ from .cell import Cell
 START_RADIUS = 30
 MAX_COLLECTIBLE_SPAWN_PER_UPDATE = 5
 COLLECTIBLE_SIZE = 30
+
 
 class Field(object):
     def __init__(self):
@@ -34,7 +37,6 @@ class Field(object):
 
         self.spawnStuff()
 
-
     def updateViruses(self):
         for virus in self.viruses:
             virus.update()
@@ -56,8 +58,12 @@ class Field(object):
     def spawnCollectible(self):
         xPos = randint(0, self.width)
         yPos = randint(0, self.height)
-        color = (randint(0,255), randint(0,255), randint(0,255))
-        collectible = Cell(xPos, yPos, COLLECTIBLE_SIZE ,color)
+        color = (randint(0, 255), randint(0, 255), randint(0, 255))
+        collectible = Cell(xPos, yPos, COLLECTIBLE_SIZE, color)
+        self.addCollectible(collectible)
+
+    def addCollectible(self, collectible):
+        self.collectibles.append(collectible)
 
     def spawnViruses(self):
         pass

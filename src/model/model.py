@@ -5,6 +5,8 @@ from .bot import Bot
 import numpy
 import pygame
 import time
+
+
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
 # It links the actions of the players to consequences in the field and updates information.
@@ -41,7 +43,7 @@ class Model(object):
 
         self.field.update()
         self.notify(None)
-        #wait = input("PRESS ENTER TO CONTINUE.")
+        # wait = input("PRESS ENTER TO CONTINUE.")
         time.sleep(0.2)
         self.printDebugInfo()
 
@@ -50,27 +52,24 @@ class Model(object):
         mousePos = pygame.mouse.get_pos()
         fovPos = self.human.getFovPos()
         fovDims = self.human.getFovDims()
-        difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
+        difference = numpy.subtract(mousePos, [fovDims[0] / 2, fovDims[1] / 2])
         relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
         self.human.setMoveTowards(relativeMousePos)
-
 
     def handleKeyInput(self):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE  and self.human.getCanSplit():
+                if event.key == pygame.K_SPACE and self.human.getCanSplit():
                     human.setSplit(True)
                 elif event.key == pygame.K_w and self.human.getCanEject():
                     human.setEject(True)
-
 
     #         if event.type == pygame.QUIT:
     #             quit()
 
     def setHumanInput(self):
-    #    self.handleKeyInput()
+        #    self.handleKeyInput()
         self.setRelativeMousePos()
-      
 
     # Setters:
     def createPlayer(self, name):
@@ -95,7 +94,7 @@ class Model(object):
     def addBot(self, bot):
         self.bots.append(bot)
 
-    def addHuman(self, player): 
+    def addHuman(self, player):
         self.human = player
 
     # Checks:
@@ -120,7 +119,6 @@ class Model(object):
 
     def getPlayerCells(self):
         return self.field.getPlayerCells()
-
 
     # MVC related method
     def register_listener(self, listener):

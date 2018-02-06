@@ -2,13 +2,16 @@ from model.model import *
 from view.view import View
 from controller.controller import Controller
 import sys
+import os
+
 
 def quitGame():
     print("Exitting...")
     sys.exit()
 
+
 if __name__ == '__main__':
-    #This is used in case we want to use a freezing program to create an .exe 
+    # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
 
@@ -18,36 +21,35 @@ if __name__ == '__main__':
     MAXHUMANPLAYERS = 2
 
     model = Model(SCREEN_WIDTH, SCREEN_HEIGHT)
-    numberOfBots= int(input("Please enter the number of bots:\n"))
-    if not(numberOfBots > MAXBOTS):
-        if not(numberOfBots < 0):
-            for i in range(0,numberOfBots):
+    numberOfBots = int(input("Please enter the number of bots:\n"))
+    if not (numberOfBots > MAXBOTS):
+        if not (numberOfBots < 0):
+            for i in range(0, numberOfBots):
                 model.createBot()
         else:
             print("Number of bots can't be negative.")
-            self.quitGame()
+            quitGame()
     else:
         print("Too many bots.")
-        self.quitGame()
+        quitGame()
 
     numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
-    if (numberOfHumans <= MAXHUMANPLAYERS):
-        if (numberOfHumans >= 0):
-            if(numberOfHumans > 0):
-                for i in range(1,numberOfHumans+1):
-                    name = input("Player" + str(i) +" name:\n")
+    if numberOfHumans <= MAXHUMANPLAYERS:
+        if numberOfHumans >= 0:
+            if numberOfHumans > 0:
+                for i in range(1, numberOfHumans + 1):
+                    name = input("Player" + str(i) + " name:\n")
                     model.createHuman(name)
             else:
                 pass
         else:
             print("Number of humans can't be negative.")
-            self.quitGame()
+            quitGame()
     else:
         print("Too many humans.")
-        self.quitGame()
+        quitGame()
 
-
-    view = View(SCREEN_WIDTH, SCREEN_HEIGHT, model)
+    view = View(SCREEN_HEIGHT)
     controller = Controller(model, view)
 
     model.initialize()
@@ -56,7 +58,3 @@ if __name__ == '__main__':
     while controller.running:
         controller.process_input()
         model.update()
-
-
-    
->>>>>>> 0e5b1a30161ab9872b37fc549b9405d681c09a64

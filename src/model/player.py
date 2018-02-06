@@ -1,4 +1,3 @@
-from .cell import Cell
 from random import randint
 
 
@@ -6,13 +5,14 @@ class Player(object):
     STARTRADIUS = 10
 
     """docstring for Player"""
+
     def __init__(self, name):
-        self.color = (randint(0,255), randint(0,255), randint(0,255))
+        self.color = (randint(0, 255), randint(0, 255), randint(0, 255))
         self.name = name
         self.cells = []
         self.canSplit = False
         self.canEject = False
-         # Commands:
+        # Commands:
         self.moveCellsTowards = [-1, -1]
         self.split = False
         self.eject = False
@@ -28,14 +28,14 @@ class Player(object):
             cell.setMoveDirection(self.moveCellsTowards)
 
     def updateCellsSplit(self):
-        if self.split == False:
+        if not self.split:
             return
         for cell in self.cells:
             if cell.canSplit():
                 cell.split()
 
     def updateCellsEject(self):
-        if self.eject == False:
+        if not self.eject:
             return
         for cell in self.cells:
             if cell.canEject():
@@ -43,7 +43,7 @@ class Player(object):
 
     def updateCellsMovement(self, fieldWidth, fieldHeight):
         for cell in self.cells:
-            cell.updatePos(fieldWidth, fieldHeight) 
+            cell.updatePos(fieldWidth, fieldHeight)
 
     def split(self):
         for cell in self.cells:
@@ -66,15 +66,14 @@ class Player(object):
         self.cells.remove(cell)
 
     def setCommands(self, x, y, split, eject):
-        self.moveCellsTowards = [x,y]
+        self.moveCellsTowards = [x, y]
         self.split = split
         self.eject = eject
 
-    def setSplit(self, bool):
-        self.split = bool
+    def setSplit(self, val):
+        self.split = val
 
     # Checks:
-  
 
     # Getters:
     def getCanSplit(self):
@@ -82,14 +81,14 @@ class Player(object):
 
     def getCanEject(self):
         return False
-        
+
     def getFovPos(self):
         meanX = sum(cell.getX() for cell in self.cells) / len(self.cells)
         meanY = sum(cell.getY() for cell in self.cells) / len(self.cells)
         return meanX, meanY
 
     def getFovDims(self):
-        width = max(self.cells, key = lambda p: p.getRadius()).getRadius() * 5
+        width = max(self.cells, key=lambda p: p.getRadius()).getRadius() * 5
         height = width
         return width, height
 
@@ -97,7 +96,7 @@ class Player(object):
         fovPos = self.getFovPos()
         fovDims = self.getFovDims()
         return fovPos, fovDims
-        
+
     def getCells(self):
         return self.cells
 
@@ -106,7 +105,3 @@ class Player(object):
 
     def getName(self):
         return self.name
-
-
-
-        
