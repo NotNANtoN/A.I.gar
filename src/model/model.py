@@ -26,12 +26,11 @@ class Model(object):
     def initialize(self):
         self.field.initialize()
 
-    def run(self):
+    def printDebugInfo(self):
         fovPos = self.getFovPos()
         print("FovPos: ", fovPos[0], "|", fovPos[1])
         humanPos = self.human.cells[0].getPos()
         print("HumanPos: ", humanPos[0], "|", humanPos[1])
-        self.update()
 
     def update(self):
         # Get the decisions of the bots/human. Update the field accordingly.
@@ -44,7 +43,7 @@ class Model(object):
         self.notify(None)
         #wait = input("PRESS ENTER TO CONTINUE.")
         time.sleep(0.2)
-        self.run()
+        self.printDebugInfo()
 
     # Find the point where the player clicked, taking into account that he only sees the fov
     def setRelativeMousePos(self):
@@ -64,11 +63,12 @@ class Model(object):
                 elif event.key == pygame.K_w and self.human.getCanEject():
                     human.setEject(True)
 
-            if event.type == pygame.QUIT:
-                quit()
+
+    #         if event.type == pygame.QUIT:
+    #             quit()
 
     def setHumanInput(self):
-        self.handleKeyInput()
+    #    self.handleKeyInput()
         self.setRelativeMousePos()
       
 
