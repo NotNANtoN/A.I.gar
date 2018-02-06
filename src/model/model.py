@@ -5,6 +5,8 @@ from .bot import Bot
 import numpy
 import pygame
 import time
+
+
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
 # It links the actions of the players to consequences in the field and updates information.
@@ -39,16 +41,15 @@ class Model(object):
             bot.update()
         self.field.update()
         self.notify(None)
-        #wait = input("PRESS ENTER TO CONTINUE.")
+        # wait = input("PRESS ENTER TO CONTINUE.")
         time.sleep(0.2)
         if(self.debug == True):
             self.printDebugInfo()
 
     # def handleKeyInp
     def setHumanInput(self):
-    #    self.handleKeyInput()
+        #    self.handleKeyInput()
         self.setRelativeMousePos()
-      
 
     # Setters:
     def createPlayer(self, name):
@@ -73,12 +74,12 @@ class Model(object):
     def addBot(self, bot):
         self.bots.append(bot)
 
-    def addHuman(self, player): 
+    def addHuman(self, player):
         self.human = player
 
     # Checks:
     def hasHuman(self):
-        return self.human != None
+        return self.human is not None
 
     # Getters:
     def getFovPos(self):
@@ -98,7 +99,6 @@ class Model(object):
 
     def getPlayerCells(self):
         return self.field.getPlayerCells()
-
 
     # MVC related method
     def register_listener(self, listener):

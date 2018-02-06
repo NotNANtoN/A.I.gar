@@ -36,3 +36,4 @@ class Controller:
                     difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
                     relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
                     self.model.human.setMoveTowards(relativeMousePos)
+
