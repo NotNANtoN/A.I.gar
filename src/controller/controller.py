@@ -32,9 +32,19 @@ class Controller:
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self):
         mousePos = pygame.mouse.get_pos()
-        fovPos = self.model.human.getFovPos()
-        fovDims = self.model.human.getFovDims()                 
-        difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
-        relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
+        fovPos = numpy.array(self.model.human.getFovPos())
+        fovDims = numpy.array(self.model.human.getFovDims()  )
+        screenDims = self.view.getScreenDims()
+        relativeMousePos = self.viewToModel(mousePos, fovPos, fovDims, screenDims)
         self.model.human.setMoveTowards(relativeMousePos)
+
+    def modelToView(self, pos, fovPos, fovDims, screenDims):
+        adjustedPos = pos - fovPos + (fovDims / 2)
+        scaledPos = adjustedPos * (screenDims / fovDims)
+        return scaledPos
+
+    def viewToModel(self, pos, fovPos, fovDims, screenDims):
+        scaledPos = pos / (screenDims / fovDims)
+        adjustedPos = scaledPos + fovPos - (fovDims / 2)
+        return adjustedPos
 

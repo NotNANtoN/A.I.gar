@@ -59,3 +59,7 @@ class View:
         if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
             return False
         return True
+
+    def getScreenDims(self):
+        return numpy.array([self.width, self.height])
+
