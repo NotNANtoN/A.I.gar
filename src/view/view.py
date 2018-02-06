@@ -1,4 +1,5 @@
 import pygame
+import numpy
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -6,24 +7,29 @@ BLACK = (0, 0, 0)
 
 class View:
 
-    def __init__(self, model):
+    def __init__(self, model, width, height):
+        self.width = width
+        self.height = height
+        self.screenDims = numpy.array([self.width, self.height])
         self.model = model
         self.model.register_listener(self.model_event)
-        self.screen = pygame.display.set_mode((640, 480))
+        self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('A.I.gar')
 
     def drawCells(self, cells):
-        fovPos = self.model.getFovPos()
-        fovDims = self.model.getFovDims()
+
+        fovPos = numpy.array(self.model.getFovPos())
+        fovDims = numpy.array(self.model.getFovDims())
         for cell in cells:
             if self.isInFov(cell, fovPos, fovDims):
-                pos = cell.getPos()
-                roundedPos = [int(pos[0]), int(pos[1])]
                 roundedRad = int(cell.getRadius())
-                pygame.draw.circle(self.screen, cell.getColor(), roundedPos, roundedRad)
+                pos = numpy.array(cell.getPos())
+                adjustedPos = pos - fovPos + (fovDims / 2)
+                scaledPos = adjustedPos * ( self.screenDims / fovDims)
+                pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), roundedRad)
                 if(self.model.getDebugStatus()):
                     print("One cell in the fov! :)")
-                    print("pos: ", pos[0], "-", pos[1], " raidus: ", roundedRad)
+                    print("pos: ", pos[0], "-", pos[1], " radius: ", roundedRad)
 
 
     def drawAllCells(self):

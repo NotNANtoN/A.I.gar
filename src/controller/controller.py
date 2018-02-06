@@ -15,14 +15,15 @@ class Controller:
         self.running = True
 
     def process_input(self):
+        human = self.model.getHuman()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            if( self.model.hasHuman() ):
+            if( human is not None ):
                 if( event.type == pygame.KEYDOWN ):
-                    if( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
+                    if( event.key == pygame.K_SPACE  and human.getCanSplit()):
                         human.setSplit(True)
-                    elif( event.key == pygame.K_w and self.human.getCanEject()):
+                    elif( event.key == pygame.K_w and human.getCanEject()):
                         human.setEject(True)
 
                 #elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -31,9 +32,9 @@ class Controller:
                 # Find the point where the player clicked, taking into account that he only sees the fov
                 elif event.type == pygame.MOUSEMOTION:
                     mousePos = pygame.mouse.get_pos()
-                    fovPos = self.model.human.getFovPos()
-                    fovDims = self.model.human.getFovDims()
+                    fovPos = human.getFovPos()
+                    fovDims = human.getFovDims()
                     difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
                     relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
-                    self.model.human.setMoveTowards(relativeMousePos)
+                    human.setMoveTowards(relativeMousePos)
 

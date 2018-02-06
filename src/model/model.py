@@ -31,7 +31,10 @@ class Model(object):
 
     def printDebugInfo(self):
         fovPos = self.getFovPos()
+        fovDims = self.getFovDims()
         print("FovPos: ", fovPos[0], "|", fovPos[1])
+        print("FovDims: ", fovDims[0], "|", fovDims[1])
+
         humanPos = self.human.cells[0].getPos()
         print("HumanPos: ", humanPos[0], "|", humanPos[1])
 
@@ -42,7 +45,7 @@ class Model(object):
         self.field.update()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
-        time.sleep(0.2)
+        time.sleep(0.1)
         if(self.debugStatus == True):
             self.printDebugInfo()
 
@@ -82,6 +85,9 @@ class Model(object):
         return self.human is not None
 
     # Getters:
+    def getHuman(self):
+        return self.human
+
     def getFovPos(self):
         return self.human.getFovPos()
 

@@ -1,5 +1,5 @@
 from random import randint
-
+import numpy
 from .cell import Cell
 
 # The Field class is the main field on which cells of all sizes will move
@@ -36,8 +36,12 @@ class Field(object):
     def update(self):
         self.updateViruses()
         self.updatePlayers()
+        self.checkCollisions()
 
         self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
+
+    def checkCollisions(selfs):
+        pass
 
     def updateViruses(self):
         for virus in self.viruses:
@@ -73,8 +77,8 @@ class Field(object):
     # Setters:
     def addPlayer(self, player):
         self.players.append(player)
-        self.width = 120 * len(self.players)
-        self.height = 100 * len(self.players)
+        self.width = numpy.round(120 * numpy.sqrt(len(self.players)))
+        self.height = numpy.round(100 * numpy.sqrt(len(self.players)))
 
     # Getters:
     def getWidth(self):
