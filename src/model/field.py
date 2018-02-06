@@ -49,7 +49,7 @@ class Field(object):
 
     def spawnCollectibles(self):
         count = 0
-        while( len(self.collectibles) < 100 and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE ):
+        while len(self.collectibles) < 100 and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
             self.spawnCollectible()
             count += 1
 

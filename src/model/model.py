@@ -37,7 +37,7 @@ class Model(object):
         # Get the decisions of the bots/human. Update the field accordingly.
         for bot in self.bots:
             bot.update()
-        if( self.hasHuman() ):
+        if self.hasHuman():
             self.setHumanInput()
 
         self.field.update()
@@ -58,10 +58,10 @@ class Model(object):
 
     def handleKeyInput(self):
         for event in pygame.event.get():
-            if( event.type == pygame.KEYDOWN ):
-                if( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE  and self.human.getCanSplit():
                     human.setSplit(True)
-                elif( event.key == pygame.K_w and self.human.getCanEject()):
+                elif event.key == pygame.K_w and self.human.getCanEject():
                     human.setEject(True)
 
             if event.type == pygame.QUIT:
@@ -100,7 +100,7 @@ class Model(object):
 
     # Checks:
     def hasHuman(self):
-        return self.human != None
+        return self.human is not None
 
     # Getters:
     def getFovPos(self):

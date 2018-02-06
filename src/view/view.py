@@ -4,7 +4,7 @@ import os
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-class View():
+class View:
 
 
     def __init__(self, sizeX, sizeY, model):
@@ -17,7 +17,7 @@ class View():
         fovPos = self.model.getFovPos()
         fovDims = self.model.getFovDims()
         for cell in cells:
-            if( self.isInFov(cell, fovPos, fovDims) ):
+            if self.isInFov(cell, fovPos, fovDims):
                 print("One cell in the fov! :)")
                 pos = cell.getPos()
                 roundedPos = [int(pos[0]), int(pos[1])]
@@ -51,7 +51,7 @@ class View():
         x = cell.getX()
         y = cell.getY()
         radius = cell.getRadius()
-        if( x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax ):
+        if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
             return False
         return True
      

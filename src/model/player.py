@@ -28,17 +28,17 @@ class Player(object):
             cell.setMoveDirection(self.moveCellsTowards)
 
     def updateCellsSplit(self):
-        if( self.split == False ):
+        if self.split == False:
             return
         for cell in self.cells:
-            if( cell.canSplit() ):
+            if cell.canSplit():
                 cell.split()
 
     def updateCellsEject(self):
-        if( self.eject == False ):
+        if self.eject == False:
             return
         for cell in self.cells:
-            if( cell.canEject() ):
+            if cell.canEject():
                 cell.eject()
 
     def updateCellsMovement(self, fieldWidth, fieldHeight):
@@ -47,12 +47,12 @@ class Player(object):
 
     def split(self):
         for cell in self.cells:
-            if( cell.canSplit() ):
+            if cell.canSplit():
                 cell.split()
 
     def eject(self):
         for cell in self.cells:
-            if( cell.canEject() ):
+            if cell.canEject():
                 cell.eject()
 
     # Setters:
@@ -86,17 +86,17 @@ class Player(object):
     def getFovPos(self):
         meanX = sum(cell.getX() for cell in self.cells) / len(self.cells)
         meanY = sum(cell.getY() for cell in self.cells) / len(self.cells)
-        return (meanX, meanY)
+        return meanX, meanY
 
     def getFovDims(self):
         width = max(self.cells, key = lambda p: p.getRadius()).getRadius() * 5
         height = width
-        return (width, height)
+        return width, height
 
     def getFov(self):
         fovPos = self.getFovPos()
         fovDims = self.getFovDims()
-        return (fovPos, fovDims)
+        return fovPos, fovDims
         
     def getCells(self):
         return self.cells
