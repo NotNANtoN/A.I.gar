@@ -40,12 +40,33 @@ class Field(object):
 
         self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
 
-    def checkCollisions(selfs):
-        pass
+    def checkCollisions(self):
+        self.collectibleCollisions()
+
+    def collectibleCollisions(self):
+        for player in self.players:
+            for cell in player.getCells():
+                for collectible in self.collectibles:
+                    if cell.overlap(collectible):
+                        self.eat(cell, collectible)
+
+        # Eats the other cell. Increases own size and deletes other
+
+    # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
+    def eat(self,cell1, cell2):
+        cell1.grow(cell2.getMass())
+        self.deleteCollectible(cell2)
+
+    def deleteCollectible(self, collectible):
+        self.collectibles.remove(collectible)
+
+
+
 
     def updateViruses(self):
         for virus in self.viruses:
             virus.update()
+
 
     def updatePlayers(self):
         for player in self.players:

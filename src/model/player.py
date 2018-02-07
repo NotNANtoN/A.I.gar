@@ -76,6 +76,9 @@ class Player(object):
     # Checks:
 
     # Getters:
+    def getCells(self):
+        return self.cells
+
     def getCanSplit(self):
         return False
 
