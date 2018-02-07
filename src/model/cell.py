@@ -1,7 +1,5 @@
 import numpy
-
-MOVESPEED = 5
-SPLITSPEED = 2  # Speed of just spawned cell
+from .parameters import *
 
 
 class Cell(object):
@@ -16,8 +14,8 @@ class Cell(object):
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
         angle = numpy.arctan2(difference[1] , difference[0])
-        self.vx = MOVESPEED * numpy.cos(angle)
-        self.vy = MOVESPEED * numpy.sin(angle)
+        self.vx = CELL_MOVE_SPEED * numpy.cos(angle)
+        self.vy = CELL_MOVE_SPEED * numpy.sin(angle)
 
     def split(self):
         pass
