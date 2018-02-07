@@ -15,7 +15,8 @@ class Cell(object):
 
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
-        angle = numpy.arctan2(difference[1], difference[0])
+        ratio = difference[1] / difference[0]
+        angle = numpy.arctan2(difference[1] , difference[0])
         self.vx = MOVESPEED * numpy.cos(angle)
         self.vy = MOVESPEED * numpy.sin(angle)
 
@@ -62,3 +63,6 @@ class Cell(object):
 
     def getRadius(self):
         return self.radius
+
+    def getVelocity(self):
+        return [self.vx, self.vy]

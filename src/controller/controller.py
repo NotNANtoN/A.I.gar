@@ -21,8 +21,13 @@ class Controller:
             if event.type == pygame.QUIT:
                 self.running = False
             if( event.type == pygame.KEYDOWN ):
-                if( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
+                # "Escape" to Quit
+                if( event.key == pygame.K_ESCAPE ):
+                    self.running = False
+                # "space" to Split
+                elif( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
                     human.setSplit(True)
+                # "w" to Eject
                 elif( event.key == pygame.K_w and self.human.getCanEject()):
                     human.setEject(True)
 
@@ -31,15 +36,20 @@ class Controller:
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self):
-        mousePos = [self.view.width,0]#pygame.mouse.get_pos()
-        fovPos = self.model.human.getFovPos()
-        fovDims = self.model.human.getFovDims()
-        difference = numpy.subtract(mousePos, [fovDims[0] / 2,fovDims[1] / 2])
-        relativeMousePos = numpy.add(difference, [fovPos[0], fovPos[1]])
-        print("mousePos", mousePos)
-        print("fovPos", fovPos)
-        print("fovDims", fovDims)  
-        print("diff", difference)
-        print("relMouPos", relativeMousePos, "\n")
+        mousePos = pygame.mouse.get_pos()
+        fovPos = numpy.array(self.model.human.getFovPos())
+        fovDims = numpy.array(self.model.human.getFovDims()  )
+        screenDims = self.view.getScreenDims()
+        relativeMousePos = self.viewToModel(mousePos, fovPos, fovDims, screenDims)
         self.model.human.setMoveTowards(relativeMousePos)
+
+    def modelToView(self, pos, fovPos, fovDims, screenDims):
+        adjustedPos = pos - fovPos + (fovDims / 2)
+        scaledPos = adjustedPos * (screenDims / fovDims)
+        return scaledPos
+
+    def viewToModel(self, pos, fovPos, fovDims, screenDims):
+        scaledPos = pos / (screenDims / fovDims)
+        adjustedPos = scaledPos + fovPos - (fovDims / 2)
+        return adjustedPos
 

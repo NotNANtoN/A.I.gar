@@ -3,6 +3,8 @@ import numpy
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RED = (255,0,0)
+GREEN = (0,255,0)
 
 
 class View:
@@ -27,9 +29,14 @@ class View:
                 adjustedPos = pos - fovPos + (fovDims / 2)
                 scaledPos = adjustedPos * ( self.screenDims / fovDims)
                 pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), roundedRad)
-                if(self.model.getDebugStatus() and cells == self.model.getPlayerCells()):
+                if(self.model.getDebugStatus()):
                     print("One cell in the fov! :)")
                     print("pos: (", pos[0], ",", pos[1], ") radius: ", roundedRad)
+                    if(cells == self.model.getPlayerCells()):
+                        print(self.model.getHuman().cells[0].getVelocity())
+                        pygame.draw.line(self.screen, RED, scaledPos.astype(int), \
+                            numpy.array(self.model.getHuman().cells[0].getVelocity())*10+\
+                            numpy.array(scaledPos.astype(int)))
 
 
     def drawAllCells(self):
@@ -59,3 +66,7 @@ class View:
         if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
             return False
         return True
+
+    def getScreenDims(self):
+        return numpy.array([self.width, self.height])
+

@@ -13,7 +13,7 @@ class Player(object):
         self.canSplit = False
         self.canEject = False
         # Commands:
-        self.moveCellsTowards = [-1, -1]
+        self.commandPoint = [-1, -1]
         self.split = False
         self.eject = False
 
@@ -25,7 +25,7 @@ class Player(object):
 
     def updateCellsMoveDir(self):
         for cell in self.cells:
-            cell.setMoveDirection(self.moveCellsTowards)
+            cell.setMoveDirection(self.commandPoint)
 
     def updateCellsSplit(self):
         if not self.split:
@@ -57,7 +57,7 @@ class Player(object):
 
     # Setters:
     def setMoveTowards(self, relativeMousePos):
-        self.moveCellsTowards = relativeMousePos
+        self.commandPoint = relativeMousePos
 
     def addCell(self, cell):
         self.cells.append(cell)
@@ -66,7 +66,7 @@ class Player(object):
         self.cells.remove(cell)
 
     def setCommands(self, x, y, split, eject):
-        self.moveCellsTowards = [x, y]
+        self.commandPoint = [x, y]
         self.split = split
         self.eject = eject
 
