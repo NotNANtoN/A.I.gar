@@ -27,9 +27,9 @@ class View:
                 adjustedPos = pos - fovPos + (fovDims / 2)
                 scaledPos = adjustedPos * ( self.screenDims / fovDims)
                 pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), roundedRad)
-                if(self.model.getDebugStatus()):
+                if(self.model.getDebugStatus() and cells == self.model.getPlayerCells()):
                     print("One cell in the fov! :)")
-                    print("pos: ", pos[0], "-", pos[1], " radius: ", roundedRad)
+                    print("pos: (", pos[0], ",", pos[1], ") radius: ", roundedRad)
 
 
     def drawAllCells(self):
