@@ -45,7 +45,7 @@ class Model(object):
         self.field.update()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
-        time.sleep(0.1)
+        time.sleep(1/30)
         if(self.debugStatus == True):
             self.printDebugInfo()
 
