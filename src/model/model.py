@@ -5,6 +5,7 @@ from .bot import Bot
 import numpy
 import pygame
 import time
+from .parameters import *
 
 
 # The model class is the main wrapper for the game engine.
@@ -45,7 +46,7 @@ class Model(object):
         self.field.update()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
-        time.sleep(0.1)
+        time.sleep(1/FPS)
         if(self.debugStatus == True):
             self.printDebugInfo()
 

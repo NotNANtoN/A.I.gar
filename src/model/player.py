@@ -1,8 +1,6 @@
 from random import randint
 
-
 class Player(object):
-    STARTRADIUS = 10
 
     """docstring for Player"""
 

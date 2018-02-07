@@ -18,6 +18,21 @@ class View:
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('A.I.gar')
 
+    def modelToViewScaling(self, pos):
+        fovPos = numpy.array(self.model.human.getFovPos())
+        fovDims = numpy.array(self.model.human.getFovDims())
+        adjustedPos = pos - fovPos + (fovDims / 2)
+        scaledPos = adjustedPos * (self.screenDims / fovDims)
+        return scaledPos
+
+    def viewToModelScaling(self, pos):
+        fovPos = numpy.array(self.model.human.getFovPos())
+        fovDims = numpy.array(self.model.human.getFovDims())
+        scaledPos = pos / (self.screenDims / fovDims)
+        adjustedPos = scaledPos + fovPos - (fovDims / 2)
+        return adjustedPos
+
+
     def drawCells(self, cells):
 
         fovPos = numpy.array(self.model.getFovPos())
@@ -33,9 +48,8 @@ class View:
                     print("One cell in the fov! :)")
                     print("pos: (", pos[0], ",", pos[1], ") radius: ", roundedRad)
                     if(cells == self.model.getPlayerCells()):
-                        print(self.model.getHuman().cells[0].getVelocity())
                         pygame.draw.line(self.screen, RED, scaledPos.astype(int), \
-                            numpy.array(self.model.getHuman().cells[0].getVelocity())*10+\
+                            numpy.array(cell.getVelocity())*10+\
                             numpy.array(scaledPos.astype(int)))
 
 
