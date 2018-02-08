@@ -120,6 +120,7 @@ class Field(object):
 
     # Setters:
     def addPlayer(self, player):
+        player.setAlive()
         self.players.append(player)
 
     # Getters:
