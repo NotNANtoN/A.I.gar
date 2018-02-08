@@ -29,7 +29,7 @@ class Field(object):
         for player in self.players:
             self.initializePlayer(player)
 
-        self.spawnStuff(99999999)
+        self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
 
     def update(self):
         self.updateViruses()
