@@ -1,4 +1,5 @@
 from random import randint
+import numpy
 
 class Player(object):
 
@@ -10,16 +11,18 @@ class Player(object):
         self.cells = []
         self.canSplit = False
         self.canEject = False
+        self.isAlive = True
         # Commands:
         self.commandPoint = [-1, -1]
         self.split = False
         self.eject = False
 
     def update(self, fieldWidth, fieldHeight):
-        self.updateCellsMoveDir()
-        self.updateCellsSplit()
-        self.updateCellsEject()
-        self.updateCellsMovement(fieldWidth, fieldHeight)
+        if (self.isAlive):
+            self.updateCellsMoveDir()
+            self.updateCellsSplit()
+            self.updateCellsEject()
+            self.updateCellsMovement(fieldWidth, fieldHeight)
 
     def updateCellsMoveDir(self):
         for cell in self.cells:
@@ -71,6 +74,12 @@ class Player(object):
     def setSplit(self, val):
         self.split = val
 
+    def setDead(self):
+        self.isAlive = False
+
+    def setAlive(self):
+        self.isAlive = True
+
     # Checks:
 
     # Getters:
@@ -89,7 +98,7 @@ class Player(object):
         return meanX, meanY
 
     def getFovDims(self):
-        width = max(self.cells, key=lambda p: p.getRadius()).getRadius() * 5
+        width = numpy.power(max(self.cells, key=lambda p: p.getRadius()).getRadius(),0.6) * 40 
         height = width
         return width, height
 
@@ -106,3 +115,6 @@ class Player(object):
 
     def getName(self):
         return self.name
+
+    def getIsAlive(self):
+        return self.isAlive

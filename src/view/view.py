@@ -33,23 +33,25 @@ class View:
         return adjustedPos
 
 
-    def drawCells(self, cells):
+    def modelToViewScaleRadius(self, rad):
+        return int(rad * (self.screenDims[0] / self.model.human.getFovDims()[0]))
 
+    def drawCells(self, cells):
         fovPos = numpy.array(self.model.getFovPos())
         fovDims = numpy.array(self.model.getFovDims())
         for cell in cells:
             if self.isInFov(cell, fovPos, fovDims):
-                roundedRad = int(cell.getRadius())
+                rad = cell.getRadius()
                 pos = numpy.array(cell.getPos())
-                adjustedPos = pos - fovPos + (fovDims / 2)
-                scaledPos = adjustedPos * ( self.screenDims / fovDims)
-                pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), roundedRad)
+                scaledRad = self.modelToViewScaleRadius(rad)
+                scaledPos = self.modelToViewScaling(pos)
+                pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), scaledRad)
                 if(self.model.getDebugStatus()):
                     print("One cell in the fov! :)")
-                    print("pos: (", pos[0], ",", pos[1], ") radius: ", roundedRad)
+                    print("pos: (", pos[0], ",", pos[1], ") radius: ", scaledRad)
                     if(cells == self.model.getPlayerCells()):
                         pygame.draw.line(self.screen, RED, scaledPos.astype(int), \
-                            numpy.array(cell.getVelocity())*10+\
+                            numpy.array(cell.getVelocity())*10+ \
                             numpy.array(scaledPos.astype(int)))
 
 

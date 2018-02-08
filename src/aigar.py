@@ -4,7 +4,7 @@ from controller.controller import Controller
 import sys
 import os
 
-SCREEN_WIDTH = 1200
+SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 900
 MAXBOTS = 1000
 MAXHUMANPLAYERS = 1

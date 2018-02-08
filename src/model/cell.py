@@ -93,3 +93,4 @@ class Cell(object):
 
     def getVelocity(self):
         return [self.vx, self.vy]
+        
