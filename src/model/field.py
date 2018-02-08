@@ -41,6 +41,7 @@ class Field(object):
     def checkCollisions(self):
         self.collectibleCollisions()
 
+
     def collectibleCollisions(self):
         for player in self.players:
             for cell in player.getCells():
