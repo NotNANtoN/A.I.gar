@@ -14,8 +14,8 @@ class Cell(object):
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
         angle = numpy.arctan2(difference[1] , difference[0])
-        self.vx = CELL_MOVE_SPEED * numpy.cos(angle)
-        self.vy = CELL_MOVE_SPEED * numpy.sin(angle)
+        self.vx = self.getReducedSpeed() * numpy.cos(angle)
+        self.vy = self.getReducedSpeed() * numpy.sin(angle)
 
     def split(self):
         pass
@@ -91,6 +91,9 @@ class Cell(object):
     def getSquaredRadius(self):
         return numpy.power(self.radius, 2)
 
+    def getReducedSpeed(self):
+        return CELL_MOVE_SPEED * numpy.power(self.getMass(), -1.0 / 4.5 ) * 10
+
     def getVelocity(self):
         return [self.vx, self.vy]
-        
+

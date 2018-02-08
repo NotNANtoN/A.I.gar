@@ -33,14 +33,14 @@ class Field(object):
             self.initializePlayer(player)
         self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
 
-        self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
+        self.spawnStuff()
 
     def update(self):
         self.updateViruses()
         self.updatePlayers()
         self.checkCollisions()
 
-        self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
+        self.spawnStuff()
 
     def checkCollisions(self):
         self.collectibleCollisions()
@@ -88,15 +88,19 @@ class Field(object):
         for player in self.players:
             player.update(self.width, self.height)
 
-    def spawnStuff(self, maxSpawns):
-        self.spawnCollectibles(maxSpawns)
-        self.spawnViruses(maxSpawns)
+    def spawnStuff(self):
+        self.spawnCollectibles()
+        self.spawnViruses()
 
-    def spawnCollectibles(self, maxSpawns):
-        count = 0
-        while len(self.collectibles) < self.maxCollectibleCount and count < maxSpawns:
-            self.spawnCollectible()
-            count += 1
+    def spawnCollectibles(self):
+        if (len(self.collectibles) == 0): # If beginning of the game, spawn all collectibles at once
+            while len(self.collectibles) < self.maxCollectibleCount:
+                self.spawnCollectible()
+        else: #Else, spawn at the max spawn rate
+            count = 0
+            while len(self.collectibles) < self.maxCollectibleCount and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
+                self.spawnCollectible()
+                count += 1
 
     def spawnCollectible(self):
         xPos = randint(0, self.width)
@@ -105,7 +109,7 @@ class Field(object):
         collectible = Cell(xPos, yPos, COLLECTIBLE_SIZE, color)
         self.addCollectible(collectible)
 
-    def spawnViruses(self, maxSpawns):
+    def spawnViruses(self):
         pass
 
     def removeDeadPlayer(self, player):
