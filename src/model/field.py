@@ -16,18 +16,22 @@ class Field(object):
         self.height = 0
         self.collectibles = []
         self.players = []
+        self.deadPlayers = []
         self.viruses = []
-        self.maxCollectibleCount = MAX_COLLECTIBLE_COUNT
+        self.maxCollectibleCount = None
 
     def initializePlayer(self, player):
         x = randint(0, self.width)
         y = randint(0, self.height)
-        newCell = Cell(x, y, START_RADIUS, player.getColor())
+        newCell = Cell(x, y, START_MASS, player.getColor())
         player.addCell(newCell)
 
     def initialize(self):
+        self.width = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
+        self.height = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         for player in self.players:
             self.initializePlayer(player)
+        self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
 
         self.spawnStuff(MAX_COLLECTIBLE_SPAWN_PER_UPDATE)
 
@@ -40,25 +44,39 @@ class Field(object):
 
     def checkCollisions(self):
         self.collectibleCollisions()
+        self.playerCollisions()
 
     def collectibleCollisions(self):
         for player in self.players:
             for cell in player.getCells():
                 for collectible in self.collectibles:
                     if cell.overlap(collectible):
-                        self.eat(cell, collectible)
+                        self.eatCollectible(cell, collectible)
 
-        # Eats the other cell. Increases own size and deletes other
+    def playerCollisions(self):
+        for i in range(len(self.players)):
+            for j in range(i, len(self.players)):
+                for playerCell in self.players[i].getCells():
+                    for opponentCell in self.players[j].getCells():
+                        if playerCell.overlap(opponentCell):
+                            if playerCell.getMass() > 1.1*opponentCell.getMass():
+                                self.eatPlayerCell(playerCell, opponentCell, self.players[j])
+                            if playerCell.getMass()*1.1 < opponentCell.getMass():
+                                self.eatPlayerCell(opponentCell, playerCell, self.players[i])
+
+
 
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
-    def eat(self,cell1, cell2):
-        cell1.grow(cell2.getMass())
-        self.deleteCollectible(cell2)
-
-    def deleteCollectible(self, collectible):
+    def eatCollectible(self, cell, collectible):
+        cell.grow(collectible.getMass())
         self.collectibles.remove(collectible)
 
-
+    def eatPlayerCell(self, largerCell, smallerCell, smallerPlayer):
+        largerCell.grow(smallerCell.getMass())
+        smallerPlayer.removeCell(smallerCell)
+        if (len(smallerPlayer.getCells()) == 0):
+            smallerPlayer.setDead()
+            self.deadPlayers.append(smallerPlayer)
 
 
     def updateViruses(self):
@@ -87,17 +105,18 @@ class Field(object):
         collectible = Cell(xPos, yPos, COLLECTIBLE_SIZE, color)
         self.addCollectible(collectible)
 
-    def addCollectible(self, collectible):
-        self.collectibles.append(collectible)
-
     def spawnViruses(self, maxSpawns):
         pass
+
+    def removeDeadPlayer(self, player):
+        self.deadPlayers.remove(player)
+
+    def addCollectible(self, collectible):
+        self.collectibles.append(collectible)
 
     # Setters:
     def addPlayer(self, player):
         self.players.append(player)
-        self.width = numpy.round(120 * numpy.sqrt(len(self.players)))
-        self.height = numpy.round(100 * numpy.sqrt(len(self.players)))
 
     # Getters:
     def getWidth(self):
@@ -117,3 +136,9 @@ class Field(object):
         for player in self.players:
             cells += player.getCells()
         return cells
+
+    def getDeadPlayers(self):
+        return self.deadPlayers
+
+    def getPlayers(self):
+        return self.players

@@ -44,11 +44,19 @@ class Model(object):
         for bot in self.bots:
             bot.update()
         self.field.update()
+
+        self.respawnPlayers()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
         time.sleep(1/FPS)
         if(self.debugStatus == True):
             self.printDebugInfo()
+
+    def respawnPlayers(self):
+        for dp in self.field.getDeadPlayers():
+            self.field.removeDeadPlayer(dp)
+            self.field.initializePlayer(dp)
+            self.field.addPlayer(dp)
 
     # def handleKeyInp
     def setHumanInput(self):

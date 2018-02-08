@@ -15,7 +15,11 @@ class Controller:
         self.running = True
 
     def process_input(self):
+        if not ( self.model.hasHuman()):
+            return
         human = self.model.getHuman()
+        if( human.getIsAlive()):
+            self.mousePosition()
         for event in pygame.event.get():
             # Event types
             if event.type == pygame.QUIT:
@@ -24,15 +28,16 @@ class Controller:
                 # "Escape" to Quit
                 if( event.key == pygame.K_ESCAPE ):
                     self.running = False
-                # "space" to Split
-                elif( event.key == pygame.K_SPACE  and self.human.getCanSplit()):
-                    human.setSplit(True)
-                # "w" to Eject
-                elif( event.key == pygame.K_w and self.human.getCanEject()):
-                    human.setEject(True)
+                 # "space" to Split
+                if( human.getIsAlive()):
+                    if( event.key == pygame.K_SPACE  and human.getCanSplit()):
+                        human.setSplit(True)
+                    # "w" to Eject
+                    elif( event.key == pygame.K_w and human.getCanEject()):
+                        human.setEject(True)
 
-        if( self.model.hasHuman() ):
-            self.mousePosition()
+        
+
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self):
