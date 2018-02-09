@@ -32,13 +32,21 @@ class Model(object):
 
     def printDebugInfo(self):
         if self.hasHuman():
-            fovPos = self.getFovPos()
-            fovDims = self.getFovDims()
-            print("FovPos: ", fovPos[0], "|", fovPos[1])
-            print("FovDims: ", fovDims[0], "|", fovDims[1])
+            print("Human total mass: ", self.human.getTotalMass())
+            print("Human first cell mass: ", self.human.cells[0].mass)
+            print("Human merge time first cell: ", self.human.cells[0].mergeTime)
+            if len(self.human.cells) > 1:
+                print("Human merge time second cell: ", self.human.cells[1].mergeTime)
 
-            humanPos = self.human.cells[0].getPos()
-            print("HumanPos: ", humanPos[0], "|", humanPos[1])
+            print("Human wants to split: ", self.human.doSplit)
+            print("")
+            #fovPos = self.getFovPos()
+            #fovDims = self.getFovDims()
+            #print("FovPos: ", fovPos[0], "|", fovPos[1])
+            #print("FovDims: ", fovDims[0], "|", fovDims[1])
+
+            #humanPos = self.human.cells[0].getPos()
+            #print("HumanPos: ", humanPos[0], "|", humanPos[1])
 
 
     def update(self):

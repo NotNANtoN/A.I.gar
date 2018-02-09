@@ -20,7 +20,6 @@ class View:
 
 
     def drawDebugInfo(self, cell, cells, scaledPos, fovPos, fovDims):
-        print("pos: (", fovPos[0], ",", fovPos[1], ") fovDims: ", fovDims[0], ", ", fovDims[1])
         if cells == self.model.getPlayerCells():
             pygame.draw.line(self.screen, RED, scaledPos.astype(int),
                              numpy.array(cell.getVelocity()) * 10 +
@@ -40,7 +39,6 @@ class View:
     def drawAllCells(self):
         fovPos = self.model.getFovPos()
         fovDims = self.model.getFovDims()
-        print("pos: (", fovPos[0], ",", fovPos[1], ") fovDims: ", fovDims[0], ", ", fovDims[1])
 
         self.drawCells(self.model.getCollectibles(), fovPos, fovDims)
         self.drawCells(self.model.getViruses(), fovPos, fovDims)
@@ -53,8 +51,6 @@ class View:
 
     def model_event(self):
         if self.model.hasHuman() or self.model.hasSpectator:
-            if self.model.getDebugStatus():
-                print("Draw some stuff:")
             self.draw()
 
     def modelToViewScaling(self, pos, fovPos, fovDims):

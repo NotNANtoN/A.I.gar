@@ -12,6 +12,9 @@ class Cell(object):
         self.color = color
         self.vx = 0
         self.vy = 0
+        self.momentum = 1
+        self.mergeTime = 0
+        self.alive = True
 
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
@@ -24,11 +27,14 @@ class Cell(object):
         self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
         self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
 
-    def split(self):
+    def split(self, commandPoint):
         pass
 
-    def eject(self):
+    def eject(self, commandPoint):
         pass
+
+    def addMomentum(self, value):
+        self.momentum = value
 
     # Increases the mass of the cell by value and updates the radius accordingly
     def grow(self, foodMass):
@@ -39,8 +45,16 @@ class Cell(object):
         newMass = self.mass * CELL_MASS_DECAY_RATE
         self.setMass(newMass)
 
+    def updateMomentum(self):
+        if self.momentum > 1:
+            self.momentum -= 0.4
+
+    def updateMerge(self):
+        if self.mergeTime > 0:
+            self.mergeTime -= 1
+
     def updateDirection(self, x, v, maxX):
-        return min(maxX, max(0, x + v))
+        return min(maxX, max(0, x + v * self.momentum))
 
     def updatePos(self, maxX, maxY):
         self.x = self.updateDirection(self.x, self.vx, maxX)
@@ -57,14 +71,21 @@ class Cell(object):
             return True
         return False
 
+    def resetMergeTime(self):
+        self.mergeTime = (BASE_MERGE_TIME + self.mass * 0.0233) * FPS / 2 / GAME_SPEED
+
+
+
     # Returns the squared distance from the self cell to another cell
     def squaredDistance(self, cell):
         difference = self.getPos() - cell.getPos()
         squared = numpy.power(difference, 2)
         return squared[0] + squared[1]
 
-    #############################################
     # Checks:
+    def isAlive(self):
+        return self.alive == True
+
     def isInFov(self, fovPos, fovDims):
         xMin = fovPos[0] - fovDims[0] / 2
         xMax = fovPos[0] + fovDims[0] / 2
@@ -77,13 +98,22 @@ class Cell(object):
             return False
         return True
 
+    def justEjected(self):
+        return self.momentum > 1
+
     def canSplit(self):
-        return False
+        return self.mass > 32
 
     def canEject(self):
-        return False
+        return self.mass > 35
+
+    def canMerge(self):
+        return self.mergeTime <= 0
 
     # Setters:
+    def setAlive(self, val):
+        self.alive = val
+
     def setPos(self, x, y):
         self.x = x
         self.y = y

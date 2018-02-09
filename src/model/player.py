@@ -1,4 +1,5 @@
 from random import randint
+from .cell import Cell
 import numpy
 
 
@@ -14,52 +15,57 @@ class Player(object):
         self.isAlive = True
         # Commands:
         self.commandPoint = [-1, -1]
-        self.split = False
-        self.eject = False
+        self.doSplit = False
+        self.doEject = False
 
     def update(self, fieldWidth, fieldHeight):
         if self.isAlive:
             self.decayMass()
-            self.updateCellsMoveDir()
-            self.updateCellsSplit()
-            self.updateCellsEject()
+            self.updateCellProperties()
+            self.split()
+            self.eject()
             self.updateCellsMovement(fieldWidth, fieldHeight)
 
     def decayMass(self):
         for cell in self.cells:
             cell.decayMass()
 
-    def updateCellsMoveDir(self):
+    def updateCellProperties(self):
         for cell in self.cells:
-            cell.setMoveDirection(self.commandPoint)
+            cell.updateMomentum()
+            cell.updateMerge()
+            if not cell.justEjected():
+                cell.setMoveDirection(self.commandPoint)
 
-    def updateCellsSplit(self):
-        if not self.split:
+    def split(self):
+        if not self.doSplit:
             return
         for cell in self.cells:
-            if cell.canSplit():
-                cell.split()
+            if cell.canSplit() and not cell.justEjected():
+                cellPos = cell.getPos()
+                newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2, self.color)
+                newCell.setMoveDirection(self.commandPoint)
+                newCell.addMomentum(6)
+                newCell.resetMergeTime()
+                cell.setMass(cell.getMass() / 2)
+                cell.resetMergeTime()
+                self.addCell(newCell)
 
-    def updateCellsEject(self):
-        if not self.eject:
+    def eject(self):
+        if not self.doEject:
             return
         for cell in self.cells:
             if cell.canEject():
-                cell.eject()
+                cell.eject(self.commandPoint)
+
+    def mergeCells(self, biggerCell, smallerCell):
+        print(" CELLS MERGED!")
+        biggerCell.setMass(biggerCell.getMass() + smallerCell.getMass())
+        self.cells.remove(smallerCell)
 
     def updateCellsMovement(self, fieldWidth, fieldHeight):
         for cell in self.cells:
             cell.updatePos(fieldWidth, fieldHeight)
-
-    def split(self):
-        for cell in self.cells:
-            if cell.canSplit():
-                cell.split()
-
-    def eject(self):
-        for cell in self.cells:
-            if cell.canEject():
-                cell.eject()
 
     # Setters:
     def setMoveTowards(self, relativeMousePos):
@@ -68,16 +74,25 @@ class Player(object):
     def addCell(self, cell):
         self.cells.append(cell)
 
+    def addMass(self, value):
+        for cell in self.cells:
+            mass = cell.getMass()
+            cell.setMass(mass + value)
+
     def removeCell(self, cell):
+        cell.setAlive(False)
         self.cells.remove(cell)
 
     def setCommands(self, x, y, split, eject):
         self.commandPoint = [x, y]
-        self.split = split
-        self.eject = eject
+        self.doSplit = split
+        self.doEject = eject
 
     def setSplit(self, val):
-        self.split = val
+        self.doSplit = val
+
+    def setEject(self, val):
+        self.doEject = val
 
     def setDead(self):
         self.isAlive = False
@@ -88,13 +103,29 @@ class Player(object):
     # Checks:
 
     # Getters:
+    def getTotalMass(self):
+        return sum(cell.getMass() for cell in self.cells)
+
     def getCells(self):
         return self.cells
 
+    def getMergableCells(self):
+        cells = []
+        for cell in self.cells:
+            if cell.canMerge():
+                cells.append(cell)
+        return cells
+
     def getCanSplit(self):
+        for cell in self.cells:
+            if cell.canSplit():
+                return True
         return False
 
     def getCanEject(self):
+        for cell in self.cells:
+            if cell.canEject():
+                return True
         return False
 
     def getFovPos(self):
@@ -103,7 +134,8 @@ class Player(object):
         return meanX, meanY
 
     def getFovDims(self):
-        width = numpy.power(max(self.cells, key=lambda p: p.getRadius()).getRadius(), 0.6) * 40
+        biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
+        width = numpy.power(biggestCellRadius, 0.6) * 40 * numpy.sqrt(len(self.cells))
         height = width
         return width, height
 

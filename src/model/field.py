@@ -37,9 +37,21 @@ class Field(object):
     def update(self):
         self.updateViruses()
         self.updatePlayers()
+        self.mergePlayerCells()
         self.checkCollisions()
-
         self.spawnStuff()
+
+    def mergePlayerCells(self):
+        for player in self.players:
+            cells = player.getMergableCells()
+            if len(cells) > 1:
+                for i in range(len(cells)):
+                    for j in range(i + 1, len(cells)):
+                        if cells[i].overlap(cells[j]):
+                            player.mergeCells(cells[i], cells[j])
+                        elif cells[j].overlap(cells[i]):
+                            player.mergeCells(cells[j], cells[i])
+
 
     def checkCollisions(self):
         self.collectibleCollisions()
@@ -54,14 +66,19 @@ class Field(object):
 
     def playerCollisions(self):
         for i in range(len(self.players)):
-            for j in range(i, len(self.players)):
+            for j in range(i + 1, len(self.players)):
                 for playerCell in self.players[i].getCells():
+                    if not playerCell.isAlive():
+                        continue
                     for opponentCell in self.players[j].getCells():
+                        if not opponentCell.isAlive():
+                            continue
                         if playerCell.overlap(opponentCell):
                             if playerCell.getMass() > 1.25 * opponentCell.getMass():
                                 self.eatPlayerCell(playerCell, opponentCell, self.players[j])
-                            if playerCell.getMass() * 1.25 < opponentCell.getMass():
+                            elif playerCell.getMass() * 1.25 < opponentCell.getMass():
                                 self.eatPlayerCell(opponentCell, playerCell, self.players[i])
+                                break
 
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def eatCollectible(self, cell, collectible):

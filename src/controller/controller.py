@@ -23,6 +23,9 @@ class Controller:
         human = self.model.getHuman()
         if human.getIsAlive():
             self.mousePosition()
+
+        human.setSplit(False)
+        human.setEject(False)
         for event in pygame.event.get():
             # Event types
             if event.type == pygame.QUIT:
@@ -38,6 +41,8 @@ class Controller:
                     # "w" to Eject
                     elif event.key == pygame.K_w and human.getCanEject():
                         human.setEject(True)
+                    elif event.key == pygame.K_m:
+                        human.addMass(10)
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self):
