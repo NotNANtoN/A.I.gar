@@ -62,7 +62,9 @@ class View:
         scaledPos = adjustedPos * (self.screenDims / fovDims)
         return scaledPos
 
-    def viewToModelScaling(self, pos, fovPos, fovDims):
+    def viewToModelScaling(self, pos):
+        fovPos = self.model.getFovPos()
+        fovDims = self.model.getFovDims()
         scaledPos = pos / (self.screenDims / fovDims)
         adjustedPos = scaledPos + fovPos - (fovDims / 2)
         return adjustedPos
