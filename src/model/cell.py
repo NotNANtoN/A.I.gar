@@ -15,12 +15,12 @@ class Cell(object):
 
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
-        #If cursor is within cell, reduce speed based on distance from cell center (as a percentage)
+        # If cursor is within cell, reduce speed based on distance from cell center (as a percentage)
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
-        radiusSquared = numpy.power(self.radius,2)
+        radiusSquared = numpy.power(self.radius, 2)
         speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
-        #Check polar coordinate of cursor from cell center
-        angle = numpy.arctan2(difference[1] , difference[0])
+        # Check polar coordinate of cursor from cell center
+        angle = numpy.arctan2(difference[1], difference[0])
         self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
         self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
 
@@ -62,7 +62,6 @@ class Cell(object):
         difference = self.getPos() - cell.getPos()
         squared = numpy.power(difference, 2)
         return squared[0] + squared[1]
-
 
     #############################################
     # Checks:
@@ -120,8 +119,7 @@ class Cell(object):
         return numpy.power(self.radius, 2)
 
     def getReducedSpeed(self):
-        return CELL_MOVE_SPEED * numpy.power(self.getMass(), -1.0 / 9 )
+        return CELL_MOVE_SPEED * numpy.power(self.mass, -1.0 / 9)
 
     def getVelocity(self):
         return [self.vx, self.vy]
-

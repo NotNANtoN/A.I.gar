@@ -3,8 +3,8 @@ import numpy
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-RED = (255,0,0)
-GREEN = (0,255,0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
 
 
 class View:
@@ -32,7 +32,6 @@ class View:
         adjustedPos = scaledPos + fovPos - (fovDims / 2)
         return adjustedPos
 
-
     def modelToViewScaleRadius(self, rad):
         return int(rad * (self.screenDims[0] / self.model.human.getFovDims()[0]))
 
@@ -46,14 +45,13 @@ class View:
                 scaledRad = self.modelToViewScaleRadius(rad)
                 scaledPos = self.modelToViewScaling(pos)
                 pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), scaledRad)
-                if(self.model.getDebugStatus()):
+                if self.model.getDebugStatus():
                     print("One cell in the fov! :)")
                     print("pos: (", pos[0], ",", pos[1], ") radius: ", scaledRad)
-                    if(cells == self.model.getPlayerCells()):
-                        pygame.draw.line(self.screen, RED, scaledPos.astype(int), \
-                            numpy.array(cell.getVelocity())*10+ \
-                            numpy.array(scaledPos.astype(int)))
-
+                    if cells == self.model.getPlayerCells():
+                        pygame.draw.line(self.screen, RED, scaledPos.astype(int),
+                                         numpy.array(cell.getVelocity()) * 10 +
+                                         numpy.array(scaledPos.astype(int)))
 
     def drawAllCells(self):
         self.drawCells(self.model.getCollectibles())
@@ -66,11 +64,10 @@ class View:
         pygame.display.update()
 
     def model_event(self):
-        if(self.model.getDebugStatus()):
+        if self.model.getDebugStatus():
             print("Draw some stuff:")
         self.draw()
 
     # Checks:
     def getScreenDims(self):
         return numpy.array([self.width, self.height])
-

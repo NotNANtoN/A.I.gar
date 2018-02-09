@@ -9,7 +9,7 @@ class Bot(object):
         self.field = field
 
     def update(self):
-        if (self.player.getIsAlive()):
+        if self.player.getIsAlive():
             # This bot does random stuff
             midPoint = self.player.getFovPos()
             dims = self.player.getFovDims()
@@ -19,14 +19,14 @@ class Bot(object):
             height = int(dims[1])
 
             collectiblesInFov = self.field.getCollectiblesInFov(self.player)
-            if (len(collectiblesInFov) > 0):
+            if len(collectiblesInFov) > 0:
                 playerCellsInFov = self.field.getPlayerCellsInFov(self.player)
                 firstPlayerCell = self.player.getCells()[0]
                 for opponentCell in playerCellsInFov:
                     if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
                         collectiblesInFov.append(opponentCell)
 
-                closestCollectible = min(collectiblesInFov, key = lambda p: p.squaredDistance(firstPlayerCell))
+                closestCollectible = min(collectiblesInFov, key=lambda p: p.squaredDistance(firstPlayerCell))
                 closestCollectiblePos = closestCollectible.getPos()
                 xChoice = closestCollectiblePos[0]
                 yChoice = closestCollectiblePos[1]

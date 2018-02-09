@@ -1,8 +1,8 @@
 from random import randint
 import numpy
 
-class Player(object):
 
+class Player(object):
     """docstring for Player"""
 
     def __init__(self, name):
@@ -18,7 +18,7 @@ class Player(object):
         self.eject = False
 
     def update(self, fieldWidth, fieldHeight):
-        if (self.isAlive):
+        if self.isAlive:
             self.decayMass()
             self.updateCellsMoveDir()
             self.updateCellsSplit()
@@ -103,7 +103,7 @@ class Player(object):
         return meanX, meanY
 
     def getFovDims(self):
-        width = numpy.power(max(self.cells, key=lambda p: p.getRadius()).getRadius(),0.6) * 40 
+        width = numpy.power(max(self.cells, key=lambda p: p.getRadius()).getRadius(), 0.6) * 40
         height = width
         return width, height
 
@@ -111,9 +111,6 @@ class Player(object):
         fovPos = self.getFovPos()
         fovDims = self.getFovDims()
         return fovPos, fovDims
-
-    def getCells(self):
-        return self.cells
 
     def getColor(self):
         return self.color

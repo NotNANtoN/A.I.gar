@@ -3,11 +3,10 @@ import numpy
 from .cell import Cell
 from .parameters import *
 
+
 # The Field class is the main field on which cells of all sizes will move
 # Its size depends on how many players are in the game
 # It always contains a certain number of viruses and collectibles and regulates their number and spawnings
-
-
 
 
 class Field(object):
@@ -46,7 +45,6 @@ class Field(object):
         self.collectibleCollisions()
         self.playerCollisions()
 
-
     def collectibleCollisions(self):
         for player in self.players:
             for cell in player.getCells():
@@ -65,8 +63,6 @@ class Field(object):
                             if playerCell.getMass() * 1.25 < opponentCell.getMass():
                                 self.eatPlayerCell(opponentCell, playerCell, self.players[i])
 
-
-
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def eatCollectible(self, cell, collectible):
         cell.grow(collectible.getMass())
@@ -75,15 +71,13 @@ class Field(object):
     def eatPlayerCell(self, largerCell, smallerCell, smallerPlayer):
         largerCell.grow(smallerCell.getMass())
         smallerPlayer.removeCell(smallerCell)
-        if (len(smallerPlayer.getCells()) == 0):
+        if len(smallerPlayer.getCells()) == 0:
             smallerPlayer.setDead()
             self.deadPlayers.append(smallerPlayer)
-
 
     def updateViruses(self):
         for virus in self.viruses:
             virus.update()
-
 
     def updatePlayers(self):
         for player in self.players:
@@ -95,10 +89,10 @@ class Field(object):
 
     def spawnCollectibles(self):
         # If beginning of the game, spawn all collectibles at once
-        if (len(self.collectibles) == 0):
+        if len(self.collectibles) == 0:
             while len(self.collectibles) < self.maxCollectibleCount:
                 self.spawnCollectible()
-        else: #Else, spawn at the max spawn rate
+        else:  # Else, spawn at the max spawn rate
             count = 0
             totalMaxSpawnRate = MAX_COLLECTIBLE_SPAWN_PER_UPDATE * self.width * self.height
             while len(self.collectibles) < self.maxCollectibleCount and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
@@ -132,9 +126,9 @@ class Field(object):
         fovPos = fovPlayer.getFovPos()
         fovDims = fovPlayer.getFovDims()
         for player in self.players:
-            if( player != fovPlayer):
+            if player != fovPlayer:
                 for cell in player.getCells():
-                    if (cell.isInFov(fovPos, fovDims)):
+                    if cell.isInFov(fovPos, fovDims):
                         cellsInFov.append(cell)
         return cellsInFov
 
@@ -143,7 +137,7 @@ class Field(object):
         fovPos = player.getFovPos()
         fovDims = player.getFovDims()
         for collectible in self.collectibles:
-            if (collectible.isInFov(fovPos, fovDims)):
+            if collectible.isInFov(fovPos, fovDims):
                 collectiblesInFov.append(collectible)
         return collectiblesInFov
 

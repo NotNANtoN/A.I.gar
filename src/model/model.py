@@ -1,11 +1,9 @@
-from .field import Field
-from .cell import Cell
-from .player import Player
-from .bot import Bot
-import numpy
-import pygame
 import time
+
+from .bot import Bot
+from .field import Field
 from .parameters import *
+from .player import Player
 
 
 # The model class is the main wrapper for the game engine.
@@ -48,8 +46,8 @@ class Model(object):
         self.respawnPlayers()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
-        time.sleep(1/FPS)
-        if(self.debugStatus == True):
+        time.sleep(1 / FPS)
+        if self.debugStatus == True:
             self.printDebugInfo()
 
     def respawnPlayers(self):
@@ -57,11 +55,6 @@ class Model(object):
             self.field.removeDeadPlayer(dp)
             self.field.initializePlayer(dp)
             self.field.addPlayer(dp)
-
-    # def handleKeyInp
-    def setHumanInput(self):
-        #    self.handleKeyInput()
-        self.setRelativeMousePos()
 
     # Setters:
     def createPlayer(self, name):

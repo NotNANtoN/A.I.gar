@@ -1,6 +1,4 @@
 from view.view import *
-from model.model import *
-from numpy import *
 
 
 class Controller:
@@ -15,33 +13,29 @@ class Controller:
         self.running = True
 
     def process_input(self):
-        if not ( self.model.hasHuman()):
+        if not (self.model.hasHuman()):
             return
         human = self.model.getHuman()
-        if( human.getIsAlive()):
+        if human.getIsAlive():
             self.mousePosition()
         for event in pygame.event.get():
             # Event types
             if event.type == pygame.QUIT:
                 self.running = False
-            if( event.type == pygame.KEYDOWN ):
+            if event.type == pygame.KEYDOWN:
                 # "Escape" to Quit
-                if( event.key == pygame.K_ESCAPE ):
+                if event.key == pygame.K_ESCAPE:
                     self.running = False
-                 # "space" to Split
-                if( human.getIsAlive()):
-                    if( event.key == pygame.K_SPACE  and human.getCanSplit()):
+                # "space" to Split
+                if human.getIsAlive():
+                    if event.key == pygame.K_SPACE and human.getCanSplit():
                         human.setSplit(True)
                     # "w" to Eject
-                    elif( event.key == pygame.K_w and human.getCanEject()):
+                    elif event.key == pygame.K_w and human.getCanEject():
                         human.setEject(True)
-
-        
-
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self):
         mousePos = pygame.mouse.get_pos()
         relativeMousePos = self.view.viewToModelScaling(mousePos)
         self.model.human.setMoveTowards(relativeMousePos)
-

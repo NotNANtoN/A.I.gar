@@ -9,6 +9,7 @@ SCREEN_HEIGHT = 900
 MAXBOTS = 1000
 MAXHUMANPLAYERS = 1
 
+
 def fitsLimitations(number, limit):
     if number < 0:
         print("Number can't be negative.")
@@ -19,20 +20,21 @@ def fitsLimitations(number, limit):
     return True
 
 
-def createHumans(number, model):
+def createHumans(model1):
     for i in range(numberOfHumans):
         name = input("Player" + str(i + 1) + " name:\n")
-        model.createHuman(name)
+        model1.createHuman(name)
 
-def createBots(number, model):
-    for i in range(numberOfBots):
-        model.createBot()
+
+def createBots(number, model1):
+    for i in range(number):
+        model1.createBot()
+
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
-
 
     debug = int(input("Display debug info?: (1 == yes)\n"))
     debug = (debug == 1)
@@ -40,12 +42,12 @@ if __name__ == '__main__':
     model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, debug)
 
     numberOfBots = int(input("Please enter the number of bots:\n"))
-    if( fitsLimitations(numberOfBots, MAXBOTS)):
+    if fitsLimitations(numberOfBots, MAXBOTS):
         createBots(numberOfBots, model)
 
     numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
-    if( fitsLimitations(numberOfHumans, MAXHUMANPLAYERS)):
-        createHumans(numberOfHumans, model)
+    if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
+        createHumans(model)
 
     view = View(model, SCREEN_WIDTH, SCREEN_HEIGHT)
     controller = Controller(model, view)
