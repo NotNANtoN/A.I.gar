@@ -14,7 +14,12 @@ class Controller:
 
     def process_input(self):
         if not (self.model.hasHuman()):
+            for event in pygame.event.get():
+                # Event types
+                if event.type == pygame.QUIT:
+                    self.running = False
             return
+
         human = self.model.getHuman()
         if human.getIsAlive():
             self.mousePosition()
