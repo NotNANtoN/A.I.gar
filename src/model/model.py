@@ -72,7 +72,7 @@ class Model(object):
     def createBot(self):
         name = "Bot " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer)
+        bot = Bot(newPlayer, self.field)
         self.addBot(bot)
 
     def createHuman(self, name):

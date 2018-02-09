@@ -3,8 +3,10 @@ from .parameters import *
 
 
 class Cell(object):
-    def __init__(self, x, y, radius, color):
-        self.radius = radius
+    def __init__(self, x, y, mass, color):
+        self.mass = None
+        self.radius = None
+        self.setMass(mass)
         self.x = x
         self.y = y
         self.color = color
@@ -13,9 +15,14 @@ class Cell(object):
 
     def setMoveDirection(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])
+        #If cursor is within cell, reduce speed based on distance from cell center (as a percentage)
+        hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
+        radiusSquared = numpy.power(self.radius,2)
+        speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
+        #Check polar coordinate of cursor from cell center
         angle = numpy.arctan2(difference[1] , difference[0])
-        self.vx = CELL_MOVE_SPEED * numpy.cos(angle)
-        self.vy = CELL_MOVE_SPEED * numpy.sin(angle)
+        self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
+        self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
 
     def split(self):
         pass
@@ -24,9 +31,13 @@ class Cell(object):
         pass
 
     # Increases the mass of the cell by value and updates the radius accordingly
-    def grow(self, value):
-        newMass = self.getMass() + value
-        self.radius = numpy.sqrt(newMass / numpy.pi)
+    def grow(self, foodMass):
+        newMass = self.mass + foodMass
+        self.setMass(newMass)
+
+    def decayMass(self):
+        newMass = self.mass * CELL_MASS_DECAY_RATE
+        self.setMass(newMass)
 
     def updateDirection(self, x, v, maxX):
         return min(maxX, max(0, x + v))
@@ -55,6 +66,18 @@ class Cell(object):
 
     #############################################
     # Checks:
+    def isInFov(self, fovPos, fovDims):
+        xMin = fovPos[0] - fovDims[0] / 2
+        xMax = fovPos[0] + fovDims[0] / 2
+        yMin = fovPos[1] - fovDims[1] / 2
+        yMax = fovPos[1] + fovDims[1] / 2
+        x = self.x
+        y = self.y
+        radius = self.radius
+        if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
+            return False
+        return True
+
     def canSplit(self):
         return False
 
@@ -68,11 +91,13 @@ class Cell(object):
 
     def setRadius(self, val):
         self.radius = val
+        self.mass = numpy.power(self.radius, 2) * numpy.pi
+
+    def setMass(self, val):
+        self.mass = val
+        self.radius = numpy.sqrt(self.mass / numpy.pi)
 
     # Getters:
-    def getMass(self):
-        return numpy.power(self.radius, 2) * numpy.pi
-
     def getX(self):
         return self.x
 
@@ -88,9 +113,15 @@ class Cell(object):
     def getRadius(self):
         return self.radius
 
+    def getMass(self):
+        return self.mass
+
     def getSquaredRadius(self):
         return numpy.power(self.radius, 2)
 
+    def getReducedSpeed(self):
+        return CELL_MOVE_SPEED * numpy.power(self.getMass(), -1.0 / 9 )
+
     def getVelocity(self):
         return [self.vx, self.vy]
-        
+

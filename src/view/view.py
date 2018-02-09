@@ -40,7 +40,7 @@ class View:
         fovPos = numpy.array(self.model.getFovPos())
         fovDims = numpy.array(self.model.getFovDims())
         for cell in cells:
-            if self.isInFov(cell, fovPos, fovDims):
+            if cell.isInFov(fovPos, fovDims):
                 rad = cell.getRadius()
                 pos = numpy.array(cell.getPos())
                 scaledRad = self.modelToViewScaleRadius(rad)
@@ -71,18 +71,6 @@ class View:
         self.draw()
 
     # Checks:
-    def isInFov(self, cell, fovPos, fovDims):
-        xMin = fovPos[0] - fovDims[0] / 2
-        xMax = fovPos[0] + fovDims[0] / 2
-        yMin = fovPos[1] - fovDims[1] / 2
-        yMax = fovPos[1] + fovDims[1] / 2
-        x = cell.getX()
-        y = cell.getY()
-        radius = cell.getRadius()
-        if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
-            return False
-        return True
-
     def getScreenDims(self):
         return numpy.array([self.width, self.height])
 
