@@ -18,18 +18,21 @@ class Bot(object):
             width = int(dims[0])
             height = int(dims[1])
 
-            collectiblesInFov = self.field.getCollectiblesInFov(self.player)
-            if len(collectiblesInFov) > 0:
-                playerCellsInFov = self.field.getPlayerCellsInFov(self.player)
-                firstPlayerCell = self.player.getCells()[0]
-                for opponentCell in playerCellsInFov:
-                    if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
-                        collectiblesInFov.append(opponentCell)
+            cellsInFov = self.field.getCollectiblesInFov(self.player)
+            playerCellsInFov = self.field.getPlayerCellsInFov(self.player)
+            firstPlayerCell = self.player.getCells()[0]
+            for opponentCell in playerCellsInFov:
+                # If the single celled bot can eat the opponent cell add it to list
+                if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
+                    cellsInFov.append(opponentCell)
+            if len(cellsInFov) > 0:
 
-                closestCollectible = min(collectiblesInFov, key=lambda p: p.squaredDistance(firstPlayerCell))
-                closestCollectiblePos = closestCollectible.getPos()
-                xChoice = closestCollectiblePos[0]
-                yChoice = closestCollectiblePos[1]
+                bestCell = max(cellsInFov, key = lambda p: p.getMass() / p.squaredDistance(firstPlayerCell))
+                bestCellPos = bestCell.getPos()
+                #closestCollectible = min(collectiblesInFov, key=lambda p: p.squaredDistance(firstPlayerCell))
+                #closestCollectiblePos = closestCollectible.getPos()
+                xChoice = bestCellPos[0]
+                yChoice = bestCellPos[1]
             else:
                 xChoice = randint(x - width, x + width)
                 yChoice = randint(y - height, y + height)
