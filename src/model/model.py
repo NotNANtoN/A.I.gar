@@ -1,4 +1,5 @@
 import time
+import numpy
 
 from .bot import Bot
 from .field import Field
@@ -19,6 +20,7 @@ class Model(object):
         self.players = []
         self.bots = []
         self.human = None
+        self.spectator = None
         self.players = []
         self.field = Field()
 
@@ -29,13 +31,15 @@ class Model(object):
         self.field.initialize()
 
     def printDebugInfo(self):
-        fovPos = self.getFovPos()
-        fovDims = self.getFovDims()
-        print("FovPos: ", fovPos[0], "|", fovPos[1])
-        print("FovDims: ", fovDims[0], "|", fovDims[1])
+        if self.hasHuman():
+            fovPos = self.getFovPos()
+            fovDims = self.getFovDims()
+            print("FovPos: ", fovPos[0], "|", fovPos[1])
+            print("FovDims: ", fovDims[0], "|", fovDims[1])
 
-        humanPos = self.human.cells[0].getPos()
-        print("HumanPos: ", humanPos[0], "|", humanPos[1])
+            humanPos = self.human.cells[0].getPos()
+            print("HumanPos: ", humanPos[0], "|", humanPos[1])
+
 
     def update(self):
         # Get the decisions of the bots/human. Update the field accordingly.
@@ -82,19 +86,33 @@ class Model(object):
     def addHuman(self, player):
         self.human = player
 
+    def addSpectator(self):
+        self.spectator = True
+
     # Checks:
     def hasHuman(self):
         return self.human is not None
+
+    def hasSpectator(self):
+        return self.spectator is not None
 
     # Getters:
     def getHuman(self):
         return self.human
 
     def getFovPos(self):
-        return self.human.getFovPos()
+        if self.hasHuman():
+            fovPos = numpy.array(self.human.getFovPos())
+        else:
+            fovPos = numpy.array([self.field.getWidth() / 2, self.field.getHeight() / 2])
+        return fovPos
 
     def getFovDims(self):
-        return self.human.getFovDims()
+        if self.hasHuman():
+            fovDims = numpy.array(self.human.getFovDims())
+        else:
+            fovDims = numpy.array([self.field.getWidth(), self.field.getHeight()])
+        return fovDims
 
     def getField(self):
         return self.field

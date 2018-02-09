@@ -18,45 +18,33 @@ class View:
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('A.I.gar')
 
-    def modelToViewScaling(self, pos):
-        fovPos = numpy.array(self.model.human.getFovPos())
-        fovDims = numpy.array(self.model.human.getFovDims())
-        adjustedPos = pos - fovPos + (fovDims / 2)
-        scaledPos = adjustedPos * (self.screenDims / fovDims)
-        return scaledPos
 
-    def viewToModelScaling(self, pos):
-        fovPos = numpy.array(self.model.human.getFovPos())
-        fovDims = numpy.array(self.model.human.getFovDims())
-        scaledPos = pos / (self.screenDims / fovDims)
-        adjustedPos = scaledPos + fovPos - (fovDims / 2)
-        return adjustedPos
+    def drawDebugInfo(self, cell, cells, scaledPos, fovPos, fovDims):
+        print("pos: (", fovPos[0], ",", fovPos[1], ") fovDims: ", fovDims[0], ", ", fovDims[1])
+        if cells == self.model.getPlayerCells():
+            pygame.draw.line(self.screen, RED, scaledPos.astype(int),
+                             numpy.array(cell.getVelocity()) * 10 +
+                             numpy.array(scaledPos.astype(int)))
 
-    def modelToViewScaleRadius(self, rad):
-        return int(rad * (self.screenDims[0] / self.model.human.getFovDims()[0]))
-
-    def drawCells(self, cells):
-        fovPos = numpy.array(self.model.getFovPos())
-        fovDims = numpy.array(self.model.getFovDims())
+    def drawCells(self, cells, fovPos, fovDims):
         for cell in cells:
             if cell.isInFov(fovPos, fovDims):
                 rad = cell.getRadius()
                 pos = numpy.array(cell.getPos())
-                scaledRad = self.modelToViewScaleRadius(rad)
-                scaledPos = self.modelToViewScaling(pos)
+                scaledRad = self.modelToViewScaleRadius(rad, fovDims)
+                scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
                 pygame.draw.circle(self.screen, cell.getColor(), scaledPos.astype(int), scaledRad)
                 if self.model.getDebugStatus():
-                    print("One cell in the fov! :)")
-                    print("pos: (", pos[0], ",", pos[1], ") radius: ", scaledRad)
-                    if cells == self.model.getPlayerCells():
-                        pygame.draw.line(self.screen, RED, scaledPos.astype(int),
-                                         numpy.array(cell.getVelocity()) * 10 +
-                                         numpy.array(scaledPos.astype(int)))
+                    self.drawDebugInfo(cell, cells, scaledPos, fovPos, fovDims)
 
     def drawAllCells(self):
-        self.drawCells(self.model.getCollectibles())
-        self.drawCells(self.model.getViruses())
-        self.drawCells(self.model.getPlayerCells())
+        fovPos = self.model.getFovPos()
+        fovDims = self.model.getFovDims()
+        print("pos: (", fovPos[0], ",", fovPos[1], ") fovDims: ", fovDims[0], ", ", fovDims[1])
+
+        self.drawCells(self.model.getCollectibles(), fovPos, fovDims)
+        self.drawCells(self.model.getViruses(), fovPos, fovDims)
+        self.drawCells(self.model.getPlayerCells(), fovPos, fovDims)
 
     def draw(self):
         self.screen.fill(WHITE)
@@ -64,9 +52,23 @@ class View:
         pygame.display.update()
 
     def model_event(self):
-        if self.model.getDebugStatus():
-            print("Draw some stuff:")
-        self.draw()
+        if self.model.hasHuman() or self.model.hasSpectator:
+            if self.model.getDebugStatus():
+                print("Draw some stuff:")
+            self.draw()
+
+    def modelToViewScaling(self, pos, fovPos, fovDims):
+        adjustedPos = pos - fovPos + (fovDims / 2)
+        scaledPos = adjustedPos * (self.screenDims / fovDims)
+        return scaledPos
+
+    def viewToModelScaling(self, pos, fovPos, fovDims):
+        scaledPos = pos / (self.screenDims / fovDims)
+        adjustedPos = scaledPos + fovPos - (fovDims / 2)
+        return adjustedPos
+
+    def modelToViewScaleRadius(self, rad, fovDims):
+        return int(rad * (self.screenDims[0] / fovDims[0]))
 
     # Checks:
     def getScreenDims(self):

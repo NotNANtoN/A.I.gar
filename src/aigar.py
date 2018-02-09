@@ -49,6 +49,11 @@ if __name__ == '__main__':
     if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
         createHumans(model)
 
+    if not model.hasHuman():
+        spectate = int(input("Do you want to spectate the bots then? (1 = yes)"))
+        if spectate == 1:
+            model.addSpectator()
+
     view = View(model, SCREEN_WIDTH, SCREEN_HEIGHT)
     controller = Controller(model, view)
 
