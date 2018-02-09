@@ -59,9 +59,9 @@ class Field(object):
                 for playerCell in self.players[i].getCells():
                     for opponentCell in self.players[j].getCells():
                         if playerCell.overlap(opponentCell):
-                            if playerCell.getMass() > 1.1*opponentCell.getMass():
+                            if playerCell.getMass() > 1.25*opponentCell.getMass():
                                 self.eatPlayerCell(playerCell, opponentCell, self.players[j])
-                            if playerCell.getMass()*1.1 < opponentCell.getMass():
+                            if playerCell.getMass()*1.25 < opponentCell.getMass():
                                 self.eatPlayerCell(opponentCell, playerCell, self.players[i])
 
 
@@ -93,11 +93,13 @@ class Field(object):
         self.spawnViruses()
 
     def spawnCollectibles(self):
-        if (len(self.collectibles) == 0): # If beginning of the game, spawn all collectibles at once
+        # If beginning of the game, spawn all collectibles at once
+        if (len(self.collectibles) == 0):
             while len(self.collectibles) < self.maxCollectibleCount:
                 self.spawnCollectible()
         else: #Else, spawn at the max spawn rate
             count = 0
+            totalMaxSpawnRate = MAX_COLLECTIBLE_SPAWN_PER_UPDATE * self.width * self.height
             while len(self.collectibles) < self.maxCollectibleCount and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
                 self.spawnCollectible()
                 count += 1

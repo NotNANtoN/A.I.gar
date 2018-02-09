@@ -19,10 +19,15 @@ class Player(object):
 
     def update(self, fieldWidth, fieldHeight):
         if (self.isAlive):
+            self.decayMass()
             self.updateCellsMoveDir()
             self.updateCellsSplit()
             self.updateCellsEject()
             self.updateCellsMovement(fieldWidth, fieldHeight)
+
+    def decayMass(self):
+        for cell in self.cells:
+            cell.decayMass()
 
     def updateCellsMoveDir(self):
         for cell in self.cells:
