@@ -19,7 +19,7 @@ class Cell(object):
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
         radiusSquared = numpy.power(self.radius,2)
         speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
-        #Check polar coordinate of cursor
+        #Check polar coordinate of cursor from cell center
         angle = numpy.arctan2(difference[1] , difference[0])
         self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
         self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
