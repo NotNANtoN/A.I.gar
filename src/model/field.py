@@ -2,6 +2,7 @@ from random import randint
 import numpy
 from .cell import Cell
 from .parameters import *
+from .spatialHashTable import spatialHashTable
 
 
 # The Field class is the main field on which cells of all sizes will move
@@ -18,6 +19,7 @@ class Field(object):
         self.deadPlayers = []
         self.viruses = []
         self.maxCollectibleCount = None
+        self.hashTable = None
 
     def initializePlayer(self, player):
         x = randint(0, self.width)
@@ -28,6 +30,7 @@ class Field(object):
     def initialize(self):
         self.width = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         self.height = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
+        self.hashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         for player in self.players:
             self.initializePlayer(player)
         self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
@@ -38,8 +41,16 @@ class Field(object):
         self.updateViruses()
         self.updatePlayers()
         self.mergePlayerCells()
+        self.updateHashTable()
         self.checkCollisions()
         self.spawnStuff()
+
+    def updateHashTable(self):
+        self.hashTable.clearBuckets()
+        self.hashTable.insertAllObjects(self.collectibles)
+        #print(self.hashTable)
+        #print("Number of collectibles: ", str(len(self.collectibles)))
+
 
     def mergePlayerCells(self):
         for player in self.players:
@@ -64,8 +75,8 @@ class Field(object):
     def collectibleCollisions(self):
         for player in self.players:
             for cell in player.getCells():
-                for collectible in self.collectibles:
-                    if cell.overlap(collectible):
+                for collectible in self.hashTable.getNearbyObjects(cell):
+                    if collectible.isAlive() and cell.overlap(collectible):
                         self.eatCollectible(cell, collectible)
 
     def playerCollisions(self):
@@ -90,6 +101,7 @@ class Field(object):
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def eatCollectible(self, cell, collectible):
         cell.grow(collectible.getMass())
+        collectible.setAlive(False)
         self.collectibles.remove(collectible)
 
     def eatPlayerCell(self, largerCell, smallerCell, smallerPlayer):

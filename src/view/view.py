@@ -39,11 +39,12 @@ class View:
 
     def drawSingleCell(self, pos, rad, color, name):
         pygame.draw.circle(self.screen, color, pos, rad)
-        font = pygame.font.SysFont(None, int(rad / 2))
+        if name != "":
+            font = pygame.font.SysFont(None, int(rad / 2))
 
-        text = font.render(name, False, (0,0,0))
-        pos = (pos[0] - text.get_width() / 2, pos[1] - text.get_height() / 2 )
-        self.screen.blit(text, pos)
+            text = font.render(name, False, (0,0,0))
+            pos = (pos[0] - text.get_width() / 2, pos[1] - text.get_height() / 2 )
+            self.screen.blit(text, pos)
 
 
     def drawAllCells(self):

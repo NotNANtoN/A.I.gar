@@ -4,7 +4,7 @@ from .parameters import *
 
 class Cell(object):
     def __repr__(self):
-        return self.name + "-M:" + str(int(self.mass))
+        return self.name + "-M:" + str(int(self.mass)) + " Pos:" + str(self.x) + "," + str(self.y)
 
     def __init__(self, x, y, mass, color, name):
         self.name = name

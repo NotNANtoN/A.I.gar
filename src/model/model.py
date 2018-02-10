@@ -32,14 +32,19 @@ class Model(object):
 
     def printDebugInfo(self):
         if self.hasHuman():
+            print("-----")
             print("Human total mass: ", self.human.getTotalMass())
             print("Human first cell mass: ", self.human.cells[0].mass)
             print("Human merge time first cell: ", self.human.cells[0].mergeTime)
-            if len(self.human.cells) > 1:
-                print("Human merge time second cell: ", self.human.cells[1].mergeTime)
+            print("Human cells:")
+            for cell in self.human.getCells():
+                print(cell)
+            print("Cells nearby human first cell")
+            for cell in self.field.hashTable.getNearbyObjects(self.human.cells[0]):
+                print(cell)
 
-            print("Human wants to split: ", self.human.doSplit)
-            print("")
+            #print("Human wants to split: ", self.human.doSplit)
+            print("-----")
             #fovPos = self.getFovPos()
             #fovDims = self.getFovDims()
             #print("FovPos: ", fovPos[0], "|", fovPos[1])
