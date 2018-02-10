@@ -13,19 +13,13 @@ class Controller:
         self.running = True
 
     def process_input(self):
-        if not (self.model.hasHuman()):
-            for event in pygame.event.get():
-                # Event types
-                if event.type == pygame.QUIT:
-                    self.running = False
-            return
+        if self.model.hasHuman():
+            human = self.model.getHuman()
+            if human.getIsAlive():
+                self.mousePosition()
+                human.setSplit(False)
+                human.setEject(False)
 
-        human = self.model.getHuman()
-        if human.getIsAlive():
-            self.mousePosition()
-
-        human.setSplit(False)
-        human.setEject(False)
         for event in pygame.event.get():
             # Event types
             if event.type == pygame.QUIT:
@@ -34,8 +28,12 @@ class Controller:
                 # "Escape" to Quit
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
+                elif event.key == pygame.K_b:
+                    self.model.createBot()
+                    player = self.model.players[-1]
+                    self.model.getField().initializePlayer(player)
                 # "space" to Split
-                if human.getIsAlive():
+                if self.model.hasHuman() and human.getIsAlive():
                     if event.key == pygame.K_SPACE and human.getCanSplit():
                         human.setSplit(True)
                     # "w" to Eject

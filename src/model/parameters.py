@@ -1,3 +1,9 @@
+# General Parameters
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 900
+MAXBOTS = 1000
+MAXHUMANPLAYERS = 1
+
 # Simulation Parameters
 FPS = 30
 GAME_SPEED = 1  # 1sec/1sec

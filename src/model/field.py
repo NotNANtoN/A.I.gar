@@ -22,7 +22,7 @@ class Field(object):
     def initializePlayer(self, player):
         x = randint(0, self.width)
         y = randint(0, self.height)
-        newCell = Cell(x, y, START_MASS, player.getColor())
+        newCell = Cell(x, y, START_MASS, player.getColor(), player.getName())
         player.addCell(newCell)
 
     def initialize(self):
@@ -46,7 +46,11 @@ class Field(object):
             cells = player.getMergableCells()
             if len(cells) > 1:
                 for i in range(len(cells)):
+                    if not cells[i].isAlive():
+                        continue
                     for j in range(i + 1, len(cells)):
+                        if cells[i] is cells[j] or not cells[j].isAlive():
+                            continue
                         if cells[i].overlap(cells[j]):
                             player.mergeCells(cells[i], cells[j])
                         elif cells[j].overlap(cells[i]):
@@ -67,6 +71,8 @@ class Field(object):
     def playerCollisions(self):
         for i in range(len(self.players)):
             for j in range(i + 1, len(self.players)):
+                if self.players[i] is self.players[j]:
+                    continue
                 for playerCell in self.players[i].getCells():
                     if not playerCell.isAlive():
                         continue
@@ -74,6 +80,7 @@ class Field(object):
                         if not opponentCell.isAlive():
                             continue
                         if playerCell.overlap(opponentCell):
+                            print(playerCell, " and ", opponentCell, " overlap!")
                             if playerCell.getMass() > 1.25 * opponentCell.getMass():
                                 self.eatPlayerCell(playerCell, opponentCell, self.players[j])
                             elif playerCell.getMass() * 1.25 < opponentCell.getMass():
@@ -120,7 +127,7 @@ class Field(object):
         xPos = randint(0, self.width)
         yPos = randint(0, self.height)
         color = (randint(0, 255), randint(0, 255), randint(0, 255))
-        collectible = Cell(xPos, yPos, COLLECTIBLE_SIZE, color)
+        collectible = Cell(xPos, yPos, COLLECTIBLE_SIZE, color, "")
         self.addCollectible(collectible)
 
     def spawnViruses(self):

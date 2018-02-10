@@ -5,6 +5,8 @@ import numpy
 
 class Player(object):
     """docstring for Player"""
+    def __repr__(self):
+        return self.name
 
     def __init__(self, name):
         self.color = (randint(0, 255), randint(0, 255), randint(0, 255))
@@ -40,12 +42,13 @@ class Player(object):
     def split(self):
         if not self.doSplit:
             return
-        for cell in self.cells:
-            if cell.canSplit() and not cell.justEjected():
+        for cell in sorted(self.cells, key = lambda p: p.getMass()):
+            if cell.canSplit() and not cell.justEjected() and len(self.cells) < 16:
+                print(self, " does a split!")
                 cellPos = cell.getPos()
-                newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2, self.color)
+                newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2, self.color, self.name)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(6)
+                newCell.addMomentum(5 + 0.025 * cell.getMass())
                 newCell.resetMergeTime()
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime()
@@ -59,9 +62,9 @@ class Player(object):
                 cell.eject(self.commandPoint)
 
     def mergeCells(self, biggerCell, smallerCell):
-        print(" CELLS MERGED!")
+        print(biggerCell, " AND ", smallerCell, " MERGED!")
         biggerCell.setMass(biggerCell.getMass() + smallerCell.getMass())
-        self.cells.remove(smallerCell)
+        self.removeCell(smallerCell)
 
     def updateCellsMovement(self, fieldWidth, fieldHeight):
         for cell in self.cells:
@@ -117,6 +120,8 @@ class Player(object):
         return cells
 
     def getCanSplit(self):
+        if len(self.cells) >= 16:
+            return False
         for cell in self.cells:
             if cell.canSplit():
                 return True
@@ -135,7 +140,7 @@ class Player(object):
 
     def getFovDims(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        width = numpy.power(biggestCellRadius, 0.6) * 40 * numpy.sqrt(len(self.cells))
+        width = numpy.power(biggestCellRadius, 0.6) * 40 * numpy.power(len(self.cells), 1 / 6)
         height = width
         return width, height
 

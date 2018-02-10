@@ -3,7 +3,11 @@ from .parameters import *
 
 
 class Cell(object):
-    def __init__(self, x, y, mass, color):
+    def __repr__(self):
+        return self.name + "-M:" + str(int(self.mass))
+
+    def __init__(self, x, y, mass, color, name):
+        self.name = name
         self.mass = None
         self.radius = None
         self.setMass(mass)
@@ -47,7 +51,9 @@ class Cell(object):
 
     def updateMomentum(self):
         if self.momentum > 1:
-            self.momentum -= 0.4
+            self.momentum = self.momentum * 0.90 - 0.1
+        else:
+            self.momentum = 1
 
     def updateMerge(self):
         if self.mergeTime > 0:
@@ -102,7 +108,7 @@ class Cell(object):
         return self.momentum > 1
 
     def canSplit(self):
-        return self.mass > 32
+        return self.mass > 36
 
     def canEject(self):
         return self.mass > 35
@@ -127,6 +133,9 @@ class Cell(object):
         self.radius = numpy.sqrt(self.mass / numpy.pi)
 
     # Getters:
+    def getName(self):
+        return self.name
+
     def getX(self):
         return self.x
 
@@ -149,7 +158,7 @@ class Cell(object):
         return numpy.power(self.radius, 2)
 
     def getReducedSpeed(self):
-        return CELL_MOVE_SPEED * numpy.power(self.mass, -1.0 / 4)
+        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
 
     def getVelocity(self):
         return [self.vx, self.vy]

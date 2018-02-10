@@ -1,13 +1,9 @@
 from model.model import *
 from view.view import View
 from controller.controller import Controller
+from model.parameters import *
 import sys
 import os
-
-SCREEN_WIDTH = 900
-SCREEN_HEIGHT = 900
-MAXBOTS = 1000
-MAXHUMANPLAYERS = 1
 
 
 def fitsLimitations(number, limit):
