@@ -27,7 +27,7 @@ class Bot(object):
                     cellsInFov.append(opponentCell)
             if len(cellsInFov) > 0:
 
-                bestCell = max(cellsInFov, key = lambda p: p.getMass() / p.squaredDistance(firstPlayerCell))
+                bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
                 bestCellPos = bestCell.getPos()
                 #closestCollectible = min(collectiblesInFov, key=lambda p: p.squaredDistance(firstPlayerCell))
                 #closestCollectiblePos = closestCollectible.getPos()

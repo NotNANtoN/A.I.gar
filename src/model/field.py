@@ -46,10 +46,7 @@ class Field(object):
         self.spawnStuff()
 
     def updateHashTable(self):
-        self.hashTable.clearBuckets()
-        self.hashTable.insertAllObjects(self.collectibles)
-        #print(self.hashTable)
-        #print("Number of collectibles: ", str(len(self.collectibles)))
+        pass
 
 
     def mergePlayerCells(self):
@@ -76,8 +73,9 @@ class Field(object):
         for player in self.players:
             for cell in player.getCells():
                 for collectible in self.hashTable.getNearbyObjects(cell):
-                    if collectible.isAlive() and cell.overlap(collectible):
+                    if  cell.overlap(collectible):
                         self.eatCollectible(cell, collectible)
+
 
     def playerCollisions(self):
         for i in range(len(self.players)):
@@ -91,7 +89,6 @@ class Field(object):
                         if not opponentCell.isAlive():
                             continue
                         if playerCell.overlap(opponentCell):
-                            print(playerCell, " and ", opponentCell, " overlap!")
                             if playerCell.getMass() > 1.25 * opponentCell.getMass():
                                 self.eatPlayerCell(playerCell, opponentCell, self.players[j])
                             elif playerCell.getMass() * 1.25 < opponentCell.getMass():
@@ -101,8 +98,9 @@ class Field(object):
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def eatCollectible(self, cell, collectible):
         cell.grow(collectible.getMass())
-        collectible.setAlive(False)
         self.collectibles.remove(collectible)
+        self.hashTable.deleteObject(collectible)
+        collectible.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell, smallerPlayer):
         largerCell.grow(smallerCell.getMass())
@@ -125,15 +123,17 @@ class Field(object):
 
     def spawnCollectibles(self):
         # If beginning of the game, spawn all collectibles at once
-        if len(self.collectibles) == 0:
+        #if len(self.collectibles) == 0:
             while len(self.collectibles) < self.maxCollectibleCount:
                 self.spawnCollectible()
+                '''
         else:  # Else, spawn at the max spawn rate
             count = 0
             totalMaxSpawnRate = MAX_COLLECTIBLE_SPAWN_PER_UPDATE * self.width * self.height
             while len(self.collectibles) < self.maxCollectibleCount and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
                 self.spawnCollectible()
                 count += 1
+                '''
 
     def spawnCollectible(self):
         xPos = randint(0, self.width)
@@ -149,6 +149,7 @@ class Field(object):
         self.deadPlayers.remove(player)
 
     def addCollectible(self, collectible):
+        self.hashTable.insertObject(collectible)
         self.collectibles.append(collectible)
 
     # Setters:

@@ -19,13 +19,15 @@ class spatialHashTable(object):
         self.cols = int(width / cellSize + width % cellSize)
         self.cellSize = cellSize
         self.buckets = {}
+        self.clearBuckets()
 
 
     def getNearbyObjects(self, obj):
         cellIds = self.getIdsForObj(obj)
-        nearbyObjects = []
+        nearbyObjects = set()
         for cellId in cellIds:
-            nearbyObjects.extend(self.buckets[cellId])
+            for cell in self.buckets[cellId]:
+                nearbyObjects.add(cell)
         return nearbyObjects
 
     def clearBuckets(self):
@@ -48,25 +50,25 @@ class spatialHashTable(object):
         for id in cellIds:
             self.buckets[id].remove(obj)
 
+
     def getIdsForObj(self, obj):
-        ids = []
+        ids = set()
         pos = obj.getPos()
         radius = obj.getRadius()
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
-        bottomRight = (min(self.width, pos[0] + radius), min(self.height, pos[1] + radius))
-        cellWidth = bottomRight[0] - topLeft[0]
-        stepSize = int(self.cellSize)
-        limit = int(min(self.width, cellWidth + self.cellSize))
-        for i in range(0, limit, stepSize):
-            for j in range(0, limit, stepSize):
+        cellWidth = obj.getRadius() * 2
+        stepSize = min(cellWidth, self.cellSize)
+        limit = cellWidth + 1
+        i = 0
+        while i <= limit:
+            j = 0
+            while j <= limit:
                 x = min(self.width - 1, i + topLeft[0])
                 y = min(self.height - 1, j + topLeft[1])
                 hashId = self.getHashId((x, y))
-                if hashId in ids:
-                    continue
-
-                ids.append(hashId)
+                ids.add(hashId)
+                j += stepSize
+            i += stepSize
         return ids
-
     def getHashId(self, pos):
         return int(numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols)

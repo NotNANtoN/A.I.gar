@@ -20,11 +20,20 @@ class View:
         pygame.display.set_caption('A.I.gar')
 
 
-    def drawDebugInfo(self, cell, cells, scaledPos, fovPos, fovDims):
-        if cells == self.model.getPlayerCells():
+    def drawDebugInfo(self, cells, fovPos, fovDims):
+        for cell in cells:
+            pos = numpy.array(cell.getPos())
+            scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
             pygame.draw.line(self.screen, RED, scaledPos.astype(int),
                              numpy.array(cell.getVelocity()) * 10 +
                              numpy.array(scaledPos.astype(int)))
+        if self.model.hasHuman():
+            for cell in self.model.field.hashTable.getNearbyObjects(self.model.getHuman().cells[0]):
+                rad = cell.getRadius()
+                pos = numpy.array(cell.getPos())
+                scaledRad = self.modelToViewScaleRadius(rad, fovDims)
+                scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
+                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), RED, cell.getName())
 
     def drawCells(self, cells, fovPos, fovDims):
         for cell in cells:
@@ -34,8 +43,7 @@ class View:
                 scaledRad = self.modelToViewScaleRadius(rad, fovDims)
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
                 self.drawSingleCell(scaledPos.astype(int), int(scaledRad), cell.getColor(), cell.getName())
-                if self.model.getDebugStatus():
-                    self.drawDebugInfo(cell, cells, scaledPos, fovPos, fovDims)
+
 
     def drawSingleCell(self, pos, rad, color, name):
         pygame.draw.circle(self.screen, color, pos, rad)
@@ -54,6 +62,7 @@ class View:
         self.drawCells(self.model.getCollectibles(), fovPos, fovDims)
         self.drawCells(self.model.getViruses(), fovPos, fovDims)
         self.drawCells(self.model.getPlayerCells(), fovPos, fovDims)
+        self.drawDebugInfo(self.model.getPlayerCells(), fovPos, fovDims)
 
     def drawHumanStats(self):
         if self.model.hasHuman():
