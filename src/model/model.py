@@ -38,17 +38,17 @@ class Model(object):
 
 
     def update(self):
+        timeStart = time.time()
         # Get the decisions of the bots/human. Update the field accordingly.
         for bot in self.bots:
             bot.update()
         self.field.update()
-
         self.respawnPlayers()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
-        time.sleep(1 / FPS)
         if self.debugStatus == True:
             self.printDebugInfo()
+        time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
     def respawnPlayers(self):
         for dp in self.field.getDeadPlayers():

@@ -33,7 +33,7 @@ class View:
                 pos = numpy.array(cell.getPos())
                 scaledRad = self.modelToViewScaleRadius(rad, fovDims)
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
-                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), RED, cell.getName())
+                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), RED, cell.getPlayer())
 
     def drawCells(self, cells, fovPos, fovDims):
         for cell in cells:
