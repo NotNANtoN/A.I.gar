@@ -6,7 +6,7 @@ MAXHUMANPLAYERS = 1
 
 # Simulation Parameters
 FPS = 30
-GAME_SPEED = 1  # 1sec/1sec
+GAME_SPEED = 5  # 1sec/1sec
 
 # Field Parameters
 HASH_CELL_SIZE = 10

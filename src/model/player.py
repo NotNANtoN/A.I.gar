@@ -45,9 +45,9 @@ class Player(object):
         for cell in sorted(self.cells, key = lambda p: p.getMass()):
             if cell.canSplit() and not cell.justEjected() and len(self.cells) < 16:
                 cellPos = cell.getPos()
-                newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2, self.color, self.name)
+                newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(5 + 0.035 * cell.getMass())
+                newCell.addMomentum(5 + 0.50 * cell.getRadius())
                 newCell.resetMergeTime()
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime()
@@ -59,11 +59,6 @@ class Player(object):
         for cell in self.cells:
             if cell.canEject():
                 cell.eject(self.commandPoint)
-
-    def mergeCells(self, biggerCell, smallerCell):
-        #print(biggerCell, " AND ", smallerCell, " MERGED!")
-        biggerCell.setMass(biggerCell.getMass() + smallerCell.getMass())
-        self.removeCell(smallerCell)
 
     def updateCellsMovement(self, fieldWidth, fieldHeight):
         for cell in self.cells:

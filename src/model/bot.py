@@ -18,8 +18,8 @@ class Bot(object):
             width = int(dims[0])
             height = int(dims[1])
 
-            cellsInFov = self.field.getCollectiblesInFov(self.player)
-            playerCellsInFov = self.field.getPlayerCellsInFov(self.player)
+            cellsInFov = self.field.getPelletsInFov(self.player)
+            playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
             firstPlayerCell = self.player.getCells()[0]
             for opponentCell in playerCellsInFov:
                 # If the single celled bot can eat the opponent cell add it to list

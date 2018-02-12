@@ -1,4 +1,5 @@
 import numpy
+from random import randint
 from .parameters import *
 
 
@@ -6,14 +7,19 @@ class Cell(object):
     def __repr__(self):
         return self.name + "-R:" + str(int(self.radius)) + " Pos:" + str(int(self.x)) + "," + str(int(self.y))
 
-    def __init__(self, x, y, mass, color, name):
-        self.name = name
+    def __init__(self, x, y, mass, player):
+        self.player = player
         self.mass = None
         self.radius = None
         self.setMass(mass)
         self.x = x
         self.y = y
-        self.color = color
+        if self.player == None:
+            self.color = (randint(0, 255), randint(0, 255), randint(0, 255))
+            self.name = "Pellet"
+        else:
+            self.name = player.getName()
+            self.color = self.player.getColor()
         self.vx = 0
         self.vy = 0
         self.momentum = 1
@@ -133,6 +139,9 @@ class Cell(object):
         self.radius = numpy.sqrt(self.mass / numpy.pi)
 
     # Getters:
+    def getPlayer(self):
+        return self.player
+
     def getName(self):
         return self.name
 

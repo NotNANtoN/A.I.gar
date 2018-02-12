@@ -28,7 +28,7 @@ class View:
                              numpy.array(cell.getVelocity()) * 10 +
                              numpy.array(scaledPos.astype(int)))
         if self.model.hasHuman():
-            for cell in self.model.field.hashTable.getNearbyObjects(self.model.getHuman().cells[0]):
+            for cell in self.model.field.pelletHashtable.getNearbyObjects(self.model.getHuman().cells[0]):
                 rad = cell.getRadius()
                 pos = numpy.array(cell.getPos())
                 scaledRad = self.modelToViewScaleRadius(rad, fovDims)
@@ -42,15 +42,15 @@ class View:
                 pos = numpy.array(cell.getPos())
                 scaledRad = self.modelToViewScaleRadius(rad, fovDims)
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
-                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), cell.getColor(), cell.getName())
+                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), cell.getColor(), cell.getPlayer())
 
 
-    def drawSingleCell(self, pos, rad, color, name):
+    def drawSingleCell(self, pos, rad, color, player):
         pygame.draw.circle(self.screen, color, pos, rad)
-        if name != "":
+        if player != None:
             font = pygame.font.SysFont(None, int(rad / 2))
 
-            text = font.render(name, False, (0,0,0))
+            text = font.render(player.getName(), False, (0,0,0))
             pos = (pos[0] - text.get_width() / 2, pos[1] - text.get_height() / 2 )
             self.screen.blit(text, pos)
 

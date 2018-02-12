@@ -30,6 +30,15 @@ class spatialHashTable(object):
                 nearbyObjects.add(cell)
         return nearbyObjects
 
+    def getNearbyEnemyObjects(self, obj):
+        cellIds = self.getIdsForObj(obj)
+        nearbyObjects = set()
+        for cellId in cellIds:
+            for cell in self.buckets[cellId]:
+                if cell.getPlayer() != obj.getPlayer():
+                    nearbyObjects.add(cell)
+        return nearbyObjects
+
     def clearBuckets(self):
         for i in range(self.cols * self.rows):
             self.buckets[i] = []
@@ -46,9 +55,17 @@ class spatialHashTable(object):
     # Deletes an object out of all the buckets it is in. Might not be needed as it might
     # be faster to clear all buckets and reinsert items than updating objects.
     def deleteObject(self, obj):
+        #print("Deleted from hashtable: ", obj)
         cellIds = self.getIdsForObj(obj)
+
         for id in cellIds:
-            self.buckets[id].remove(obj)
+            #print("in Bucket: ")
+            #for bucket in self.buckets[id]:
+            #    print(str(bucket))
+            while obj in self.buckets[id]:
+                self.buckets[id].remove(obj)
+
+
 
 
     def getIdsForObj(self, obj):
