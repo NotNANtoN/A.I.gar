@@ -1,5 +1,4 @@
-from random import randint, uniform
-
+import numpy
 
 class Bot(object):
     """docstring for Bot"""
@@ -34,8 +33,12 @@ class Bot(object):
                 xChoice = bestCellPos[0]
                 yChoice = bestCellPos[1]
             else:
-                xChoice = randint(x - width, x + width)
-                yChoice = randint(y - height, y + height)
-            splitChoice = True if uniform(0, 1) > 0.95 else False
-            ejectChoice = True if uniform(0, 1) > 0.99 else False
+                xChoice = numpy.random.randint(x - width, x + width)
+                yChoice = numpy.random.randint(y - height, y + height)
+            randNum = numpy.random.randint(0,1000)
+            splitChoice = False
+            ejectChoice = False
+            if randNum > 995:
+                splitChoice = True
+            #ejectChoice = True if uniform(0, 1) > 0.99 else False
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)

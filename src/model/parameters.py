@@ -6,7 +6,7 @@ MAXHUMANPLAYERS = 1
 
 # Simulation Parameters
 FPS = 30
-GAME_SPEED = 5  # 1sec/1sec
+GAME_SPEED = 1  # 1sec/1sec
 
 # Field Parameters
 HASH_CELL_SIZE = 10
@@ -15,10 +15,10 @@ START_RADIUS = 5
 START_MASS = 10
 MAX_COLLECTIBLE_SPAWN_PER_UPDATE = 0.01 / FPS * GAME_SPEED  # per unit area
 COLLECTIBLE_SIZE = 1
-MAX_COLLECTIBLE_DENSITY = 0.01  # per unit area
+MAX_COLLECTIBLE_DENSITY = 0.02  # per unit area
 
 # Cell Parameters
 BASE_MERGE_TIME = 30
-CELL_MOVE_SPEED = 30 / FPS * GAME_SPEED #units/sec
+CELL_MOVE_SPEED = 50 / FPS * GAME_SPEED #units/sec
 CELL_SPLIT_SPEED = 30 / FPS * GAME_SPEED #units/sec
 CELL_MASS_DECAY_RATE = 1 - (0.002 / FPS * GAME_SPEED)

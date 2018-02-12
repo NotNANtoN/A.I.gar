@@ -47,7 +47,7 @@ class Player(object):
                 cellPos = cell.getPos()
                 newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(5 + 0.50 * cell.getRadius())
+                newCell.addMomentum(4 + 0.005 * cell.getMass())
                 newCell.resetMergeTime()
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime()
@@ -134,7 +134,7 @@ class Player(object):
 
     def getFovDims(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        width = numpy.power(biggestCellRadius, 0.6) * 40 * numpy.power(len(self.cells), 1 / 6)
+        width = numpy.power(biggestCellRadius, 0.4) * 40 * numpy.power(len(self.cells), 1 / 6)
         height = width
         return width, height
 

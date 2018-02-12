@@ -1,13 +1,16 @@
 import numpy
-from random import randint
 from .parameters import *
 
 
 class Cell(object):
+    cellId = 0
+
     def __repr__(self):
-        return self.name + "-R:" + str(int(self.radius)) + " Pos:" + str(int(self.x)) + "," + str(int(self.y))
+        return self.name + str(self.id) + "-M:" + str(int(self.mass)) + " Pos:" + str(int(self.x)) + "," + str(int(self.y))
 
     def __init__(self, x, y, mass, player):
+        self.id = self.cellId
+        self.cellId += 1
         self.player = player
         self.mass = None
         self.radius = None
@@ -15,7 +18,7 @@ class Cell(object):
         self.x = x
         self.y = y
         if self.player == None:
-            self.color = (randint(0, 255), randint(0, 255), randint(0, 255))
+            self.color = (numpy.random.randint(0, 255), numpy.random.randint(0, 255), numpy.random.randint(0, 255))
             self.name = "Pellet"
         else:
             self.name = player.getName()
@@ -95,6 +98,9 @@ class Cell(object):
         return squared[0] + squared[1]
 
     # Checks:
+    def canEat(self, cell):
+        return self.mass > 1.25 * cell.getMass()
+
     def isAlive(self):
         return self.alive == True
 
@@ -130,13 +136,17 @@ class Cell(object):
         self.x = x
         self.y = y
 
+    #m = ((r - 4) / 6)²
+    #r = sqrt(m) * 6 + 4
     def setRadius(self, val):
         self.radius = val
+        #self.mass = numpy.power((self.radius - 4) * 6, 2)
         self.mass = numpy.power(self.radius, 2) * numpy.pi
 
     def setMass(self, val):
         self.mass = val
         self.radius = numpy.sqrt(self.mass / numpy.pi)
+        #self.radius = numpy.sqrt(self.mass) * 6 + 4
 
     # Getters:
     def getPlayer(self):
@@ -167,7 +177,8 @@ class Cell(object):
         return numpy.power(self.radius, 2)
 
     def getReducedSpeed(self):
-        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
+        #return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
+        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.2)
 
     def getVelocity(self):
         return [self.vx, self.vy]
