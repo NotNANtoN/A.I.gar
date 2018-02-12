@@ -12,6 +12,11 @@ class Controller:
         self.view = view
         self.running = True
 
+    def __init__(self, model):
+
+        self.model = model
+        self.running = True
+
     def process_input(self):
         if self.model.hasHuman():
             human = self.model.getHuman()
