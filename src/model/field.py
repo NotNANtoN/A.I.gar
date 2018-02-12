@@ -61,8 +61,9 @@ class Field(object):
 
     def mergePlayerCells(self):
         for player in self.players:
-            cells = player.getMergableCells().sort(key = lambda p: p.getMass(), reverse = True)
+            cells = player.getMergableCells()
             if len(cells) > 1:
+                cells = cells.sort(key = lambda p: p.getMass(), reverse = True)
                 for i in range(len(cells)):
                     if not cells[i].isAlive():
                         continue
