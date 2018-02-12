@@ -23,7 +23,7 @@ class Model(object):
         self.spectator = None
         self.players = []
         self.field = Field()
-
+        self.field.setDebug(debug)
         self.screenWidth = width
         self.screenHeight = height
 
@@ -32,7 +32,8 @@ class Model(object):
 
     def printDebugInfo(self):
         if self.hasHuman():
-            print("Human merge time first cell: ", self.human.cells[0].mergeTime)
+            pass
+            #print("Human merge time first cell: ", self.human.cells[0].mergeTime)
 
 
 
@@ -43,19 +44,12 @@ class Model(object):
         for bot in self.bots:
             bot.update()
         self.field.update()
-        self.respawnPlayers()
         self.notify()
         # wait = input("PRESS ENTER TO CONTINUE.")
         if self.debugStatus == True:
             self.printDebugInfo()
         #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
         print(time.time()-timeStart)
-
-    def respawnPlayers(self):
-        for dp in self.field.getDeadPlayers():
-            self.field.removeDeadPlayer(dp)
-            self.field.initializePlayer(dp)
-            self.field.addPlayer(dp)
 
     # Setters:
     def createPlayer(self, name):
@@ -114,8 +108,8 @@ class Model(object):
     def getField(self):
         return self.field
 
-    def getCollectibles(self):
-        return self.field.getCollectibles()
+    def getPellets(self):
+        return self.field.getPellets()
 
     def getViruses(self):
         return self.field.getViruses()

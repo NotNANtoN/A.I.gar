@@ -20,7 +20,10 @@ class View:
         pygame.display.set_caption('A.I.gar')
 
 
-    def drawDebugInfo(self, cells, fovPos, fovDims):
+    def drawDebugInfo(self):
+        cells = self.model.getPlayerCells()
+        fovPos = self.model.getFovPos()
+        fovDims = self.model.getFovDims()
         for cell in cells:
             pos = numpy.array(cell.getPos())
             scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
@@ -59,10 +62,10 @@ class View:
         fovPos = self.model.getFovPos()
         fovDims = self.model.getFovDims()
 
-        self.drawCells(self.model.getCollectibles(), fovPos, fovDims)
+        self.drawCells(self.model.getPellets(), fovPos, fovDims)
         self.drawCells(self.model.getViruses(), fovPos, fovDims)
         self.drawCells(self.model.getPlayerCells(), fovPos, fovDims)
-        self.drawDebugInfo(self.model.getPlayerCells(), fovPos, fovDims)
+
 
     def drawHumanStats(self):
         if self.model.hasHuman():
@@ -77,6 +80,8 @@ class View:
         self.screen.fill(WHITE)
         self.drawAllCells()
         self.drawHumanStats()
+        if self.model.getDebugStatus():
+            self.drawDebugInfo()
         pygame.display.update()
 
     def model_event(self):
