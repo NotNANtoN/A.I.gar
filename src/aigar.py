@@ -56,10 +56,8 @@ if __name__ == '__main__':
 
     model.initialize()
     view = View(model, SCREEN_WIDTH, SCREEN_HEIGHT)
-    if viewEnabled:
-        controller = Controller(model, view)
-    else:
-        controller = Controller(model)
+    controller = Controller(model, viewEnabled, view)
+
     view.draw()
 
     while controller.running:

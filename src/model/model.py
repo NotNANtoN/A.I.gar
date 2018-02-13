@@ -53,12 +53,12 @@ class Model(object):
             self.printDebugInfo()
         #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-
-        self.visualize(timeStart)
+        #self.visualize(timeStart)
 
 
 
     def visualize(self, timeStart):
+
         print(" ")
         print("time since update start: ", str(time.time() - timeStart))
         print("counter: ", self.counter)
@@ -104,6 +104,9 @@ class Model(object):
 
     def addSpectator(self):
         self.spectator = True
+
+    def setViewEnabled(self, boolean):
+        self.viewEnabled = boolean
 
     # Checks:
     def hasHuman(self):
