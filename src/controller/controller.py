@@ -7,16 +7,12 @@ class Controller:
     Initializing the 'root' main container, the model, the view,
     """
 
-    def __init__(self, model, view):
+    def __init__(self, model, viewEnabled, view):
 
         self.model = model
         self.view = view
         self.running = True
-
-    def __init__(self, model):
-
-        self.model = model
-        self.running = True
+        self.viewEnabled = viewEnabled
 
     def process_input(self):
         if self.model.hasHuman():
@@ -47,6 +43,11 @@ class Controller:
                         human.setEject(True)
                     elif event.key == pygame.K_m:
                         human.addMass(10)
+            if not self.viewEnabled:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.model.setViewEnabled(True)
+                if event.type == pygame.MOUSEBUTTONUP:
+                    self.model.setViewEnabled(False)
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self):

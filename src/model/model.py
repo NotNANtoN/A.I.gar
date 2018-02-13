@@ -48,12 +48,12 @@ class Model(object):
             self.notify()
         if self.debugStatus == True:
             self.printDebugInfo()
-        time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+        #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
         print(" ")
         print("time since update start: ", str(time.time() - timeStart))
         print("counter: ", self.counter)
         playerCells = self.field.getPlayerCells()
-        print("biggest cell mass: ", max(playerCells, lambda p: p.getMass()).getMass())
+        print("biggest cell mass: ", max(playerCells, key = lambda p: p.getMass()).getMass())
         self.counter += 1
         print(" ")
 
@@ -85,6 +85,9 @@ class Model(object):
 
     def addSpectator(self):
         self.spectator = True
+
+    def setViewEnabled(self, boolean):
+        self.viewEnabled = boolean
 
     # Checks:
     def hasHuman(self):
