@@ -26,6 +26,7 @@ class Model(object):
         self.field.setDebug(debug)
         self.screenWidth = width
         self.screenHeight = height
+        self.counter = 0
 
     def initialize(self):
         self.field.initialize()
@@ -39,6 +40,7 @@ class Model(object):
 
 
     def update(self):
+
         timeStart = time.time()
         # Get the decisions of the bots/human. Update the field accordingly.
         for bot in self.bots:
@@ -49,6 +51,13 @@ class Model(object):
         if self.debugStatus == True:
             self.printDebugInfo()
         time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+        print(" ")
+        print("time since update start: ", str(time.time() - timeStart))
+        print("counter: ", self.counter)
+        playerCells = self.field.getPlayerCells()
+        print("biggest cell mass: ", max(playerCells, lambda p: p.getMass()).getMass())
+        self.counter += 1
+        print(" ")
 
     # Setters:
     def createPlayer(self, name):
