@@ -53,7 +53,7 @@ class Model(object):
             self.printDebugInfo()
         #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-        self.visualize(timeStart)
+        #self.visualize(timeStart)
 
 
 
@@ -76,7 +76,7 @@ class Model(object):
             plt.ylabel("Time taken for update")
             print("mean time: ", str(numpy.mean(self.timings)))
             plt.show()
-            quit()
+
 
 
     # Setters:
