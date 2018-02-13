@@ -3,14 +3,25 @@ from .parameters import *
 
 
 class Cell(object):
-    cellId = 0
+    _cellId = 0
+
+    @property
+    def cellId(self):
+        return type(self)._cellId
+
+    @cellId.setter
+    def cellId(self, val):
+        type(self)._cellId = val
 
     def __repr__(self):
-        return self.name + str(self.id) + "-M:" + str(int(self.mass)) + " Pos:" + str(int(self.x)) + "," + str(int(self.y))
+        return self.name + " id: " + str(self.id) + " -M:" + str(int(self.mass)) + " Pos:" + str(int(self.x)) + "," + str(int(self.y))
 
     def __init__(self, x, y, mass, player):
-        self.id = self.cellId
-        self.cellId += 1
+        if player != None:
+            self.id = self.cellId
+            self.cellId += 1
+        else:
+            self.id = -1
         self.player = player
         self.mass = None
         self.radius = None

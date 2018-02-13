@@ -42,16 +42,20 @@ class Player(object):
     def split(self):
         if not self.doSplit:
             return
-        for cell in sorted(self.cells, key = lambda p: p.getMass()):
-            if cell.canSplit() and not cell.justEjected() and len(self.cells) < 16:
+        self.cells.sort(key=lambda p: p.getMass(), reverse=True)
+        newCells = []
+        for cell in self.cells:
+            if cell.canSplit() and len(self.cells) < 16:
                 cellPos = cell.getPos()
                 newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(4 + 0.005 * cell.getMass())
+                newCell.addMomentum(5 + 0.002 * cell.getMass())
                 newCell.resetMergeTime()
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime()
-                self.addCell(newCell)
+                newCells.append(newCell)
+        for newCell in newCells:
+            self.addCell(newCell)
 
     def eject(self):
         if not self.doEject:

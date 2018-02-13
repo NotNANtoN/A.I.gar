@@ -46,8 +46,8 @@ class Field(object):
     def update(self):
         self.updateViruses()
         self.updatePlayers()
-        self.mergePlayerCells()
         self.updateHashTables()
+        self.mergePlayerCells()
         self.checkCollisions()
         self.spawnStuff()
 
@@ -63,7 +63,20 @@ class Field(object):
         for player in self.players:
             cells = player.getMergableCells()
             if len(cells) > 1:
-                cells = cells.sort(key = lambda p: p.getMass(), reverse = True)
+                cells.sort(key = lambda p: p.getMass(), reverse = True)
+                for cell1 in cells:
+                    if not cell1.isAlive():
+                        continue
+                    for cell2 in cells:
+                        if (not cell2.isAlive()) or (cell2 is cell1):
+                            continue
+                        if cell1.overlap(cell2):
+                            self.mergeCells(cell1, cell2)
+                            if not cell1.isAlive():
+                                break
+
+
+                '''
                 for i in range(len(cells)):
                     if not cells[i].isAlive():
                         continue
@@ -74,7 +87,7 @@ class Field(object):
                             self.mergeCells(cells[i], cells[j])
                         elif cells[j].overlap(cells[i]):
                             self.mergeCells(cells[j], cells[i])
-
+                '''
 
     def checkCollisions(self):
         self.collectibleCollisions()
@@ -132,11 +145,16 @@ class Field(object):
         self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashtable)
         self.deletePlayerCell(smallerCell)
 
-    def mergeCells(self, biggerCell, smallerCell):
+    def mergeCells(self, firstCell, secondCell):
+        if firstCell.getMass() > secondCell.getMass():
+            biggerCell = firstCell
+            smallerCell = secondCell
+        else:
+            biggerCell = secondCell
+            smallerCell = firstCell
         if self.debug:
             print(smallerCell, " is merged into ", biggerCell, "!")
-        combinedMass = biggerCell.getMass() + smallerCell.getMass()
-        self.adjustCellSize(biggerCell, combinedMass, self.playerHashtable )
+        self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashtable)
         self.deletePlayerCell(smallerCell)
 
     def deletePlayerCell(self, playerCell):
