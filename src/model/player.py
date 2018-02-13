@@ -1,5 +1,6 @@
 from random import randint
 from .cell import Cell
+from .parameters import *
 import numpy
 
 
@@ -45,11 +46,11 @@ class Player(object):
         self.cells.sort(key=lambda p: p.getMass(), reverse=True)
         newCells = []
         for cell in self.cells:
-            if cell.canSplit() and len(self.cells) < 16:
+            if cell.canSplit() and len(self.cells) + len(newCells) < 16:
                 cellPos = cell.getPos()
                 newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(6 + 0.0025 * cell.getMass())
+                newCell.addMomentum(MOMENTUM_BASE + MOMENTUM_PROPORTION_TO_MASS * cell.getMass())
                 newCell.resetMergeTime()
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime()

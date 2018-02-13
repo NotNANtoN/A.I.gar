@@ -42,7 +42,7 @@ class Controller:
                     elif event.key == pygame.K_w and human.getCanEject():
                         human.setEject(True)
                     elif event.key == pygame.K_m:
-                        human.addMass(10)
+                        human.addMass(human.getTotalMass() * 0.2)
             if not self.viewEnabled:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     self.model.setViewEnabled(True)

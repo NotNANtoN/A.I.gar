@@ -51,7 +51,7 @@ class Model(object):
             self.notify()
         if self.debugStatus == True:
             self.printDebugInfo()
-        #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+        time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
         #self.visualize(timeStart)
 

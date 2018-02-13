@@ -48,16 +48,43 @@ class Field(object):
         self.updatePlayers()
         self.updateHashTables()
         self.mergePlayerCells()
-        self.checkCollisions()
+        self.checkOverlaps()
         self.spawnStuff()
+
+    def updateViruses(self):
+        for virus in self.viruses:
+            virus.update()
+
+    def updatePlayers(self):
+        for player in self.players:
+            player.update(self.width, self.height)
+        self.handlePlayerCollisions()
+
+    def handlePlayerCollisions(self):
+        for player in self.players:
+            self.handlePlayerCollision(player)
+
+    def handlePlayerCollision(self, player):
+        for cell in player.getCells():
+            if cell.justEjected():
+                continue
+            for otherCell in player.getCells():
+                if cell is otherCell or otherCell.justEjected() or cell.canMerge() and otherCell.canMerge():
+                    continue
+                distance = numpy.sqrt(cell.squaredDistance(otherCell))
+                summedRadii = cell.getRadius() + otherCell.getRadius()
+                if distance < summedRadii and distance != 0:
+                    posDiff = cell.getPos() - otherCell.getPos()
+                    scaling = (summedRadii - distance) / distance / 2
+                    posDiffScaled = posDiff * scaling
+                    self.adjustCellPos(cell, cell.getPos() + posDiffScaled, self.playerHashtable)
+                    self.adjustCellPos(otherCell, otherCell.getPos() - posDiffScaled, self.playerHashtable)
 
     def updateHashTables(self):
         self.playerHashtable.clearBuckets()
         for player in self.players:
             playerCells = player.getCells()
             self.playerHashtable.insertAllObjects(playerCells)
-
-
 
     def mergePlayerCells(self):
         for player in self.players:
@@ -75,25 +102,11 @@ class Field(object):
                             if not cell1.isAlive():
                                 break
 
+    def checkOverlaps(self):
+        self.playerPelletOverlap()
+        self.playerPlayerOverlap()
 
-                '''
-                for i in range(len(cells)):
-                    if not cells[i].isAlive():
-                        continue
-                    for j in range(i + 1, len(cells)):
-                        if cells[i] is cells[j] or not cells[j].isAlive():
-                            continue
-                        if cells[i].overlap(cells[j]):
-                            self.mergeCells(cells[i], cells[j])
-                        elif cells[j].overlap(cells[i]):
-                            self.mergeCells(cells[j], cells[i])
-                '''
-
-    def checkCollisions(self):
-        self.collectibleCollisions()
-        self.playerCollisions()
-
-    def collectibleCollisions(self):
+    def playerPelletOverlap(self):
         for player in self.players:
             for cell in player.getCells():
                 for collectible in self.pelletHashtable.getNearbyObjects(cell):
@@ -101,7 +114,7 @@ class Field(object):
                         self.eatPellet(cell, collectible)
 
 
-    def playerCollisions(self):
+    def playerPlayerOverlap(self):
         for player in self.players:
             for playerCell in player.getCells():
                 if not playerCell.isAlive():
@@ -126,11 +139,33 @@ class Field(object):
                                 self.eatPlayerCell(opponentCell, playerCell)
                                 break
 
+    def spawnStuff(self):
+        self.spawnPellets()
+        self.spawnViruses()
+        self.spawnPlayers()
 
-    def adjustCellSize(self, cell, mass, hashtable):
-        hashtable.deleteObject(cell)
-        cell.grow(mass)
-        hashtable.insertObject(cell)
+    def spawnViruses(self):
+        pass
+
+    def spawnPlayers(self):
+        for player in self.players:
+            if len(player.getCells()) < 1:
+                if self.debug:
+                    print(player.getName(), " died!")
+                self.initializePlayer(player)
+                if self.debug:
+                    print("REVIVE ", player.getName(), "!!!")
+
+    def spawnPellets(self):
+        while len(self.pellets) < self.maxCollectibleCount:
+            self.spawnPellet()
+
+    def spawnPellet(self):
+        xPos = numpy.random.randint(0, self.width)
+        yPos = numpy.random.randint(0, self.height)
+        size = self.randomSize()
+        pellet = Cell(xPos, yPos, size, None)
+        self.addPellet(pellet)
 
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def eatPellet(self, cell, pellet):
@@ -163,40 +198,6 @@ class Field(object):
         player.removeCell(playerCell)
 
 
-    def updateViruses(self):
-        for virus in self.viruses:
-            virus.update()
-
-    def updatePlayers(self):
-        for player in self.players:
-            player.update(self.width, self.height)
-
-    def spawnStuff(self):
-        self.spawnPellets()
-        self.spawnViruses()
-        self.spawnPlayers()
-
-    def spawnPellets(self):
-        # If beginning of the game, spawn all collectibles at once
-        #if len(self.collectibles) == 0:
-            while len(self.pellets) < self.maxCollectibleCount:
-                self.spawnPellet()
-                '''
-        else:  # Else, spawn at the max spawn rate
-            count = 0
-            totalMaxSpawnRate = MAX_COLLECTIBLE_SPAWN_PER_UPDATE * self.width * self.height
-            while len(self.collectibles) < self.maxCollectibleCount and count < MAX_COLLECTIBLE_SPAWN_PER_UPDATE:
-                self.spawnCollectible()
-                count += 1
-                '''
-
-    def spawnPellet(self):
-        xPos = numpy.random.randint(0, self.width)
-        yPos = numpy.random.randint(0, self.height)
-        size = self.randomSize()
-        pellet = Cell(xPos, yPos, size, None)
-        self.addPellet(pellet)
-
     def randomSize(self):
         maxRand = 20
         maxPelletSize = 5
@@ -205,28 +206,21 @@ class Field(object):
             return maxRand - sizeRand
         return 1
 
-    def spawnViruses(self):
-        pass
-
-    def spawnPlayers(self):
-        for player in self.players:
-            if len(player.getCells()) < 1:
-                if self.debug:
-                    print(player.getName(), " died!")
-                self.initializePlayer(player)
-                if self.debug:
-                    print("REVIVE ", player.getName(), "!!!")
-            '''
-        for dp in self.deadPlayers:
-            self.deadPlayers.remove(dp)
-            self.initializePlayer(dp)
-            if self.debug:
-             print("REVIVE ", dp.getName() ,"!!!")
-             '''
-
     def addPellet(self, pellet):
         self.pelletHashtable.insertObject(pellet)
         self.pellets.append(pellet)
+
+    def adjustCellSize(self, cell, mass, hashtable):
+        hashtable.deleteObject(cell)
+        cell.grow(mass)
+        hashtable.insertObject(cell)
+
+    def adjustCellPos(self, cell, newPos, hashtable):
+        #hashtable.deleteObject(cell)
+        x = min(self.width, max(0, newPos[0]))
+        y = min(self.height, max(0, newPos[1]))
+        cell.setPos(x, y)
+        #hashtable.insertObject(cell)
 
     # Setters:
     def setDebug(self, val):

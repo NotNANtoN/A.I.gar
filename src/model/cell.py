@@ -189,7 +189,7 @@ class Cell(object):
 
     def getReducedSpeed(self):
         #return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
-        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.2)
+        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.275)
 
     def getVelocity(self):
         return [self.vx, self.vy]
