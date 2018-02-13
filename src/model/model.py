@@ -48,8 +48,7 @@ class Model(object):
         # wait = input("PRESS ENTER TO CONTINUE.")
         if self.debugStatus == True:
             self.printDebugInfo()
-        #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
-        print(time.time()-timeStart)
+        time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
     # Setters:
     def createPlayer(self, name):
