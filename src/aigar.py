@@ -35,16 +35,16 @@ if __name__ == '__main__':
     debug = int(input("Display debug info?: (1 == yes)\n"))
     debug = (debug == 1)
 
-    v = int(input("Display view?: (1 == yes)\n"))
-    v = (v == 1)
+    viewEnabled = int(input("Display view?: (1 == yes)\n"))
+    viewEnabled = (viewEnabled == 1)
 
-    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, debug)
+    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, debug, viewEnabled)
 
     numberOfBots = int(input("Please enter the number of bots:\n"))
     if fitsLimitations(numberOfBots, MAXBOTS):
         createBots(numberOfBots, model)
 
-    if v:
+    if viewEnabled:
         numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
         if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
             createHumans(model)
@@ -55,15 +55,13 @@ if __name__ == '__main__':
                 model.addSpectator()
 
     model.initialize()
-
-    if v:
-        view = View(model, SCREEN_WIDTH, SCREEN_HEIGHT)
-        view.draw()
+    view = View(model, SCREEN_WIDTH, SCREEN_HEIGHT)
+    if viewEnabled:
         controller = Controller(model, view)
     else:
         controller = Controller(model)
+    view.draw()
 
     while controller.running:
-        if v:
-            controller.process_input()
+        controller.process_input()
         model.update()
