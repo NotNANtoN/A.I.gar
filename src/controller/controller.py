@@ -1,4 +1,5 @@
 from view.view import *
+import pygame
 
 
 class Controller:

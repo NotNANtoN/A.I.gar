@@ -13,9 +13,10 @@ from .player import Player
 
 
 class Model(object):
-    def __init__(self, width, height, debug):
+    def __init__(self, width, height, debug, viewEnabled):
         self.listeners = []
         self.debugStatus = debug
+        self.viewEnabled = viewEnabled
 
         self.players = []
         self.bots = []
@@ -36,9 +37,6 @@ class Model(object):
             pass
             #print("Human merge time first cell: ", self.human.cells[0].mergeTime)
 
-
-
-
     def update(self):
 
         timeStart = time.time()
@@ -46,8 +44,8 @@ class Model(object):
         for bot in self.bots:
             bot.update()
         self.field.update()
-        self.notify()
-        # wait = input("PRESS ENTER TO CONTINUE.")
+        if self.viewEnabled:
+            self.notify()
         if self.debugStatus == True:
             self.printDebugInfo()
         time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
