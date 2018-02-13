@@ -5,7 +5,7 @@ from .bot import Bot
 from .field import Field
 from .parameters import *
 from .player import Player
-
+import matplotlib.pyplot as plt
 
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
@@ -28,6 +28,9 @@ class Model(object):
         self.screenWidth = width
         self.screenHeight = height
         self.counter = 0
+        self.timings = []
+        self.maxMasses = []
+
 
     def initialize(self):
         self.field.initialize()
@@ -48,14 +51,30 @@ class Model(object):
             self.notify()
         if self.debugStatus == True:
             self.printDebugInfo()
-        time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+        #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+
+
+        self.visualize(timeStart)
+
+
+
+    def visualize(self, timeStart):
         print(" ")
         print("time since update start: ", str(time.time() - timeStart))
         print("counter: ", self.counter)
         playerCells = self.field.getPlayerCells()
-        print("biggest cell mass: ", max(playerCells, lambda p: p.getMass()).getMass())
+        maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
+        print("biggest cell mass: ", maxMass)
         self.counter += 1
+        self.timings.append(time.time() - timeStart)
+        self.maxMasses.append(maxMass)
         print(" ")
+
+        if self.counter % 1000 == 0:
+            plt.plot(self.maxMasses, self.timings)
+            plt.xlabel("Maximum Masses")
+            plt.ylabel("Time taken for update")
+            plt.show()
 
     # Setters:
     def createPlayer(self, name):
