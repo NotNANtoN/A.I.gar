@@ -49,7 +49,7 @@ class Player(object):
                 cellPos = cell.getPos()
                 newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(5 + 0.002 * cell.getMass())
+                newCell.addMomentum(6 + 0.0025 * cell.getMass())
                 newCell.resetMergeTime()
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime()

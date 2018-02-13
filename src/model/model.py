@@ -53,28 +53,31 @@ class Model(object):
             self.printDebugInfo()
         #time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-        #self.visualize(timeStart)
+        self.visualize(timeStart)
 
 
 
     def visualize(self, timeStart):
 
-        print(" ")
-        print("time since update start: ", str(time.time() - timeStart))
-        print("counter: ", self.counter)
+        #print(" ")
+        #print("time since update start: ", str(time.time() - timeStart))
+        #print("counter: ", self.counter)
         playerCells = self.field.getPlayerCells()
         maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
-        print("biggest cell mass: ", maxMass)
+        #print("biggest cell mass: ", maxMass)
         self.counter += 1
         self.timings.append(time.time() - timeStart)
         self.maxMasses.append(maxMass)
-        print(" ")
+        #print(" ")
 
         if self.counter % 1000 == 0:
-            plt.plot(self.maxMasses, self.timings)
+            plt.plot(self.maxMasses, self.timings, 'o')
             plt.xlabel("Maximum Masses")
             plt.ylabel("Time taken for update")
+            print("mean time: ", str(numpy.mean(self.timings)))
             plt.show()
+            quit()
+
 
     # Setters:
     def createPlayer(self, name):

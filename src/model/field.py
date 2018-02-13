@@ -161,11 +161,7 @@ class Field(object):
         self.playerHashtable.deleteObject(playerCell)
         player = playerCell.getPlayer()
         player.removeCell(playerCell)
-        if len(player.getCells()) == 0:
-            if self.debug:
-                print(player.getName(), " died!")
-            player.setDead()
-            self.deadPlayers.append(player)
+
 
     def updateViruses(self):
         for virus in self.viruses:
@@ -213,11 +209,20 @@ class Field(object):
         pass
 
     def spawnPlayers(self):
+        for player in self.players:
+            if len(player.getCells()) < 1:
+                if self.debug:
+                    print(player.getName(), " died!")
+                self.initializePlayer(player)
+                if self.debug:
+                    print("REVIVE ", player.getName(), "!!!")
+            '''
         for dp in self.deadPlayers:
             self.deadPlayers.remove(dp)
             self.initializePlayer(dp)
             if self.debug:
              print("REVIVE ", dp.getName() ,"!!!")
+             '''
 
     def addPellet(self, pellet):
         self.pelletHashtable.insertObject(pellet)
