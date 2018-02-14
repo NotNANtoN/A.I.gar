@@ -63,7 +63,7 @@ class Player(object):
             return
         for cell in self.cells:
             if cell.canEject():
-                cell.eject(self.commandPoint)
+                cell.prepareEject()
 
     def updateCellsMovement(self, fieldWidth, fieldHeight):
         for cell in self.cells:
@@ -156,3 +156,6 @@ class Player(object):
 
     def getIsAlive(self):
         return self.isAlive
+
+    def getCommandPoint(self):
+        return self.commandPoint

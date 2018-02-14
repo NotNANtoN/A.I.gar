@@ -34,8 +34,8 @@ class Controller:
                     self.model.createBot()
                     player = self.model.players[-1]
                     self.model.getField().initializePlayer(player)
-                # "space" to Split
                 if self.model.hasHuman() and human.getIsAlive():
+                    # "space" to Split
                     if event.key == pygame.K_SPACE and human.getCanSplit():
                         human.setSplit(True)
                     # "w" to Eject

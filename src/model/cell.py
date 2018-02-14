@@ -38,6 +38,7 @@ class Cell(object):
         self.vy = 0
         self.momentum = 1
         self.mergeTime = 0
+        self.blobToBeEjected = None
         self.alive = True
 
     def setMoveDirection(self, commandPoint):
@@ -54,8 +55,14 @@ class Cell(object):
     def split(self, commandPoint):
         pass
 
+    def prepareEject(self):
+        self.blobToBeEjected = True
+
     def eject(self, commandPoint):
-        pass
+        self.mass -= 18
+        blobSpawnPos = self.getClosestSurfacePoint(commandPoint)
+        self.blobToBeEjected = False
+        return blobSpawnPos
 
     def addMomentum(self, value):
         self.momentum = value
@@ -134,7 +141,7 @@ class Cell(object):
         return self.mass > 36
 
     def canEject(self):
-        return self.mass > 35
+        return self.mass >= 35
 
     def canMerge(self):
         return self.mergeTime <= 0
@@ -164,6 +171,9 @@ class Cell(object):
         self.mass = val
         self.radius = numpy.sqrt(self.mass / numpy.pi)
         #self.radius = numpy.sqrt(self.mass) * 6 + 4
+
+    def setBlobToBeEjected(self, val):
+        self.blobToBeEjected = False
 
     # Getters:
     def getPlayer(self):
@@ -199,3 +209,15 @@ class Cell(object):
 
     def getVelocity(self):
         return [self.vx, self.vy]
+
+    def getClosestSurfacePoint(self, commandPoint):
+        difference = numpy.subtract(commandPoint, [self.x, self.y])
+        #make sure commandPoint != center of cell since ratio is then a division by 0
+        if difference[0] == 0 and difference[1] == 0:
+            return None
+
+        hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
+        ratio = hypotenuseSquared / getSquaredRadius()
+        x = numpy.sqrt(difference[0]/ratio)
+        y = numpy.sqrt(difference[1]/ratio)
+        return [x, y]

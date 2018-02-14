@@ -16,7 +16,7 @@ class Field(object):
         self.height = 0
         self.pellets = []
         self.players = []
-        self.ejectedParticles = [] # Ejected particles become pellets once momentum is lost
+        self.ejectedBlobs = [] # Ejected particles become pellets once momentum is lost
         self.deadPlayers = []
         self.viruses = []
         self.maxCollectibleCount = None
@@ -38,7 +38,7 @@ class Field(object):
         self.width = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         self.height = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         self.pelletHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
-        self.ejectedParticleHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
+        self.ejectedBlobHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         self.playerHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         self.virusHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         for player in self.players:
@@ -49,6 +49,7 @@ class Field(object):
 
     def update(self):
         self.updateViruses()
+        self.updateEjectedBlobs()
         self.updatePlayers()
         self.updateHashTables()
         self.mergePlayerCells()
@@ -60,10 +61,24 @@ class Field(object):
             virus.updateMomentum()
             virus.updatePos(self.width, self.height)
 
+    def updateEjectedBlobs(self):
+        for blob in self.ejectedBlobs:
+            blob.updateMomentum()
+            blob.updatePos(self.width, self.hieght)
+
     def updatePlayers(self):
         for player in self.players:
             player.update(self.width, self.height)
+            updateEjections(player)
         self.handlePlayerCollisions()
+
+    def updateEjections(self, player):
+        for cell in player.getCells():
+            if cell.blobToBeEjected():
+                blobSpawnPos = cell.eject(player.getCommandPoint)
+                ejectedBlob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS, None)
+                ejectedBlob.addMomentum(EJECTEDBLOB_BASE_MOMENTUM)
+                self.addEjectedBlob(ejectedBlob)
 
     def handlePlayerCollisions(self):
         for player in self.players:
@@ -198,6 +213,12 @@ class Field(object):
         self.pelletHashtable.deleteObject(pellet)
         pellet.setAlive(False)
 
+    def eatEjectedBlob(self, cell, ejectedBlob):
+        self.adjustCellSize(cell, ejectedBlob.getMass(), self.playerHashtable)
+        self.ejectedBlobs.remove(ejectedBlob)
+        self.ejectedBlobHashTable.deleteObject(ejectedBlob)
+        ejected.setAlive(False)
+
     def eatVirus(self, playerCell, virus):
         self.adjustCellSize(playerCell, virus.getMass(), self.playerHashtable)
         self.playerCellAteVirus(playerCell)
@@ -251,7 +272,6 @@ class Field(object):
         player = playerCell.getPlayer()
         player.removeCell(playerCell)
 
-
     def randomSize(self):
         maxRand = 20
         maxPelletSize = 5
@@ -263,6 +283,10 @@ class Field(object):
     def addPellet(self, pellet):
         self.pelletHashtable.insertObject(pellet)
         self.pellets.append(pellet)
+
+    def addEjectedBlob(self, ejectedBlob):
+        self.ejectedBlobHashTable.insertObject(ejectedBlob)
+        self.ejectedBlobs.append(ejectedBlob)
 
     def addVirus(self, virus):
         self.virusHashtable.insertObject(virus)
@@ -327,6 +351,9 @@ class Field(object):
         fovCell.setRadius(fovDims[0] / 2)
         return hashtable.getNearbyObjects(fovCell)
 
+    def getEjectedBlobsInFov(self, fovPos, fovDims):
+        ejectedBlobsNearFov = self.getCellsFromHashtableInFov(self.ejectedBlobHashTable, fovPos, fovDims)
+        return self.getPortionOfCellsInFov(pelletsNearFov, fovPos, fovDims)
 
     def getWidth(self):
         return self.width
@@ -336,6 +363,9 @@ class Field(object):
 
     def getPellets(self):
         return self.pellets
+
+    def getEjectedBlobs(self):
+        return self.ejectedBlobs
 
     def getViruses(self):
         return self.viruses
