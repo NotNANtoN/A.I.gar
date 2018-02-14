@@ -20,6 +20,7 @@ class Field(object):
         self.deadPlayers = []
         self.viruses = []
         self.maxCollectibleCount = None
+        self.maxVirusCount = None
         self.pelletHashtable = None
         self.playerHashtable = None
         self.virusHashtable = None
@@ -43,6 +44,7 @@ class Field(object):
         for player in self.players:
             self.initializePlayer(player)
         self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
+        self.maxVirusCount = self.width * self.height * MAX_VIRUS_DENSITY
         self.spawnStuff()
 
     def update(self):
@@ -55,7 +57,8 @@ class Field(object):
 
     def updateViruses(self):
         for virus in self.viruses:
-            virus.update()
+            virus.updateMomentum()
+            virus.updatePos(self.width, self.height)
 
     def updatePlayers(self):
         for player in self.players:
@@ -105,24 +108,27 @@ class Field(object):
                                 break
 
     def checkOverlaps(self):
+        self.playerVirusOverlap()
         self.playerPelletOverlap()
         self.playerPlayerOverlap()
 
     def playerPelletOverlap(self):
         for player in self.players:
             for cell in player.getCells():
-                for collectible in self.pelletHashtable.getNearbyObjects(cell):
-                    if cell.overlap(collectible):
-                        self.eatPellet(cell, collectible)
+                for pellet in self.pelletHashtable.getNearbyObjects(cell):
+                    if cell.overlap(pellet):
+                        self.eatPellet(cell, pellet)
 
+    def playerVirusOverlap(self):
+        for player in self.players:
+            for cell in player.getCells():
+                for virus in self.virusHashtable.getNearbyObjects(cell):
+                    if cell.overlap(virus) and cell.getMass() > 1.5 * virus.getMass():
+                        self.eatVirus(cell, virus)
 
     def playerPlayerOverlap(self):
         for player in self.players:
             for playerCell in player.getCells():
-                if not playerCell.isAlive():
-                    if self.debug:
-                      print("Skip cell ", playerCell," because it is dead!")
-                    continue
                 opponentCells = self.playerHashtable.getNearbyEnemyObjects(playerCell)
                 if self.debug:
                     if len(opponentCells) > 0:
@@ -141,13 +147,28 @@ class Field(object):
                                 self.eatPlayerCell(opponentCell, playerCell)
                                 break
 
+    def virusEjectedOverlap(self):
+        # After 7 feedings the virus splits in roughly the opposite direction of the last incoming ejectable
+        # The ejected viruses bounce off of the edge of the fields
+        pass
+
     def spawnStuff(self):
         self.spawnPellets()
         self.spawnViruses()
         self.spawnPlayers()
 
     def spawnViruses(self):
-        pass
+        while len(self.viruses) < self.maxVirusCount:
+            self.spawnVirus()
+
+    def spawnVirus(self):
+        xPos = numpy.random.randint(0, self.width)
+        yPos = numpy.random.randint(0, self.height)
+        size = VIRUS_BASE_SIZE
+        virus = Cell(xPos, yPos, size, None)
+        virus.setName("Virus")
+        virus.setColor((0,255,0))
+        self.addVirus(virus)
 
     def spawnPlayers(self):
         for player in self.players:
@@ -167,6 +188,7 @@ class Field(object):
         yPos = numpy.random.randint(0, self.height)
         size = self.randomSize()
         pellet = Cell(xPos, yPos, size, None)
+        pellet.setName("Pellet")
         self.addPellet(pellet)
 
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
@@ -176,11 +198,41 @@ class Field(object):
         self.pelletHashtable.deleteObject(pellet)
         pellet.setAlive(False)
 
+    def eatVirus(self, playerCell, virus):
+        self.adjustCellSize(playerCell, virus.getMass(), self.playerHashtable)
+        self.playerCellAteVirus(playerCell)
+        self.viruses.remove(virus)
+        self.virusHashtable.deleteObject(virus)
+        virus.setAlive(False)
+
     def eatPlayerCell(self, largerCell, smallerCell):
         if self.debug:
             print(largerCell, " eats ", smallerCell, "!")
         self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashtable)
         self.deletePlayerCell(smallerCell)
+
+    def playerCellAteVirus(self, playerCell):
+        player = playerCell.getPlayer()
+        numberOfCells = len(player.getCells())
+        numberOfNewCells = 16 - numberOfCells
+        if numberOfNewCells == 0:
+            return
+        massPerCell = (playerCell.getMass() - 10) / numberOfNewCells
+        playerCell.resetMergeTime(0.8)
+        self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashtable)
+        for cellIdx in range(numberOfNewCells):
+            cellPos = playerCell.getPos()
+            newCell = Cell(cellPos[0], cellPos[1], massPerCell, player)
+            cellAngle = (360 / numberOfNewCells) / (cellIdx + 1)
+
+            xPoint = numpy.cos(cellAngle) * playerCell.getRadius() * 1.5 + cellPos[0]
+            yPoint = numpy.sin(cellAngle) * playerCell.getRadius() * 1.5 + cellPos[1]
+            newCell.setMoveDirection((xPoint, yPoint))
+            newCell.addMomentum(MOMENTUM_BASE + 4 * playerCell.getRadius())
+            newCell.resetMergeTime(0.8)
+            self.addPlayerCell(newCell)
+
+
 
     def mergeCells(self, firstCell, secondCell):
         if firstCell.getMass() > secondCell.getMass():
@@ -212,6 +264,14 @@ class Field(object):
         self.pelletHashtable.insertObject(pellet)
         self.pellets.append(pellet)
 
+    def addVirus(self, virus):
+        self.virusHashtable.insertObject(virus)
+        self.viruses.append(virus)
+
+    def addPlayerCell(self, playerCell):
+        self.playerHashtable.insertObject(playerCell)
+        playerCell.getPlayer().addCell(playerCell)
+
     def adjustCellSize(self, cell, mass, hashtable):
         hashtable.deleteObject(cell)
         cell.grow(mass)
@@ -233,27 +293,34 @@ class Field(object):
         self.players.append(player)
 
     # Getters:
+    def getPortionOfCellsInFov(self, cells, fovPos, fovDims):
+        inFov = []
+        for cell in cells:
+            if cell.isInFov(fovPos, fovDims):
+                inFov.append(cell)
+        return inFov
+
+
+    def getPlayerCellsInFov(self, fovPos, fovDims):
+
+        cellsNearFov = self.getCellsFromHashtableInFov(self.playerHashtable, fovPos, fovDims)
+        return self.getPortionOfCellsInFov(cellsNearFov, fovPos, fovDims)
+
     def getEnemyPlayerCellsInFov(self, fovPlayer):
-        fovPos = fovPlayer.getFovPos()
-        fovDims = fovPlayer.getFovDims()
-        cellsInFov = self.getCellsFromHashtableInFov(self.playerHashtable, fovPos, fovDims)
+        playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovDims())
         opponentCellsInFov = []
-        for playerCell in cellsInFov:
-            # If the playerCell is an opponent Cell
-            if playerCell.getName() != fovPlayer.getName() and playerCell.isInFov(fovPos, fovDims):
+        for playerCell in playerCellsInFov:
+            if playerCell.getPlayer() is not fovPlayer:
                 opponentCellsInFov.append(playerCell)
         return opponentCellsInFov
 
+    def getPelletsInFov(self, fovPos, fovDims):
+        pelletsNearFov = self.getCellsFromHashtableInFov(self.pelletHashtable, fovPos, fovDims)
+        return self.getPortionOfCellsInFov(pelletsNearFov, fovPos, fovDims)
 
-    def getPelletsInFov(self, fovPlayer):
-        fovPos = fovPlayer.getFovPos()
-        fovDims = fovPlayer.getFovDims()
-        cellsInFov = self.getCellsFromHashtableInFov(self.pelletHashtable, fovPos, fovDims)
-        pelletsInFov = []
-        for pellet in cellsInFov:
-            if pellet.isInFov(fovPos, fovDims):
-                pelletsInFov.append(pellet)
-        return pelletsInFov
+    def getVirusesInFov(self, fovPos, fovDims):
+        virusesNearFov = self.getCellsFromHashtableInFov(self.virusHashtable, fovPos, fovDims)
+        return self.getPortionOfCellsInFov(virusesNearFov, fovPos, fovDims)
 
     def getCellsFromHashtableInFov(self, hashtable, fovPos, fovDims):
         fovCell = Cell(fovPos[0], fovPos[1], 1, None)
