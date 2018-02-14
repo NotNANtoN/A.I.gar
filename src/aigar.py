@@ -50,9 +50,9 @@ if __name__ == '__main__':
             createHumans(model)
 
         if not model.hasHuman():
-            spectate = int(input("Do you want to spectate the bots then? (1 = yes)\n"))
+            spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
             if spectate == 1:
-                model.addSpectator()
+                model.addPlayerSpectator()
 
     model.initialize()
     view = View(model, SCREEN_WIDTH, SCREEN_HEIGHT)

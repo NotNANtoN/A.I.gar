@@ -85,8 +85,7 @@ class View:
         pygame.display.update()
 
     def model_event(self):
-        if self.model.hasHuman() or self.model.hasSpectator:
-            self.draw()
+        self.draw()
 
     def modelToViewScaling(self, pos, fovPos, fovDims):
         adjustedPos = pos - fovPos + (fovDims / 2)
