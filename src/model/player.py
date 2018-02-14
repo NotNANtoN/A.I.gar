@@ -50,10 +50,10 @@ class Player(object):
                 cellPos = cell.getPos()
                 newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
                 newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(MOMENTUM_BASE + MOMENTUM_PROPORTION_TO_MASS * cell.getMass())
-                newCell.resetMergeTime()
+                newCell.addMomentum(MOMENTUM_BASE + MOMENTUM_PROPORTION_TO_MASS * cell.getRadius())
+                newCell.resetMergeTime(1)
                 cell.setMass(cell.getMass() / 2)
-                cell.resetMergeTime()
+                cell.resetMergeTime(1)
                 newCells.append(newCell)
         for newCell in newCells:
             self.addCell(newCell)

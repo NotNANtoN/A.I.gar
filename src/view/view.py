@@ -40,12 +40,11 @@ class View:
 
     def drawCells(self, cells, fovPos, fovDims):
         for cell in cells:
-            if cell.isInFov(fovPos, fovDims):
-                rad = cell.getRadius()
-                pos = numpy.array(cell.getPos())
-                scaledRad = self.modelToViewScaleRadius(rad, fovDims)
-                scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
-                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), cell.getColor(), cell.getPlayer())
+            rad = cell.getRadius()
+            pos = numpy.array(cell.getPos())
+            scaledRad = self.modelToViewScaleRadius(rad, fovDims)
+            scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
+            self.drawSingleCell(scaledPos.astype(int), int(scaledRad), cell.getColor(), cell.getPlayer())
 
 
     def drawSingleCell(self, pos, rad, color, player):
@@ -61,10 +60,14 @@ class View:
     def drawAllCells(self):
         fovPos = self.model.getFovPos()
         fovDims = self.model.getFovDims()
+        pellets = self.model.getField().getPelletsInFov(fovPos, fovDims)
+        viruses = self.model.getField().getVirusesInFov(fovPos, fovDims)
+        playerCells = self.model.getField().getPlayerCellsInFov(fovPos, fovDims)
+        allCells = pellets + viruses + playerCells
+        allCells.sort(key = lambda p: p.getMass())
 
-        self.drawCells(self.model.getPellets(), fovPos, fovDims)
-        self.drawCells(self.model.getViruses(), fovPos, fovDims)
-        self.drawCells(self.model.getPlayerCells(), fovPos, fovDims)
+        self.drawCells(allCells, fovPos, fovDims)
+
 
 
     def drawHumanStats(self):

@@ -16,8 +16,9 @@ class Bot(object):
             y = int(midPoint[1])
             width = int(dims[0])
             height = int(dims[1])
-
-            cellsInFov = self.field.getPelletsInFov(self.player)
+            fovPos = self.player.getFovPos()
+            fovDims = self.player.getFovDims()
+            cellsInFov = self.field.getPelletsInFov(fovPos, fovDims)
             playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
             firstPlayerCell = self.player.getCells()[0]
             for opponentCell in playerCellsInFov:

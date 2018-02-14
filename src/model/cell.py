@@ -29,8 +29,8 @@ class Cell(object):
         self.x = x
         self.y = y
         if self.player == None:
+            self.name = ""
             self.color = (numpy.random.randint(0, 255), numpy.random.randint(0, 255), numpy.random.randint(0, 255))
-            self.name = "Pellet"
         else:
             self.name = player.getName()
             self.color = self.player.getColor()
@@ -93,12 +93,12 @@ class Cell(object):
         else:
             biggerCell = cell
             smallerCell = self
-        if biggerCell.squaredDistance(smallerCell) < biggerCell.getSquaredRadius():
+        if biggerCell.squaredDistance(smallerCell) * 1.1 < biggerCell.getSquaredRadius():
             return True
         return False
 
-    def resetMergeTime(self):
-        self.mergeTime = (BASE_MERGE_TIME + self.mass * 0.0233) * FPS / 2 / GAME_SPEED
+    def resetMergeTime(self, factor):
+        self.mergeTime = factor * (BASE_MERGE_TIME + self.mass * 0.0233) * FPS / 2 / GAME_SPEED
 
 
 
@@ -140,6 +140,12 @@ class Cell(object):
         return self.mergeTime <= 0
 
     # Setters:
+    def setColor(self, color):
+        self.color = color
+
+    def setName(self, name):
+        self.name = name
+
     def setAlive(self, val):
         self.alive = val
 
