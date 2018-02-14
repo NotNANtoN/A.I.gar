@@ -238,18 +238,19 @@ class Field(object):
         numberOfNewCells = 16 - numberOfCells
         if numberOfNewCells == 0:
             return
-        massPerCell = (playerCell.getMass() - 10) / numberOfNewCells
+        massPerCell = (playerCell.getMass() * 0.9) / numberOfNewCells
         playerCell.resetMergeTime(0.8)
         self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashtable)
         for cellIdx in range(numberOfNewCells):
             cellPos = playerCell.getPos()
             newCell = Cell(cellPos[0], cellPos[1], massPerCell, player)
-            cellAngle = (360 / numberOfNewCells) / (cellIdx + 1)
-
-            xPoint = numpy.cos(cellAngle) * playerCell.getRadius() * 1.5 + cellPos[0]
-            yPoint = numpy.sin(cellAngle) * playerCell.getRadius() * 1.5 + cellPos[1]
-            newCell.setMoveDirection((xPoint, yPoint))
-            newCell.addMomentum(MOMENTUM_BASE + 4 * playerCell.getRadius())
+            #cellAngle = (360 / numberOfNewCells) * (cellIdx + 1)
+            cellAngle = numpy.deg2rad(numpy.random.randint(0,360))
+            xPoint = numpy.cos(cellAngle) * playerCell.getRadius() * 12 + cellPos[0]
+            yPoint = numpy.sin(cellAngle) * playerCell.getRadius() * 12 + cellPos[1]
+            movePoint = (xPoint, yPoint)
+            newCell.setMoveDirection(movePoint)
+            newCell.addMomentum(2 + 0.05 * playerCell.getRadius() ,movePoint, self.width, self.height )
             newCell.resetMergeTime(0.8)
             self.addPlayerCell(newCell)
 

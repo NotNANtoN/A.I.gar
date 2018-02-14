@@ -34,23 +34,28 @@ class Cell(object):
         else:
             self.name = player.getName()
             self.color = self.player.getColor()
-        self.vx = 0
-        self.vy = 0
+        self.velocity = numpy.array([0, 0])
+        self.splitVelocity = numpy.array([0, 0])
+        self.splitVelocityCounter = 0
         self.momentum = 1
         self.mergeTime = 0
         self.blobToBeEjected = None
         self.alive = True
 
     def setMoveDirection(self, commandPoint):
-        difference = numpy.subtract(commandPoint, [self.x, self.y])
+        difference = numpy.subtract(commandPoint, self.getPos())
         # If cursor is within cell, reduce speed based on distance from cell center (as a percentage)
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
         radiusSquared = numpy.power(self.radius, 2)
         speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
         # Check polar coordinate of cursor from cell center
-        angle = numpy.arctan2(difference[1], difference[0])
-        self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
-        self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
+        angle = self.calculateAngle(commandPoint)
+        self.velocity = self.getReducedSpeed() * speedModifier * numpy.array([numpy.cos(angle), numpy.sin(angle)])
+
+
+    def calculateAngle(self, point):
+        difference = numpy.subtract(point, self.getPos())
+        return numpy.arctan2(difference[1], difference[0])
 
     def split(self, commandPoint):
         pass
@@ -64,8 +69,19 @@ class Cell(object):
         self.blobToBeEjected = False
         return blobSpawnPos
 
-    def addMomentum(self, value):
-        self.momentum = value
+    def addMomentum(self, speed, commandPoint, fieldWidth, fieldHeight):
+        checkedX = max(0, min(fieldWidth, commandPoint[0]))
+        checkedY = max(0, min(fieldHeight, commandPoint[1]))
+        checkedPoint = (checkedX, checkedY)
+        angle = self.calculateAngle(checkedPoint)
+        self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
+        self.splitVelocityCounter = 10
+
+    def updateMomentum(self):
+        if self.splitVelocityCounter > 0:
+            self.splitVelocityCounter -= 1
+        else:
+            self.splitVelocity = numpy.array([0,0])
 
     # Increases the mass of the cell by value and updates the radius accordingly
     def grow(self, foodMass):
@@ -76,11 +92,7 @@ class Cell(object):
         newMass = self.mass * CELL_MASS_DECAY_RATE
         self.setMass(newMass)
 
-    def updateMomentum(self):
-        if self.momentum > 1:
-            self.momentum = self.momentum * 0.90 - 0.1
-        else:
-            self.momentum = 1
+
 
     def updateMerge(self):
         if self.mergeTime > 0:
@@ -90,8 +102,9 @@ class Cell(object):
         return min(maxX, max(0, x + v * self.momentum))
 
     def updatePos(self, maxX, maxY):
-        self.x = self.updateDirection(self.x, self.vx, maxX)
-        self.y = self.updateDirection(self.y, self.vy, maxY)
+        combinedVelocity = self.velocity + self.splitVelocity
+        self.x = self.updateDirection(self.x, combinedVelocity[0], maxX)
+        self.y = self.updateDirection(self.y, combinedVelocity[1], maxY)
 
     def overlap(self, cell):
         if self.getMass() > cell.getMass():
@@ -111,9 +124,10 @@ class Cell(object):
 
     # Returns the squared distance from the self cell to another cell
     def squaredDistance(self, cell):
-        difference = self.getPos() - cell.getPos()
-        squared = numpy.power(difference, 2)
-        return squared[0] + squared[1]
+        return self.squareDist(self.getPos(), cell.getPos())
+
+    def squareDist(self, pos1, pos2):
+        return numpy.sum(numpy.power(pos1-pos2, 2))
 
     # Checks:
     def canEat(self, cell):
@@ -160,8 +174,6 @@ class Cell(object):
         self.x = x
         self.y = y
 
-    #m = ((r - 4) / 6)²
-    #r = sqrt(m) * 6 + 4
     def setRadius(self, val):
         self.radius = val
         #self.mass = numpy.power((self.radius - 4) * 6, 2)
@@ -208,7 +220,7 @@ class Cell(object):
         return CELL_MOVE_SPEED * numpy.power(self.mass, -0.275)
 
     def getVelocity(self):
-        return [self.vx, self.vy]
+        return self.velocity + self.splitVelocity
 
     def getClosestSurfacePoint(self, commandPoint):
         difference = numpy.subtract(commandPoint, [self.x, self.y])

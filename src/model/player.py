@@ -25,7 +25,7 @@ class Player(object):
         if self.isAlive:
             self.decayMass()
             self.updateCellProperties()
-            self.split()
+            self.split(fieldWidth, fieldHeight)
             self.eject()
             self.updateCellsMovement(fieldWidth, fieldHeight)
 
@@ -37,10 +37,9 @@ class Player(object):
         for cell in self.cells:
             cell.updateMomentum()
             cell.updateMerge()
-            if not cell.justEjected():
-                cell.setMoveDirection(self.commandPoint)
+            cell.setMoveDirection(self.commandPoint)
 
-    def split(self):
+    def split(self, fieldWidth, fieldHeight):
         if not self.doSplit:
             return
         self.cells.sort(key=lambda p: p.getMass(), reverse=True)
@@ -49,14 +48,22 @@ class Player(object):
             if cell.canSplit() and len(self.cells) + len(newCells) < 16:
                 cellPos = cell.getPos()
                 newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
-                newCell.setMoveDirection(self.commandPoint)
-                newCell.addMomentum(MOMENTUM_BASE + MOMENTUM_PROPORTION_TO_MASS * cell.getRadius())
+                angle = newCell.calculateAngle(self.commandPoint)
+
+                xPoint = numpy.cos(angle) * newCell.getRadius() * 4.5 + cellPos[0]
+                yPoint = numpy.sin(angle) * newCell.getRadius() * 4.5 + cellPos[1]
+                movePoint = (xPoint, yPoint)
+
+                newCell.setMoveDirection(movePoint)
+                newCell.addMomentum(2.5 + 0.1 * newCell.getRadius(), movePoint, fieldWidth, fieldHeight)
                 newCell.resetMergeTime(1)
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime(1)
                 newCells.append(newCell)
         for newCell in newCells:
             self.addCell(newCell)
+
+
 
     def eject(self):
         if not self.doEject:
