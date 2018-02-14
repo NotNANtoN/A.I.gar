@@ -34,8 +34,9 @@ class Cell(object):
         else:
             self.name = player.getName()
             self.color = self.player.getColor()
-        self.vx = 0
-        self.vy = 0
+        self.velocity = numpy.array([0, 0])
+        self.splitVelocity = numpy.array([0, 0])
+        self.splitVelocityCounter = 0
         self.momentum = 1
         self.mergeTime = 0
         self.alive = True
@@ -48,8 +49,8 @@ class Cell(object):
         speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
         # Check polar coordinate of cursor from cell center
         angle = self.calculateAngle(commandPoint)
-        self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
-        self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
+        self.velocity = self.getReducedSpeed() * speedModifier * numpy.array([numpy.cos(angle), numpy.sin(angle)])
+
 
     def calculateAngle(self, point):
         difference = numpy.subtract(point, self.getPos())
@@ -62,12 +63,18 @@ class Cell(object):
         pass
 
     def addMomentum(self, speed, commandPoint, fieldWidth, fieldHeight):
-        self.momentum = speed
         checkedX = max(0, min(fieldWidth, commandPoint[0]))
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
-        self.momentumCommandPoint = numpy.array(checkedPoint)
-        self.oldPoint = self.getPos()
+        angle = self.calculateAngle(checkedPoint)
+        self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
+        self.splitVelocityCounter = 10
+
+    def updateMomentum(self):
+        if self.splitVelocityCounter > 0:
+            self.splitVelocityCounter -= 1
+        else:
+            self.splitVelocity = numpy.array([0,0])
 
     # Increases the mass of the cell by value and updates the radius accordingly
     def grow(self, foodMass):
@@ -77,11 +84,6 @@ class Cell(object):
     def decayMass(self):
         newMass = self.mass * CELL_MASS_DECAY_RATE
         self.setMass(newMass)
-
-    def updateMomentum(self):
-        if self.momentum != 1:
-            if self.squareDist(self.oldPoint, self.getPos()) >= self.squareDist(self.oldPoint, self.momentumCommandPoint):
-                self.momentum = 1
 
 
 
@@ -93,8 +95,9 @@ class Cell(object):
         return min(maxX, max(0, x + v * self.momentum))
 
     def updatePos(self, maxX, maxY):
-        self.x = self.updateDirection(self.x, self.vx, maxX)
-        self.y = self.updateDirection(self.y, self.vy, maxY)
+        combinedVelocity = self.velocity + self.splitVelocity
+        self.x = self.updateDirection(self.x, combinedVelocity[0], maxX)
+        self.y = self.updateDirection(self.y, combinedVelocity[1], maxY)
 
     def overlap(self, cell):
         if self.getMass() > cell.getMass():
@@ -164,8 +167,6 @@ class Cell(object):
         self.x = x
         self.y = y
 
-    #m = ((r - 4) / 6)²
-    #r = sqrt(m) * 6 + 4
     def setRadius(self, val):
         self.radius = val
         #self.mass = numpy.power((self.radius - 4) * 6, 2)
@@ -209,4 +210,4 @@ class Cell(object):
         return CELL_MOVE_SPEED * numpy.power(self.mass, -0.275)
 
     def getVelocity(self):
-        return [self.vx, self.vy]
+        return self.velocity + self.splitVelocity

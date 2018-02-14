@@ -217,7 +217,7 @@ class Field(object):
         numberOfNewCells = 16 - numberOfCells
         if numberOfNewCells == 0:
             return
-        massPerCell = (playerCell.getMass() - 10) / numberOfNewCells
+        massPerCell = (playerCell.getMass() * 0.9) / numberOfNewCells
         playerCell.resetMergeTime(0.8)
         self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashtable)
         for cellIdx in range(numberOfNewCells):

@@ -56,7 +56,7 @@ class Player(object):
                 movePoint = (xPoint, yPoint)
 
                 newCell.setMoveDirection(movePoint)
-                newCell.addMomentum(4.5 + 0.1 * newCell.getRadius(), movePoint, fieldWidth, fieldHeight)
+                newCell.addMomentum(2.5 + 0.1 * newCell.getRadius(), movePoint, fieldWidth, fieldHeight)
                 newCell.resetMergeTime(1)
                 cell.setMass(cell.getMass() / 2)
                 cell.resetMergeTime(1)
