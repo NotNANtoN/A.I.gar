@@ -21,7 +21,8 @@ class Model(object):
         self.players = []
         self.bots = []
         self.human = None
-        self.spectator = None
+        self.playerSpectator = None
+        self.spectatedPlayer = None
         self.players = []
         self.field = Field()
         self.field.setDebug(debug)
@@ -105,8 +106,12 @@ class Model(object):
     def addHuman(self, player):
         self.human = player
 
-    def addSpectator(self):
-        self.spectator = True
+    def addPlayerSpectator(self):
+        self.playerSpectator = True
+        self.setSpectatedPlayer(self.players[0])
+
+    def setSpectatedPlayer(self, player):
+        self.spectatedPlayer = player
 
     def setViewEnabled(self, boolean):
         self.viewEnabled = boolean
@@ -115,8 +120,8 @@ class Model(object):
     def hasHuman(self):
         return self.human is not None
 
-    def hasSpectator(self):
-        return self.spectator is not None
+    def hasPlayerSpectator(self):
+        return self.playerSpectator is not None
 
     # Getters:
     def getHuman(self):
@@ -125,6 +130,8 @@ class Model(object):
     def getFovPos(self):
         if self.hasHuman():
             fovPos = numpy.array(self.human.getFovPos())
+        elif self.hasPlayerSpectator():
+            fovPos = numpy.array(self.spectatedPlayer.getFovPos())
         else:
             fovPos = numpy.array([self.field.getWidth() / 2, self.field.getHeight() / 2])
         return fovPos
@@ -132,6 +139,8 @@ class Model(object):
     def getFovDims(self):
         if self.hasHuman():
             fovDims = numpy.array(self.human.getFovDims())
+        elif self.hasPlayerSpectator():
+            fovDims = numpy.array(self.spectatedPlayer.getFovDims())
         else:
             fovDims = numpy.array([self.field.getWidth(), self.field.getHeight()])
         return fovDims
@@ -145,11 +154,21 @@ class Model(object):
     def getViruses(self):
         return self.field.getViruses()
 
+    def getPlayers(self):
+        return self.players
+
     def getPlayerCells(self):
         return self.field.getPlayerCells()
 
     def getDebugStatus(self):
         return self.debugStatus
+
+    def getSpectatedPlayer(self):
+        if self.hasHuman():
+            return self.human
+        if self.hasPlayerSpectator():
+            return self.spectatedPlayer
+        return None
 
     # MVC related method
     def register_listener(self, listener):

@@ -1,5 +1,6 @@
 import pygame
 import numpy
+import os
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -15,6 +16,7 @@ class View:
         self.screenDims = numpy.array([self.width, self.height])
         self.model = model
         self.model.register_listener(self.model_event)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,30)
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.init()
         pygame.display.set_caption('A.I.gar')
@@ -88,8 +90,7 @@ class View:
         pygame.display.update()
 
     def model_event(self):
-        if self.model.hasHuman() or self.model.hasSpectator:
-            self.draw()
+        self.draw()
 
     def modelToViewScaling(self, pos, fovPos, fovDims):
         adjustedPos = pos - fovPos + (fovDims / 2)
