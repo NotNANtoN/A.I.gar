@@ -16,6 +16,7 @@ class Field(object):
         self.height = 0
         self.pellets = []
         self.players = []
+        self.ejectedParticles = [] # Ejected particles become pellets once momentum is lost
         self.deadPlayers = []
         self.viruses = []
         self.maxCollectibleCount = None
@@ -36,6 +37,7 @@ class Field(object):
         self.width = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         self.height = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         self.pelletHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
+        self.ejectedParticleHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         self.playerHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         self.virusHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         for player in self.players:
