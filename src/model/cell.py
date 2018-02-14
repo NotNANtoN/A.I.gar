@@ -41,15 +41,19 @@ class Cell(object):
         self.alive = True
 
     def setMoveDirection(self, commandPoint):
-        difference = numpy.subtract(commandPoint, [self.x, self.y])
+        difference = numpy.subtract(commandPoint, self.getPos())
         # If cursor is within cell, reduce speed based on distance from cell center (as a percentage)
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
         radiusSquared = numpy.power(self.radius, 2)
         speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
         # Check polar coordinate of cursor from cell center
-        angle = numpy.arctan2(difference[1], difference[0])
+        angle = self.calculateAngle(commandPoint)
         self.vx = (self.getReducedSpeed() * speedModifier) * numpy.cos(angle)
         self.vy = (self.getReducedSpeed() * speedModifier) * numpy.sin(angle)
+
+    def calculateAngle(self, point):
+        difference = numpy.subtract(point, self.getPos())
+        return numpy.arctan2(difference[1], difference[0])
 
     def split(self, commandPoint):
         pass
@@ -57,8 +61,13 @@ class Cell(object):
     def eject(self, commandPoint):
         pass
 
-    def addMomentum(self, value):
-        self.momentum = value
+    def addMomentum(self, speed, commandPoint, fieldWidth, fieldHeight):
+        self.momentum = speed
+        checkedX = max(0, min(fieldWidth, commandPoint[0]))
+        checkedY = max(0, min(fieldHeight, commandPoint[1]))
+        checkedPoint = (checkedX, checkedY)
+        self.momentumCommandPoint = numpy.array(checkedPoint)
+        self.oldPoint = self.getPos()
 
     # Increases the mass of the cell by value and updates the radius accordingly
     def grow(self, foodMass):
@@ -70,10 +79,11 @@ class Cell(object):
         self.setMass(newMass)
 
     def updateMomentum(self):
-        if self.momentum > 1:
-            self.momentum = self.momentum * 0.90 - 0.1
-        else:
-            self.momentum = 1
+        if self.momentum != 1:
+            if self.squareDist(self.oldPoint, self.getPos()) >= self.squareDist(self.oldPoint, self.momentumCommandPoint):
+                self.momentum = 1
+
+
 
     def updateMerge(self):
         if self.mergeTime > 0:
@@ -104,9 +114,10 @@ class Cell(object):
 
     # Returns the squared distance from the self cell to another cell
     def squaredDistance(self, cell):
-        difference = self.getPos() - cell.getPos()
-        squared = numpy.power(difference, 2)
-        return squared[0] + squared[1]
+        return self.squareDist(self.getPos(), cell.getPos())
+
+    def squareDist(self, pos1, pos2):
+        return numpy.sum(numpy.power(pos1-pos2, 2))
 
     # Checks:
     def canEat(self, cell):
