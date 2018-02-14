@@ -37,8 +37,7 @@ class Player(object):
         for cell in self.cells:
             cell.updateMomentum()
             cell.updateMerge()
-            if not cell.justEjected():
-                cell.setMoveDirection(self.commandPoint)
+            cell.setMoveDirection(self.commandPoint)
 
     def split(self, fieldWidth, fieldHeight):
         if not self.doSplit:
