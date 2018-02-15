@@ -102,6 +102,7 @@ class Field(object):
                 blob.setColor(player.getColor())
                 #blob.setEjecterPlayer(player)
                 blob.addMomentum(player.getCommandPoint(), self.width, self.height, cell)
+
                 self.addBlob(blob)
                 blob.setEjecterCell(cell)
 

@@ -76,13 +76,34 @@ class spatialHashTable(object):
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
         cellWidth = obj.getRadius() * 2
         stepSize = min(cellWidth, self.cellSize)
-        limit = cellWidth
+
+        limitX = min(cellWidth, cellWidth - (radius - pos[0]), radius + (self.width - pos[0])) 
+        limitY = min(cellWidth, cellWidth - (radius - pos[1]), radius + (self.width - pos[1]))
         i = 0
-        while i <= limit:
+        while i < limitX:
             j = 0
-            while j <= limit:
-                x = min(self.width - 1, i + topLeft[0])
-                y = min(self.height - 1, j + topLeft[1])
+            while j < limitY:
+                x = max(0, min(self.width - 1, i + topLeft[0]))
+                y = max(0, min(self.height - 1, j + topLeft[1]))
+                hashId = self.getHashId((x, y))
+                ids.add(hashId)
+                j += stepSize
+            i += stepSize
+        return ids
+
+    def getIdsForSurroundingArea(self, pos, radius):
+        ids = set()
+        topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
+        areaWidth = radius * 2
+        stepSize = min(areaWidth, self.cellSize)
+        limitX = min(areaWidth, areaWidth - (radius - pos[0]), radius + (self.width-1 - pos[0])) 
+        limitY = min(areaWidth, areaWidth - (radius - pos[1]), radius + (self.width-1 - pos[1]))
+        i = 0
+        while i < limitX:
+            j = 0
+            while j < limitY:
+                x = max(0, min(self.width - 1, i + topLeft[0]))
+                y = max(0, min(self.height - 1, j + topLeft[1]))
                 hashId = self.getHashId((x, y))
                 ids.add(hashId)
                 j += stepSize

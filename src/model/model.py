@@ -54,8 +54,6 @@ class Model(object):
 
         #self.visualize(timeStart)
 
-
-
     def visualize(self, timeStart):
 
         print(" ")
@@ -75,8 +73,6 @@ class Model(object):
             plt.ylabel("Time taken for update")
             print("mean time: ", str(numpy.mean(self.timings)))
             plt.show()
-
-
 
     # Setters:
     def createPlayer(self, name):
