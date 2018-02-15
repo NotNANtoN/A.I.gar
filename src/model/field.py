@@ -89,7 +89,6 @@ class Field(object):
                 blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS * 0.8, None)
                 blob.setColor(cell.getColor())
                 blob.setEjecterCell(cell)
-                print(player.getCommandPoint())
                 blob.addMomentum(3 + 0.3 * blob.getRadius(), player.getCommandPoint(), self.width, self.height)
                 self.addBlob(blob)
 
@@ -172,6 +171,7 @@ class Field(object):
         for player in self.players:
             for playerCell in player.getCells():
                 opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
+                #print(self.playerHashTable.getIdsForSurroundingArea([self.width-1, self.height-1], 20), "\n")
                 if self.debug:
                     if len(opponentCells) > 0:
                         print("\n_________")
