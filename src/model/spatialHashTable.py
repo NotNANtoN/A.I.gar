@@ -35,7 +35,7 @@ class spatialHashTable(object):
         nearbyObjects = set()
         for cellId in cellIds:
             for cell in self.buckets[cellId]:
-                if cell.getPlayer() != obj.getPlayer():
+                if cell.getPlayer() is not obj.getPlayer():
                     nearbyObjects.add(cell)
         return nearbyObjects
 
@@ -76,8 +76,8 @@ class spatialHashTable(object):
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
         cellWidth = obj.getRadius() * 2
         stepSize = min(cellWidth, self.cellSize)
-        limitX = min(cellWidth, cellWidth - (radius - pos[0]), radius + (self.width-1 - pos[0])) 
-        limitY = min(cellWidth, cellWidth - (radius - pos[1]), radius + (self.width-1 - pos[1]))
+        limitX = min(cellWidth, cellWidth - (radius - pos[0]), radius + (self.width - pos[0])) 
+        limitY = min(cellWidth, cellWidth - (radius - pos[1]), radius + (self.width - pos[1]))
         i = 0
         while i < limitX:
             j = 0

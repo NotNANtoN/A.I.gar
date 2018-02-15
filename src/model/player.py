@@ -46,19 +46,7 @@ class Player(object):
         newCells = []
         for cell in self.cells:
             if cell.canSplit() and len(self.cells) + len(newCells) < 16:
-                cellPos = cell.getPos()
-                newCell = Cell(cellPos[0], cellPos[1], cell.getMass() / 2,  self)
-                angle = newCell.calculateAngle(self.commandPoint)
-
-                xPoint = numpy.cos(angle) * newCell.getRadius() * 4.5 + cellPos[0]
-                yPoint = numpy.sin(angle) * newCell.getRadius() * 4.5 + cellPos[1]
-                movePoint = (xPoint, yPoint)
-
-                newCell.setMoveDirection(movePoint)
-                newCell.addMomentum(2.5 + 0.2 * newCell.getRadius(), movePoint, fieldWidth, fieldHeight)
-                newCell.resetMergeTime(1)
-                cell.setMass(cell.getMass() / 2)
-                cell.resetMergeTime(1)
+                newCell = cell.split(self.commandPoint, fieldWidth, fieldHeight)
                 newCells.append(newCell)
         for newCell in newCells:
             self.addCell(newCell)
