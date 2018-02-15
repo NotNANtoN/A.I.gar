@@ -30,6 +30,14 @@ class spatialHashTable(object):
                 nearbyObjects.add(cell)
         return nearbyObjects
 
+    def getNearbyObjectsForArea(self, pos, rad):
+        cellIds = self.getIdsForArea(pos, rad)
+        nearbyObjects = set()
+        for cellId in cellIds:
+            for cell in self.buckets[cellId]:
+                nearbyObjects.add(cell)
+        return nearbyObjects
+
     def getNearbyEnemyObjects(self, obj):
         cellIds = self.getIdsForObj(obj)
         nearbyObjects = set()
@@ -74,11 +82,11 @@ class spatialHashTable(object):
         pos = obj.getPos()
         radius = obj.getRadius()
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
-        cellWidth = obj.getRadius() * 2
+        limitX = radius + min(min(radius, pos[0]), min(radius, self.width-1 - pos[0]))
+        limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1]))
+        stepSizeX = min(limitX, self.cellSize)
+        stepSizeY = min(limitY, self.cellSize)
 
-        stepSize = min(cellWidth, self.cellSize)
-        limitX = radius + min(min(radius, pos[0]), min(radius, self.width-1 - pos[0])) 
-        limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1])) 
         i = 0
         while i <= limitX:
             j = 0
@@ -87,8 +95,8 @@ class spatialHashTable(object):
                 y = max(0, min(self.height - 1, j + topLeft[1]))
                 hashId = self.getHashId((x, y))
                 ids.add(hashId)
-                j += stepSize
-            i += stepSize
+                j += stepSizeY
+            i += stepSizeX
         return ids
 
     def getIdsForSurroundingArea(self, pos, radius):
