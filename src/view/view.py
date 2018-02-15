@@ -72,7 +72,6 @@ class View:
         self.drawCells(allCells, fovPos, fovDims)
 
 
-
     def drawHumanStats(self):
         if self.model.hasHuman():
             totalMass = self.model.getHuman().getTotalMass()
