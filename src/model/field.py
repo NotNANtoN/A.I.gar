@@ -65,7 +65,7 @@ class Field(object):
     def updateBlobs(self):
         notMovingBlobs = []
         for blob in self.blobs:
-            if blob.getSplitVelocity()[0] == 0 and blob.getSplitVelocity()[1] == 0:
+            if blob.getSplitVelocityCounter() == 0:
                 notMovingBlobs.append(blob)
                 continue
             blob.updateMomentum()
@@ -81,6 +81,18 @@ class Field(object):
             self.performEjections(player)
         self.handlePlayerCollisions()
 
+    def updateHashTables(self):
+        self.playerHashTable.clearBuckets()
+        for player in self.players:
+            playerCells = player.getCells()
+            self.playerHashTable.insertAllObjects(playerCells)
+
+        self.blobHashTable.clearBuckets()
+        self.blobHashTable.insertAllObjects(self.blobs)
+
+        self.virusHashTable.clearBuckets()
+        self.virusHashTable.insertAllObjects(self.viruses)
+
     def performEjections(self, player):
         for cell in player.getCells():
             if cell.getBlobToBeEjected():
@@ -90,8 +102,8 @@ class Field(object):
                 blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS * 0.8, None)
                 blob.setColor(player.getColor())
                 #blob.setEjecterPlayer(player)
-                blob.addMomentum(3 + 0.3 * blob.getRadius(), player.getCommandPoint(), self.width, self.height)
-                self.addBlob(blob)
+                blob.addMomentum(player.getCommandPoint(), self.width, self.height)
+                self.blobs.append(blob)
 
     def handlePlayerCollisions(self):
         for player in self.players:
@@ -113,15 +125,6 @@ class Field(object):
                     self.adjustCellPos(cell, cell.getPos() + posDiffScaled, self.playerHashTable)
                     self.adjustCellPos(otherCell, otherCell.getPos() - posDiffScaled, self.playerHashTable)
 
-    def updateHashTables(self):
-        self.playerHashTable.clearBuckets()
-        for player in self.players:
-            playerCells = player.getCells()
-            self.playerHashTable.insertAllObjects(playerCells)
-
-        self.blobHashTable.clearBuckets()
-        self.blobHashTable.insertAllObjects(self.blobs)
-
 
     def mergePlayerCells(self):
         for player in self.players:
@@ -140,6 +143,7 @@ class Field(object):
                                 break
 
     def checkOverlaps(self):
+        self.virusBlobOverlap()
         self.playerVirusOverlap()
         self.playerPelletOverlap()
         self.playerBlobOverlap()
@@ -189,13 +193,14 @@ class Field(object):
                                 self.eatPlayerCell(opponentCell, playerCell)
                                 break
 
-    def virusEjectedOverlap(self):
+    def virusBlobOverlap(self):
         # After 7 feedings the virus splits in roughly the opposite direction of the last incoming ejectable
         # The ejected viruses bounce off of the edge of the fields
         for virus in self.viruses:
             nearbyBlobs = self.blobHashTable.getNearbyObjects(virus)
             for blob in nearbyBlobs:
                 if virus.overlap(blob):
+                    self.virusEatBlob(virus, blob)
 
 
     def spawnStuff(self):
@@ -240,8 +245,12 @@ class Field(object):
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def virusEatBlob(self, virus, blob):
         self.eatCell(virus, self.virusHashTable, blob, self.blobHashTable, self.blobs)
-        if virus.getMass() >= VIRUS_BASE_SIZE + 7 * EJECTEDBLOB_BASE_MASS:
-            pass
+        if virus.getMass() >= VIRUS_BASE_SIZE + 7 * EJECTEDBLOB_BASE_MASS * 0.8:
+            oppositePoint = 2 * virus.getPos() - blob.getPos()
+            newVirus = virus.split(oppositePoint, self.width, self.height)
+            newVirus.setColor(virus.getColor())
+            newVirus.setName(virus.getName())
+            self.addVirus(newVirus)
 
     def eatPellet(self, playerCell, pellet):
         self.eatCell(playerCell, self.playerHashTable, pellet, self.pelletHashTable, self.pellets)
@@ -283,7 +292,7 @@ class Field(object):
             yPoint = numpy.sin(cellAngle) * playerCell.getRadius() * 12 + cellPos[1]
             movePoint = (xPoint, yPoint)
             newCell.setMoveDirection(movePoint)
-            newCell.addMomentum(2 + 0.05 * playerCell.getRadius() ,movePoint, self.width, self.height )
+            newCell.addMomentum(movePoint, self.width, self.height )
             newCell.resetMergeTime(0.8)
             self.addPlayerCell(newCell)
 
@@ -319,11 +328,11 @@ class Field(object):
         self.pellets.append(pellet)
 
     def addBlob(self, blob):
-        self.blobHashTable.insertObject(blob)
+        #self.blobHashTable.insertObject(blob)
         self.blobs.append(blob)
 
     def addVirus(self, virus):
-        self.virusHashTable.insertObject(virus)
+        #self.virusHashTable.insertObject(virus)
         self.viruses.append(virus)
 
     def addPlayerCell(self, playerCell):

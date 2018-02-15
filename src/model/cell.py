@@ -17,11 +17,6 @@ class Cell(object):
         return self.name + " id: " + str(self.id) + " -M:" + str(int(self.mass)) + " Pos:" + str(int(self.x)) + "," + str(int(self.y))
 
     def __init__(self, x, y, mass, player):
-        if player != None:
-            self.id = self.cellId
-            self.cellId += 1
-        else:
-            self.id = -1
         self.player = player
         self.mass = None
         self.radius = None
@@ -31,13 +26,16 @@ class Cell(object):
         if self.player == None:
             self.name = ""
             self.color = (numpy.random.randint(0, 255), numpy.random.randint(0, 255), numpy.random.randint(0, 255))
+            self.id = -1
         else:
             self.name = player.getName()
             self.color = self.player.getColor()
+            self.id = self.cellId
+            self.cellId += 1
         self.velocity = numpy.array([0, 0])
         self.splitVelocity = numpy.array([0, 0])
         self.splitVelocityCounter = 0
-        self.splitVelocityCounterMax = 15
+        self.splitVelocityCounterMax = 30
         self.momentum = 1
         self.mergeTime = 0
         self.blobToBeEjected = None
@@ -59,8 +57,20 @@ class Cell(object):
         difference = numpy.subtract(point, self.getPos())
         return numpy.arctan2(difference[1], difference[0])
 
-    def split(self, commandPoint):
-        pass
+    def split(self, commandPoint, fieldWidth, fieldHeight):
+        cellPos = self.getPos()
+        newCell = Cell(cellPos[0], cellPos[1], self.mass / 2, self.player)
+        angle = newCell.calculateAngle(commandPoint)
+
+        xPoint = numpy.cos(angle) * newCell.getRadius() * 4.5 + cellPos[0]
+        yPoint = numpy.sin(angle) * newCell.getRadius() * 4.5 + cellPos[1]
+        movePoint = (xPoint, yPoint)
+        #newCell.setMoveDirection(movePoint)
+        newCell.addMomentum(movePoint, fieldWidth, fieldHeight)
+        newCell.resetMergeTime(1)
+        self.setMass(self.mass / 2)
+        self.resetMergeTime(1)
+        return newCell
 
     def prepareEject(self):
         self.blobToBeEjected = True
@@ -73,11 +83,12 @@ class Cell(object):
         self.blobToBeEjected = False
         return blobSpawnPos
 
-    def addMomentum(self, speed, commandPoint, fieldWidth, fieldHeight):
+    def addMomentum(self, commandPoint, fieldWidth, fieldHeight):
         checkedX = max(0, min(fieldWidth, commandPoint[0]))
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
+        speed = 3 + self.getRadius() * 0.05
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
         self.splitVelocityCounter = self.splitVelocityCounterMax
 
@@ -112,6 +123,10 @@ class Cell(object):
         combinedVelocity = self.velocity + self.splitVelocity
         self.x = self.updateDirection(self.x, combinedVelocity[0], maxX)
         self.y = self.updateDirection(self.y, combinedVelocity[1], maxY)
+        if self.x == maxX or self.x == 0:
+            self.splitVelocity[0] *= -1
+        if self.y == maxY or self.y == 0:
+            self.splitVelocity[1] *= -1
 
     def overlap(self, cell):
         if self.getMass() > cell.getMass():
@@ -197,6 +212,9 @@ class Cell(object):
         self.color = player.getColor()
 
     # Getters:
+    def getSplitVelocityCounter(self):
+        return self.splitVelocityCounter
+
     def getPlayer(self):
         return self.player
 
@@ -226,7 +244,7 @@ class Cell(object):
 
     def getReducedSpeed(self):
         #return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
-        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.275)
+        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.2)
 
     def getVelocity(self):
         return self.velocity + self.splitVelocity
@@ -238,7 +256,7 @@ class Cell(object):
         # TODO Change this method so that ejection also works properly if the mouse is inside of a cell that ejects
         difference = numpy.subtract(commandPoint, self.getPos())
         # Make sure commandPoint != center of cell since ratio is then a division by 0
-        if difference == [0,0]:
+        if difference[0] == 0 and difference[1] == 1:
             randomPointInCell = numpy.array(commandPoint) + 1
             #randomPointInCell = (numpy.random.randint(self.getPos()[0] - self.radius, self.getPos()[0] + self.radius), numpy.random.randint(self.getPos()[1] - self.radius, self.getPos()[1] + self.radius))
             return self.getClosestSurfacePoint(randomPointInCell)

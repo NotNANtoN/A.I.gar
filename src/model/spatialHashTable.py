@@ -35,7 +35,7 @@ class spatialHashTable(object):
         nearbyObjects = set()
         for cellId in cellIds:
             for cell in self.buckets[cellId]:
-                if cell.getPlayer() != obj.getPlayer():
+                if cell.getPlayer() is not obj.getPlayer():
                     nearbyObjects.add(cell)
         return nearbyObjects
 
