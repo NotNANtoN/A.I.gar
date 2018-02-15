@@ -191,7 +191,7 @@ class Field(object):
                 opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
                 #print(self.playerHashTable.getIdsForSurroundingArea([self.width-1, self.height-1], 20), "\n")
                 if __debug__:
-                    if len(opponentCells) > 0:
+                    if opponentCells:
                         print("\n_________")
                         print("Opponent cells of cell ", playerCell, ":")
                         for cell in opponentCells:
@@ -237,7 +237,7 @@ class Field(object):
 
     def spawnPlayers(self):
         for player in self.players:
-            if len(player.getCells()) < 1:
+            if not player.getCells():
                 self.initializePlayer(player)
 
 

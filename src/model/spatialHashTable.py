@@ -100,12 +100,13 @@ class spatialHashTable(object):
         print(limitX, limitY)
 
         i = 0
+        calcHash = self.getHashId
         while i < limitX:
             j = 0
             while j < limitY:
                 x = max(0, min(self.width - 1, i + topLeft[0]))
                 y = max(0, min(self.height - 1, j + topLeft[1]))
-                hashId = self.getHashId((x, y))
+                hashId = calcHash((x, y))
                 ids.add(hashId)
                 j += stepSize
             i += stepSize
@@ -113,3 +114,5 @@ class spatialHashTable(object):
 
     def getHashId(self, pos):
         return numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols
+
+
