@@ -15,8 +15,8 @@ class spatialHashTable(object):
     def __init__(self, width, height, cellSize):
         self.width = width
         self.height = height
-        self.rows = int(height / cellSize + height % cellSize)
-        self.cols = int(width / cellSize + width % cellSize)
+        self.rows = int(numpy.ceil(height / cellSize))
+        self.cols = int(numpy.ceil(width / cellSize))
         self.cellSize = cellSize
         self.buckets = {}
         self.clearBuckets()
@@ -86,8 +86,6 @@ class spatialHashTable(object):
         limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1]))
         stepSizeX = min(limitX, self.cellSize)
         stepSizeY = min(limitY, self.cellSize)
-
-
         i = 0
         while i <= limitX:
             j = 0
@@ -100,17 +98,13 @@ class spatialHashTable(object):
             i += stepSizeX
         return ids
 
-    def getIdsForSurroundingArea(self, pos, radius):
+    def getIdsForArea(self, pos, radius):
         ids = set()
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
-        areaWidth = radius * 2
-        stepSize = min(areaWidth, self.cellSize)
-        limitX = radius + min(min(radius, pos[0]), min(radius, self.width-1 - pos[0])) 
-        limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1])) 
-        print(pos)
-        print(self.width - pos[0])
-        print(limitX, limitY)
-
+        limitX = radius + min(min(radius, pos[0]), min(radius, self.width-1 - pos[0]))
+        limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1]))
+        stepSizeX = min(limitX, self.cellSize)
+        stepSizeY = min(limitY, self.cellSize)
         i = 0
         while i < limitX:
             j = 0
@@ -119,8 +113,8 @@ class spatialHashTable(object):
                 y = max(0, min(self.height - 1, j + topLeft[1]))
                 hashId = self.getHashId((x, y))
                 ids.add(hashId)
-                j += stepSize
-            i += stepSize
+                j += stepSizeY
+            i += stepSizeX
         return ids
 
     def getHashId(self, pos):
