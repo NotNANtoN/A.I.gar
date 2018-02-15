@@ -39,7 +39,7 @@ class Cell(object):
         self.momentum = 1
         self.mergeTime = 0
         self.blobToBeEjected = None
-        self.ejecterPlayer = None # Used in case of blobs to determine which player ejected this blob
+        self.ejecterCell = None # Used in case of blobs to determine which player ejected this blob
         self.alive = True
 
     def setMoveDirection(self, commandPoint):
@@ -77,11 +77,9 @@ class Cell(object):
 
     def eject(self, commandPoint):
         #blobSpawnPos can be None if commandPoint is in center of cell, in which case nothing is ejected
-        blobSpawnPos = self.getClosestSurfacePoint(commandPoint)
-        if blobSpawnPos is not None:
-            self.mass -= EJECTEDBLOB_BASE_MASS
+        self.mass -= EJECTEDBLOB_BASE_MASS
         self.blobToBeEjected = False
-        return blobSpawnPos
+        return self.getPos()
 
     def addMomentum(self, commandPoint, fieldWidth, fieldHeight):
         checkedX = max(0, min(fieldWidth, commandPoint[0]))
@@ -207,9 +205,9 @@ class Cell(object):
     def setBlobToBeEjected(self, val):
         self.blobToBeEjected = False
 
-    def setEjecterPlayer(self, player):
-        self.ejecterPlayer = player
-        self.color = player.getColor()
+    def setEjecterCell(self, cell):
+        self.ejecterCell = cell
+        self.color = cell.getColor()
 
     # Getters:
     def getSplitVelocityCounter(self):
@@ -271,5 +269,5 @@ class Cell(object):
     def getBlobToBeEjected(self):
         return self.blobToBeEjected
 
-    def getEjecterPlayer(self):
-        return self.ejecterPlayer
+    def getEjecterCell(self):
+        return self.ejecterCell

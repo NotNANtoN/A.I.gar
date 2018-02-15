@@ -97,13 +97,15 @@ class Field(object):
         for cell in player.getCells():
             if cell.getBlobToBeEjected():
                 blobSpawnPos = cell.eject(player.getCommandPoint())
-                # TODO change commandPoint that it can't be None if in center of cell'
                 # Blobs are given a player such that cells of player who eject them don't instantly reabsorb them
                 blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS * 0.8, None)
+
                 blob.setColor(player.getColor())
                 #blob.setEjecterPlayer(player)
                 blob.addMomentum(player.getCommandPoint(), self.width, self.height)
-                self.blobs.append(blob)
+                self.addBlob(blob)
+                blob.setEjecterCell(cell)
+
 
     def handlePlayerCollisions(self):
         for player in self.players:
@@ -161,7 +163,7 @@ class Field(object):
             for cell in player.getCells():
                 for blob in self.blobHashTable.getNearbyObjects(cell):
                     # If the ejecter player's cell is not the one overlapping with blob
-                    if cell.overlap(blob):
+                    if cell.overlap(blob) and blob.getEjecterCell() is not cell:
                         self.eatBlob(cell, blob)
 
 
