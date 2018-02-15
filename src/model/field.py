@@ -177,7 +177,7 @@ class Field(object):
         for player in self.players:
             for playerCell in player.getCells():
                 opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
-                #print(self.playerHashTable.getIdsForSurroundingArea([self.width-1, self.height-1], 20), "\n")
+                print(self.playerHashTable.getIdsForSurroundingArea([self.width-1, self.height-1], 20), "\n")
                 if self.debug:
                     if len(opponentCells) > 0:
                         print("\n_________")
