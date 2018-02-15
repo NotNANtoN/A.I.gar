@@ -23,27 +23,24 @@ class spatialHashTable(object):
 
     def getNearbyObjects(self, obj):
         cellIds = self.getIdsForObj(obj)
-        nearbyObjects = set()
-        for cellId in cellIds:
-            for cell in self.buckets[cellId]:
-                nearbyObjects.add(cell)
-        return nearbyObjects
+        return self.getObjectsFromBuckets(cellIds)
 
     def getNearbyObjectsInArea(self, pos, rad):
         cellIds = self.getIdsForArea(pos, rad)
+        return self.getObjectsFromBuckets(cellIds)
+
+
+    def getNearbyEnemyObjects(self, obj):
+        cellIds = self.getIdsForObj(obj)
+        nearbyObjects = self.getObjectsFromBuckets(cellIds)
+        return [nearbyObject for nearbyObject in nearbyObjects if nearbyObject.getPlayer() is not obj.getPlayer()]
+
+
+    def getObjectsFromBuckets(self, cellIds):
         nearbyObjects = set()
         for cellId in cellIds:
             for cell in self.buckets[cellId]:
                 nearbyObjects.add(cell)
-        return nearbyObjects
-
-    def getNearbyEnemyObjects(self, obj):
-        cellIds = self.getIdsForObj(obj)
-        nearbyObjects = set()
-        for cellId in cellIds:
-            for cell in self.buckets[cellId]:
-                if cell.getPlayer() is not obj.getPlayer():
-                    nearbyObjects.add(cell)
         return nearbyObjects
 
     def clearBuckets(self):
@@ -66,7 +63,6 @@ class spatialHashTable(object):
         for id in cellIds:
             self.buckets[id].remove(obj)
 
-
     def getIdsForObj(self, obj):
         pos = obj.getPos()
         radius = obj.getRadius()
@@ -75,21 +71,24 @@ class spatialHashTable(object):
     def getIdsForArea(self, pos, radius):
         ids = set()
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
-        limitX = radius + min(min(radius, pos[0]), min(radius, self.width-1 - pos[0]))
-        limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1]))
+        limitX = radius + min(min(radius, pos[0]), min(radius, self.width - 1 - pos[0]))
+        limitY = radius + min(min(radius, pos[1]), min(radius, self.height - 1 - pos[1]))
         stepSizeX = min(limitX, self.cellSize)
         stepSizeY = min(limitY, self.cellSize)
         i = 0
-        while i < limitX:
+        hashFunc = self.getHashId
+        while i <= limitX:
             j = 0
-            while j < limitY:
-                x = max(0, min(self.width - 1, i + topLeft[0]))
-                y = max(0, min(self.height - 1, j + topLeft[1]))
-                hashId = self.getHashId((x, y))
+            while j <= limitY:
+                #x = i + topLeft[0]
+                #y = j + topLeft[1]
+                x = min(self.width - 1, i + topLeft[0])
+                y = min(self.height - 1, j + topLeft[1])
+                hashId = hashFunc((x, y))
                 ids.add(hashId)
                 j += stepSizeY
             i += stepSizeX
         return ids
 
     def getHashId(self, pos):
-        return numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols
+        return int(numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols)
