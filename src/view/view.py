@@ -63,9 +63,10 @@ class View:
         fovPos = self.model.getFovPos()
         fovDims = self.model.getFovDims()
         pellets = self.model.getField().getPelletsInFov(fovPos, fovDims)
+        blobs = self.model.getField().getBlobsInFov(fovPos, fovDims)
         viruses = self.model.getField().getVirusesInFov(fovPos, fovDims)
         playerCells = self.model.getField().getPlayerCellsInFov(fovPos, fovDims)
-        allCells = pellets + viruses + playerCells
+        allCells = pellets + blobs + viruses + playerCells
         allCells.sort(key = lambda p: p.getMass())
 
         self.drawCells(allCells, fovPos, fovDims)

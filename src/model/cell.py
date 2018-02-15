@@ -40,6 +40,7 @@ class Cell(object):
         self.momentum = 1
         self.mergeTime = 0
         self.blobToBeEjected = None
+        self.ejecterPlayer = None # Used in case of blobs to determine which player ejected this blob
         self.alive = True
 
     def setMoveDirection(self, commandPoint):
@@ -64,8 +65,10 @@ class Cell(object):
         self.blobToBeEjected = True
 
     def eject(self, commandPoint):
-        self.mass -= 18
+        #blobSpawnPos can be None if commandPoint is in center of cell, in which case nothing is ejected
         blobSpawnPos = self.getClosestSurfacePoint(commandPoint)
+        if blobSpawnPos is not None:
+            self.mass -= 18
         self.blobToBeEjected = False
         return blobSpawnPos
 
@@ -187,6 +190,10 @@ class Cell(object):
     def setBlobToBeEjected(self, val):
         self.blobToBeEjected = False
 
+    def setEjecterPlayer(self, player):
+        self.ejecterPlayer = player
+        self.color = player.getColor()
+
     # Getters:
     def getPlayer(self):
         return self.player
@@ -223,13 +230,22 @@ class Cell(object):
         return self.velocity + self.splitVelocity
 
     def getClosestSurfacePoint(self, commandPoint):
-        difference = numpy.subtract(commandPoint, [self.x, self.y])
-        #make sure commandPoint != center of cell since ratio is then a division by 0
+        difference = numpy.subtract(commandPoint, self.getPos())
+        # Make sure commandPoint != center of cell since ratio is then a division by 0
         if difference[0] == 0 and difference[1] == 0:
+            print("???")
             return None
-
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
-        ratio = hypotenuseSquared / getSquaredRadius()
-        x = numpy.sqrt(difference[0]/ratio)
-        y = numpy.sqrt(difference[1]/ratio)
-        return [x, y]
+        ratio = numpy.sqrt(hypotenuseSquared / self.getSquaredRadius())
+        xFromCenter = difference[0] / ratio
+        yFromCenter = difference[1] / ratio
+        posFromCenter = numpy.array([xFromCenter, yFromCenter])
+        print(posFromCenter, "nn")
+        surfacePoint = self.getPos() + posFromCenter
+        return surfacePoint
+
+    def getBlobToBeEjected(self):
+        return self.blobToBeEjected
+
+    def getEjecterPlayer(self):
+        return self.ejecterPlayer
