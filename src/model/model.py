@@ -40,7 +40,6 @@ class Model(object):
             #print("Human merge time first cell: ", self.human.cells[0].mergeTime)
 
     def update(self):
-
         timeStart = time.time()
         # Get the decisions of the bots/human. Update the field accordingly.
         for bot in self.bots:

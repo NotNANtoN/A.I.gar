@@ -21,7 +21,6 @@ class spatialHashTable(object):
         self.buckets = {}
         self.clearBuckets()
 
-
     def getNearbyObjects(self, obj):
         cellIds = self.getIdsForObj(obj)
         nearbyObjects = set()
@@ -30,7 +29,7 @@ class spatialHashTable(object):
                 nearbyObjects.add(cell)
         return nearbyObjects
 
-    def getNearbyObjectsForArea(self, pos, rad):
+    def getNearbyObjectsInArea(self, pos, rad):
         cellIds = self.getIdsForArea(pos, rad)
         nearbyObjects = set()
         for cellId in cellIds:

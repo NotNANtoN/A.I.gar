@@ -25,8 +25,7 @@ class Bot(object):
                 # If the single celled bot can eat the opponent cell add it to list
                 if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
                     cellsInFov.append(opponentCell)
-            if len(cellsInFov) > 0:
-
+            if cellsInFov:
                 bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
                 bestCellPos = bestCell.getPos()
                 #closestCollectible = min(collectiblesInFov, key=lambda p: p.squaredDistance(firstPlayerCell))

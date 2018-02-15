@@ -369,24 +369,16 @@ class Field(object):
 
     # Getters:
     def getPortionOfCellsInFov(self, cells, fovPos, fovDims):
-        inFov = []
-        for cell in cells:
-            if cell.isInFov(fovPos, fovDims):
-                inFov.append(cell)
-        return inFov
-
+        return [cell for cell in cells if cell.isInFov(fovPos,fovDims)]
 
     def getPlayerCellsInFov(self, fovPos, fovDims):
         cellsNearFov = self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovDims)
+        print(cellsNearFov)
         return self.getPortionOfCellsInFov(cellsNearFov, fovPos, fovDims)
 
     def getEnemyPlayerCellsInFov(self, fovPlayer):
         playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovDims())
-        opponentCellsInFov = []
-        for playerCell in playerCellsInFov:
-            if playerCell.getPlayer() is not fovPlayer:
-                opponentCellsInFov.append(playerCell)
-        return opponentCellsInFov
+        return [cell for cell in playerCellsInFov if cell.getPlayer() is not fovPlayer]
 
     def getPelletsInFov(self, fovPos, fovDims):
         pelletsNearFov = self.getCellsFromHashTableInFov(self.pelletHashTable, fovPos, fovDims)
@@ -401,9 +393,7 @@ class Field(object):
         return self.getPortionOfCellsInFov(blobsNearFov, fovPos, fovDims)
 
     def getCellsFromHashTableInFov(self, hashtable, fovPos, fovDims):
-        fovCell = Cell(fovPos[0], fovPos[1], 1, None)
-        fovCell.setRadius(fovDims[0])
-        return hashtable.getNearbyObjects(fovCell)
+        return hashtable.getNearbyObjectsInArea(fovPos, fovDims[0])
     
     def getWidth(self):
         return self.width
