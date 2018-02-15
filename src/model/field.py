@@ -85,13 +85,12 @@ class Field(object):
         for cell in player.getCells():
             if cell.getBlobToBeEjected():
                 blobSpawnPos = cell.eject(player.getCommandPoint())
-                #blobSpawnPos can be none if commandPoint is in center of cell
-                if blobSpawnPos is None:
-                    continue
+                # TODO change commandPoint that it can't be None if in center of cell'
                 # Blobs are given a player such that cells of player who eject them don't instantly reabsorb them
-                blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS, None)
-                blob.setEjecterPlayer(player)
-                blob.addMomentum(2.5 + 0.1 * blob.getRadius(), player.getCommandPoint(), self.width, self.height)
+                blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS * 0.8, None)
+                blob.setColor(player.getColor())
+                #blob.setEjecterPlayer(player)
+                blob.addMomentum(3 + 0.3 * blob.getRadius(), player.getCommandPoint(), self.width, self.height)
                 self.addBlob(blob)
 
     def handlePlayerCollisions(self):
@@ -158,7 +157,7 @@ class Field(object):
             for cell in player.getCells():
                 for blob in self.blobHashTable.getNearbyObjects(cell):
                     # If the ejecter player's cell is not the one overlapping with blob
-                    if cell.overlap(blob) and (blob.getEjecterPlayer() is not player):
+                    if cell.overlap(blob):
                         self.eatBlob(cell, blob)
 
 
@@ -193,7 +192,11 @@ class Field(object):
     def virusEjectedOverlap(self):
         # After 7 feedings the virus splits in roughly the opposite direction of the last incoming ejectable
         # The ejected viruses bounce off of the edge of the fields
-        pass
+        for virus in self.viruses:
+            nearbyBlobs = self.blobHashTable.getNearbyObjects(virus)
+            for blob in nearbyBlobs:
+                if virus.overlap(blob):
+
 
     def spawnStuff(self):
         self.spawnPellets()
@@ -235,24 +238,26 @@ class Field(object):
         self.addPellet(pellet)
 
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
-    def eatPellet(self, cell, pellet):
-        self.adjustCellSize(cell, pellet.getMass(), self.playerHashTable)
-        self.pellets.remove(pellet)
-        self.pelletHashTable.deleteObject(pellet)
-        pellet.setAlive(False)
+    def virusEatBlob(self, virus, blob):
+        self.eatCell(virus, self.virusHashTable, blob, self.blobHashTable, self.blobs)
+        if virus.getMass() >= VIRUS_BASE_SIZE + 7 * EJECTEDBLOB_BASE_MASS:
+            pass
 
-    def eatBlob(self, cell, blob):
-        self.adjustCellSize(cell, blob.getMass(), self.playerHashTable)
-        self.blobs.remove(blob)
-        self.blobHashTable.deleteObject(blob)
-        blob.setAlive(False)
+    def eatPellet(self, playerCell, pellet):
+        self.eatCell(playerCell, self.playerHashTable, pellet, self.pelletHashTable, self.pellets)
+
+    def eatBlob(self, playerCell, blob):
+        self.eatCell(playerCell, self.playerHashTable, blob, self.blobHashTable, self.blobs)
 
     def eatVirus(self, playerCell, virus):
-        self.adjustCellSize(playerCell, virus.getMass(), self.playerHashTable)
+        self.eatCell(playerCell, self.playerHashTable, virus, self.virusHashTable, self.viruses)
         self.playerCellAteVirus(playerCell)
-        self.viruses.remove(virus)
-        self.virusHashTable.deleteObject(virus)
-        virus.setAlive(False)
+
+    def eatCell(self, eatingCell, eatingCellHashtable, cell, cellHashtable, list):
+        self.adjustCellSize(eatingCell, cell.getMass(), eatingCellHashtable)
+        list.remove(cell)
+        cellHashtable.deleteObject(cell)
+        cell.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell):
         if self.debug:
@@ -380,7 +385,7 @@ class Field(object):
 
     def getCellsFromHashTableInFov(self, hashtable, fovPos, fovDims):
         fovCell = Cell(fovPos[0], fovPos[1], 1, None)
-        fovCell.setRadius(fovDims[0] / 2)
+        fovCell.setRadius(fovDims[0])
         return hashtable.getNearbyObjects(fovCell)
     
     def getWidth(self):

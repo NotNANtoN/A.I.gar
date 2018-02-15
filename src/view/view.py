@@ -33,7 +33,7 @@ class View:
                              numpy.array(cell.getVelocity()) * 10 +
                              numpy.array(scaledPos.astype(int)))
         if self.model.hasHuman():
-            for cell in self.model.field.pelletHashtable.getNearbyObjects(self.model.getHuman().cells[0]):
+            for cell in self.model.field.pelletHashTable.getNearbyObjects(self.model.getHuman().cells[0]):
                 rad = cell.getRadius()
                 pos = numpy.array(cell.getPos())
                 scaledRad = self.modelToViewScaleRadius(rad, fovDims)

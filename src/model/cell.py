@@ -37,6 +37,7 @@ class Cell(object):
         self.velocity = numpy.array([0, 0])
         self.splitVelocity = numpy.array([0, 0])
         self.splitVelocityCounter = 0
+        self.splitVelocityCounterMax = 15
         self.momentum = 1
         self.mergeTime = 0
         self.blobToBeEjected = None
@@ -68,7 +69,7 @@ class Cell(object):
         #blobSpawnPos can be None if commandPoint is in center of cell, in which case nothing is ejected
         blobSpawnPos = self.getClosestSurfacePoint(commandPoint)
         if blobSpawnPos is not None:
-            self.mass -= 18
+            self.mass -= EJECTEDBLOB_BASE_MASS
         self.blobToBeEjected = False
         return blobSpawnPos
 
@@ -78,13 +79,18 @@ class Cell(object):
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
-        self.splitVelocityCounter = 10
+        self.splitVelocityCounter = self.splitVelocityCounterMax
 
     def updateMomentum(self):
-        if self.splitVelocityCounter > 0:
+        if self.splitVelocityCounter == -1:
+            return
+        elif self.splitVelocityCounter > 0:
             self.splitVelocityCounter -= 1
+            speedRatio = self.splitVelocityCounter / self.splitVelocityCounterMax
+            self.splitVelocity *= speedRatio
         else:
             self.splitVelocity = numpy.array([0,0])
+            self.splitVelocityCounter = -1
 
     # Increases the mass of the cell by value and updates the radius accordingly
     def grow(self, foodMass):
@@ -229,10 +235,13 @@ class Cell(object):
         return self.splitVelocity
 
     def getClosestSurfacePoint(self, commandPoint):
+        # TODO Change this method so that ejection also works properly if the mouse is inside of a cell that ejects
         difference = numpy.subtract(commandPoint, self.getPos())
         # Make sure commandPoint != center of cell since ratio is then a division by 0
-        if difference[0] == 0 and difference[1] == 0:
-            return None
+        if difference == [0,0]:
+            randomPointInCell = numpy.array(commandPoint) + 1
+            #randomPointInCell = (numpy.random.randint(self.getPos()[0] - self.radius, self.getPos()[0] + self.radius), numpy.random.randint(self.getPos()[1] - self.radius, self.getPos()[1] + self.radius))
+            return self.getClosestSurfacePoint(randomPointInCell)
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
         ratio = numpy.sqrt(hypotenuseSquared / self.getSquaredRadius())
         xFromCenter = difference[0] / ratio
