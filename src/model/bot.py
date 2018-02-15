@@ -41,7 +41,7 @@ class Bot(object):
             ejectChoice = False
             if randNum > 995:
                 splitChoice = True
-            if randNum > 995:
+            if randNum < 5:
                 ejectChoice = True
             #ejectChoice = True if uniform(0, 1) > 0.99 else False
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
