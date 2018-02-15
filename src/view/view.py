@@ -86,7 +86,7 @@ class View:
         self.screen.fill(WHITE)
         self.drawAllCells()
         self.drawHumanStats()
-        if self.model.getDebugStatus():
+        if __debug__:
             self.drawDebugInfo()
         pygame.display.update()
 

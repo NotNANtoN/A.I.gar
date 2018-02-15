@@ -11,7 +11,6 @@ from .spatialHashTable import spatialHashTable
 
 class Field(object):
     def __init__(self):
-        self.debug = False
         self.width = 0
         self.height = 0
         self.pellets = []
@@ -102,7 +101,7 @@ class Field(object):
 
                 blob.setColor(player.getColor())
                 #blob.setEjecterPlayer(player)
-                blob.addMomentum(player.getCommandPoint(), self.width, self.height)
+                blob.addMomentum(player.getCommandPoint(), self.width, self.height, cell)
                 self.addBlob(blob)
                 blob.setEjecterCell(cell)
 
@@ -116,17 +115,28 @@ class Field(object):
             if cell.justEjected():
                 continue
             for otherCell in player.getCells():
-                if cell is otherCell or otherCell.justEjected() or cell.canMerge() and otherCell.canMerge():
+                if cell is otherCell or otherCell.justEjected() or (cell.canMerge() and otherCell.canMerge()):
                     continue
                 distance = numpy.sqrt(cell.squaredDistance(otherCell))
                 summedRadii = cell.getRadius() + otherCell.getRadius()
                 if distance < summedRadii and distance != 0:
-                    posDiff = cell.getPos() - otherCell.getPos()
-                    scaling = (summedRadii - distance) / distance / 2
-                    posDiffScaled = posDiff * scaling
-                    self.adjustCellPos(cell, cell.getPos() + posDiffScaled, self.playerHashTable)
-                    self.adjustCellPos(otherCell, otherCell.getPos() - posDiffScaled, self.playerHashTable)
+                    self.adjustCellPositions(cell, otherCell, distance, summedRadii)
 
+    def adjustCellPositions(self, cell1, cell2, distance, summedRadii):
+        if cell1.getMass() > cell2.getMass():
+            biggerCell = cell1
+            smallerCell = cell2
+        else:
+            biggerCell = cell2
+            smallerCell = cell1
+        posDiff = biggerCell.getPos() - smallerCell.getPos()
+        scaling = (summedRadii - distance) / distance
+        posDiffScaled = posDiff * scaling
+        massDifferenceScaling = smallerCell.getMass() /  biggerCell.getMass()
+        biggerCellMoveTo =  biggerCell.getPos() + posDiffScaled * (massDifferenceScaling)
+        smallerCellMoveTo = smallerCell.getPos() - posDiffScaled * (1 - massDifferenceScaling)
+        self.adjustCellPos(biggerCell, biggerCellMoveTo, self.playerHashTable)
+        self.adjustCellPos(smallerCell, smallerCellMoveTo, self.playerHashTable)
 
     def mergePlayerCells(self):
         for player in self.players:
@@ -178,7 +188,7 @@ class Field(object):
         for player in self.players:
             for playerCell in player.getCells():
                 opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
-                if self.debug:
+                if __debug__:
                     if len(opponentCells) > 0:
                         print("\n_________")
                         print("Opponent cells of cell ", playerCell, ":")
@@ -187,7 +197,7 @@ class Field(object):
                         print("\n____________\n")
                 for opponentCell in opponentCells:
                         if playerCell.overlap(opponentCell):
-                            if self.debug:
+                            if __debug__:
                                 print(playerCell, " and ", opponentCell, " overlap!")
                             if playerCell.canEat(opponentCell):
                                 self.eatPlayerCell(playerCell, opponentCell)
@@ -226,11 +236,8 @@ class Field(object):
     def spawnPlayers(self):
         for player in self.players:
             if len(player.getCells()) < 1:
-                if self.debug:
-                    print(player.getName(), " died!")
                 self.initializePlayer(player)
-                if self.debug:
-                    print("REVIVE ", player.getName(), "!!!")
+
 
     def spawnPellets(self):
         while len(self.pellets) < self.maxCollectibleCount:
@@ -271,7 +278,7 @@ class Field(object):
         cell.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell):
-        if self.debug:
+        if __debug__:
             print(largerCell, " eats ", smallerCell, "!")
         self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
@@ -294,7 +301,7 @@ class Field(object):
             yPoint = numpy.sin(cellAngle) * playerCell.getRadius() * 12 + cellPos[1]
             movePoint = (xPoint, yPoint)
             newCell.setMoveDirection(movePoint)
-            newCell.addMomentum(movePoint, self.width, self.height )
+            newCell.addMomentum(movePoint, self.width, self.height, playerCell)
             newCell.resetMergeTime(0.8)
             self.addPlayerCell(newCell)
 
@@ -307,7 +314,7 @@ class Field(object):
         else:
             biggerCell = secondCell
             smallerCell = firstCell
-        if self.debug:
+        if __debug__:
             print(smallerCell, " is merged into ", biggerCell, "!")
         self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
@@ -354,9 +361,6 @@ class Field(object):
         #hashtable.insertObject(cell)
 
     # Setters:
-    def setDebug(self, val):
-        self.debug = val
-
     def addPlayer(self, player):
         player.setAlive()
         self.players.append(player)

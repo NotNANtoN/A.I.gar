@@ -13,9 +13,8 @@ import matplotlib.pyplot as plt
 
 
 class Model(object):
-    def __init__(self, width, height, debug, viewEnabled):
+    def __init__(self, width, height, viewEnabled):
         self.listeners = []
-        self.debugStatus = debug
         self.viewEnabled = viewEnabled
 
         self.players = []
@@ -25,7 +24,6 @@ class Model(object):
         self.spectatedPlayer = None
         self.players = []
         self.field = Field()
-        self.field.setDebug(debug)
         self.screenWidth = width
         self.screenHeight = height
         self.counter = 0
@@ -50,7 +48,7 @@ class Model(object):
         self.field.update()
         if self.viewEnabled:
             self.notify()
-        if self.debugStatus == True:
+        if __debug__:
             self.printDebugInfo()
         time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
@@ -159,9 +157,6 @@ class Model(object):
 
     def getPlayerCells(self):
         return self.field.getPlayerCells()
-
-    def getDebugStatus(self):
-        return self.debugStatus
 
     def getSpectatedPlayer(self):
         if self.hasHuman():
