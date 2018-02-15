@@ -359,7 +359,7 @@ class Field(object):
         #hashtable.deleteObject(cell)
         x = min(self.width, max(0, newPos[0]))
         y = min(self.height, max(0, newPos[1]))
-        cell.setPos(x, y)
+        cell.setPos(numpy.array([x,y]))
         #hashtable.insertObject(cell)
 
     # Setters:

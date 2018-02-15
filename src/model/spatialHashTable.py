@@ -63,19 +63,10 @@ class spatialHashTable(object):
     # Deletes an object out of all the buckets it is in. Might not be needed as it might
     # be faster to clear all buckets and reinsert items than updating objects.
     def deleteObject(self, obj):
-        #print("")
-        #print("________")
-        #print("Deleted from hashtable: ", obj)
         cellIds = self.getIdsForObj(obj)
-        #print("ids for obj: ")
         for id in cellIds:
-            #print("in Bucket ", id, ": ")
-            #for bucket in self.buckets[id]:
-            #    print(str(bucket))
-            #while obj in self.buckets[id]:
             self.buckets[id].remove(obj)
-        #print("________")
-        #print("")
+
 
     def getIdsForObj(self, obj):
         ids = set()
