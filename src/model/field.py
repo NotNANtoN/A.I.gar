@@ -85,11 +85,11 @@ class Field(object):
         for cell in player.getCells():
             if cell.getBlobToBeEjected():
                 blobSpawnPos = cell.eject(player.getCommandPoint())
-                # TODO change commandPoint that it can't be None if in center of cell'
                 # Blobs are given a player such that cells of player who eject them don't instantly reabsorb them
                 blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS * 0.8, None)
-                blob.setColor(player.getColor())
-                #blob.setEjecterPlayer(player)
+                blob.setColor(cell.getColor())
+                blob.setEjecterCell(cell)
+                print(player.getCommandPoint())
                 blob.addMomentum(3 + 0.3 * blob.getRadius(), player.getCommandPoint(), self.width, self.height)
                 self.addBlob(blob)
 
@@ -157,7 +157,7 @@ class Field(object):
             for cell in player.getCells():
                 for blob in self.blobHashTable.getNearbyObjects(cell):
                     # If the ejecter player's cell is not the one overlapping with blob
-                    if cell.overlap(blob):
+                    if cell.overlap(blob) and blob.getEjecterCell() is not cell:
                         self.eatBlob(cell, blob)
 
 
@@ -196,7 +196,7 @@ class Field(object):
             nearbyBlobs = self.blobHashTable.getNearbyObjects(virus)
             for blob in nearbyBlobs:
                 if virus.overlap(blob):
-
+                    pass
 
     def spawnStuff(self):
         self.spawnPellets()
