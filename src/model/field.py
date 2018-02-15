@@ -21,10 +21,10 @@ class Field(object):
         self.viruses = []
         self.maxCollectibleCount = None
         self.maxVirusCount = None
-        self.pelletHashtable = None
+        self.pelletHashTable = None
         self.blobHashTable = None
-        self.playerHashtable = None
-        self.virusHashtable = None
+        self.playerHashTable = None
+        self.virusHashTable = None
 
     def initializePlayer(self, player):
         x = numpy.random.randint(0, self.width)
@@ -38,10 +38,10 @@ class Field(object):
     def initialize(self):
         self.width = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
         self.height = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
-        self.pelletHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
+        self.pelletHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         self.blobHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
-        self.playerHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
-        self.virusHashtable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
+        self.playerHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
+        self.virusHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
         for player in self.players:
             self.initializePlayer(player)
         self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
@@ -63,9 +63,17 @@ class Field(object):
             virus.updatePos(self.width, self.height)
 
     def updateBlobs(self):
+        notMovingBlobs = []
         for blob in self.blobs:
+            if blob.getSplitVelocity()[0] == 0 and blob.getSplitVelocity()[1] == 0:
+                notMovingBlobs.append(blob)
+                continue
             blob.updateMomentum()
             blob.updatePos(self.width, self.height)
+        for blob in notMovingBlobs:  
+            self.blobs.remove(blob)
+            self.blobHashTable.deleteObject(blob)
+            self.addPellet(blob)
 
     def updatePlayers(self):
         for player in self.players:
@@ -80,7 +88,6 @@ class Field(object):
                 #blobSpawnPos can be none if commandPoint is in center of cell
                 if blobSpawnPos is None:
                     continue
-                print(blobSpawnPos)
                 # Blobs are given a player such that cells of player who eject them don't instantly reabsorb them
                 blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS, None)
                 blob.setEjecterPlayer(player)
@@ -104,14 +111,18 @@ class Field(object):
                     posDiff = cell.getPos() - otherCell.getPos()
                     scaling = (summedRadii - distance) / distance / 2
                     posDiffScaled = posDiff * scaling
-                    self.adjustCellPos(cell, cell.getPos() + posDiffScaled, self.playerHashtable)
-                    self.adjustCellPos(otherCell, otherCell.getPos() - posDiffScaled, self.playerHashtable)
+                    self.adjustCellPos(cell, cell.getPos() + posDiffScaled, self.playerHashTable)
+                    self.adjustCellPos(otherCell, otherCell.getPos() - posDiffScaled, self.playerHashTable)
 
     def updateHashTables(self):
-        self.playerHashtable.clearBuckets()
+        self.playerHashTable.clearBuckets()
         for player in self.players:
             playerCells = player.getCells()
-            self.playerHashtable.insertAllObjects(playerCells)
+            self.playerHashTable.insertAllObjects(playerCells)
+
+        self.blobHashTable.clearBuckets()
+        self.blobHashTable.insertAllObjects(self.blobs)
+
 
     def mergePlayerCells(self):
         for player in self.players:
@@ -138,7 +149,7 @@ class Field(object):
     def playerPelletOverlap(self):
         for player in self.players:
             for cell in player.getCells():
-                for pellet in self.pelletHashtable.getNearbyObjects(cell):
+                for pellet in self.pelletHashTable.getNearbyObjects(cell):
                     if cell.overlap(pellet):
                         self.eatPellet(cell, pellet)
 
@@ -148,21 +159,20 @@ class Field(object):
                 for blob in self.blobHashTable.getNearbyObjects(cell):
                     # If the ejecter player's cell is not the one overlapping with blob
                     if cell.overlap(blob) and (blob.getEjecterPlayer() is not player):
-                        print("ahoyy")
                         self.eatBlob(cell, blob)
 
 
     def playerVirusOverlap(self):
         for player in self.players:
             for cell in player.getCells():
-                for virus in self.virusHashtable.getNearbyObjects(cell):
+                for virus in self.virusHashTable.getNearbyObjects(cell):
                     if cell.overlap(virus) and cell.getMass() > 1.5 * virus.getMass():
                         self.eatVirus(cell, virus)
 
     def playerPlayerOverlap(self):
         for player in self.players:
             for playerCell in player.getCells():
-                opponentCells = self.playerHashtable.getNearbyEnemyObjects(playerCell)
+                opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
                 if self.debug:
                     if len(opponentCells) > 0:
                         print("\n_________")
@@ -226,28 +236,28 @@ class Field(object):
 
     # Cell1 eats Cell2. Therefore Cell1 grows and Cell2 is deleted
     def eatPellet(self, cell, pellet):
-        self.adjustCellSize(cell, pellet.getMass(), self.playerHashtable)
+        self.adjustCellSize(cell, pellet.getMass(), self.playerHashTable)
         self.pellets.remove(pellet)
-        self.pelletHashtable.deleteObject(pellet)
+        self.pelletHashTable.deleteObject(pellet)
         pellet.setAlive(False)
 
     def eatBlob(self, cell, blob):
-        self.adjustCellSize(cell, blob.getMass(), self.playerHashtable)
+        self.adjustCellSize(cell, blob.getMass(), self.playerHashTable)
         self.blobs.remove(blob)
         self.blobHashTable.deleteObject(blob)
         blob.setAlive(False)
 
     def eatVirus(self, playerCell, virus):
-        self.adjustCellSize(playerCell, virus.getMass(), self.playerHashtable)
+        self.adjustCellSize(playerCell, virus.getMass(), self.playerHashTable)
         self.playerCellAteVirus(playerCell)
         self.viruses.remove(virus)
-        self.virusHashtable.deleteObject(virus)
+        self.virusHashTable.deleteObject(virus)
         virus.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell):
         if self.debug:
             print(largerCell, " eats ", smallerCell, "!")
-        self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashtable)
+        self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 
     def playerCellAteVirus(self, playerCell):
@@ -258,7 +268,7 @@ class Field(object):
             return
         massPerCell = (playerCell.getMass() * 0.9) / numberOfNewCells
         playerCell.resetMergeTime(0.8)
-        self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashtable)
+        self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
         for cellIdx in range(numberOfNewCells):
             cellPos = playerCell.getPos()
             newCell = Cell(cellPos[0], cellPos[1], massPerCell, player)
@@ -283,11 +293,11 @@ class Field(object):
             smallerCell = firstCell
         if self.debug:
             print(smallerCell, " is merged into ", biggerCell, "!")
-        self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashtable)
+        self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 
     def deletePlayerCell(self, playerCell):
-        self.playerHashtable.deleteObject(playerCell)
+        self.playerHashTable.deleteObject(playerCell)
         player = playerCell.getPlayer()
         player.removeCell(playerCell)
 
@@ -300,7 +310,7 @@ class Field(object):
         return 1
 
     def addPellet(self, pellet):
-        self.pelletHashtable.insertObject(pellet)
+        self.pelletHashTable.insertObject(pellet)
         self.pellets.append(pellet)
 
     def addBlob(self, blob):
@@ -308,11 +318,11 @@ class Field(object):
         self.blobs.append(blob)
 
     def addVirus(self, virus):
-        self.virusHashtable.insertObject(virus)
+        self.virusHashTable.insertObject(virus)
         self.viruses.append(virus)
 
     def addPlayerCell(self, playerCell):
-        self.playerHashtable.insertObject(playerCell)
+        self.playerHashTable.insertObject(playerCell)
         playerCell.getPlayer().addCell(playerCell)
 
     def adjustCellSize(self, cell, mass, hashtable):
@@ -345,8 +355,7 @@ class Field(object):
 
 
     def getPlayerCellsInFov(self, fovPos, fovDims):
-
-        cellsNearFov = self.getCellsFromHashtableInFov(self.playerHashtable, fovPos, fovDims)
+        cellsNearFov = self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovDims)
         return self.getPortionOfCellsInFov(cellsNearFov, fovPos, fovDims)
 
     def getEnemyPlayerCellsInFov(self, fovPlayer):
@@ -358,22 +367,22 @@ class Field(object):
         return opponentCellsInFov
 
     def getPelletsInFov(self, fovPos, fovDims):
-        pelletsNearFov = self.getCellsFromHashtableInFov(self.pelletHashtable, fovPos, fovDims)
+        pelletsNearFov = self.getCellsFromHashTableInFov(self.pelletHashTable, fovPos, fovDims)
         return self.getPortionOfCellsInFov(pelletsNearFov, fovPos, fovDims)
 
     def getVirusesInFov(self, fovPos, fovDims):
-        virusesNearFov = self.getCellsFromHashtableInFov(self.virusHashtable, fovPos, fovDims)
+        virusesNearFov = self.getCellsFromHashTableInFov(self.virusHashTable, fovPos, fovDims)
         return self.getPortionOfCellsInFov(virusesNearFov, fovPos, fovDims)
+    
+    def getBlobsInFov(self, fovPos, fovDims):
+        blobsNearFov = self.getCellsFromHashTableInFov(self.blobHashTable, fovPos, fovDims)
+        return self.getPortionOfCellsInFov(blobsNearFov, fovPos, fovDims)
 
-    def getCellsFromHashtableInFov(self, hashtable, fovPos, fovDims):
+    def getCellsFromHashTableInFov(self, hashtable, fovPos, fovDims):
         fovCell = Cell(fovPos[0], fovPos[1], 1, None)
         fovCell.setRadius(fovDims[0] / 2)
         return hashtable.getNearbyObjects(fovCell)
-
-    def getBlobsInFov(self, fovPos, fovDims):
-        blobsNearFov = self.getCellsFromHashtableInFov(self.blobHashTable, fovPos, fovDims)
-        return self.getPortionOfCellsInFov(blobsNearFov, fovPos, fovDims)
-
+    
     def getWidth(self):
         return self.width
 

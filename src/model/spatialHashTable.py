@@ -69,9 +69,6 @@ class spatialHashTable(object):
         #print("________")
         #print("")
 
-
-
-
     def getIdsForObj(self, obj):
         ids = set()
         pos = obj.getPos()
@@ -91,5 +88,6 @@ class spatialHashTable(object):
                 j += stepSize
             i += stepSize
         return ids
+
     def getHashId(self, pos):
         return int(numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols)

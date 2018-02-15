@@ -95,8 +95,6 @@ class Cell(object):
         newMass = self.mass * CELL_MASS_DECAY_RATE
         self.setMass(newMass)
 
-
-
     def updateMerge(self):
         if self.mergeTime > 0:
             self.mergeTime -= 1
@@ -122,8 +120,6 @@ class Cell(object):
 
     def resetMergeTime(self, factor):
         self.mergeTime = factor * (BASE_MERGE_TIME + self.mass * 0.0233) * FPS / 2 / GAME_SPEED
-
-
 
     # Returns the squared distance from the self cell to another cell
     def squaredDistance(self, cell):
@@ -229,18 +225,19 @@ class Cell(object):
     def getVelocity(self):
         return self.velocity + self.splitVelocity
 
+    def getSplitVelocity(self):
+        return self.splitVelocity
+
     def getClosestSurfacePoint(self, commandPoint):
         difference = numpy.subtract(commandPoint, self.getPos())
         # Make sure commandPoint != center of cell since ratio is then a division by 0
         if difference[0] == 0 and difference[1] == 0:
-            print("???")
             return None
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
         ratio = numpy.sqrt(hypotenuseSquared / self.getSquaredRadius())
         xFromCenter = difference[0] / ratio
         yFromCenter = difference[1] / ratio
         posFromCenter = numpy.array([xFromCenter, yFromCenter])
-        print(posFromCenter, "nn")
         surfacePoint = self.getPos() + posFromCenter
         return surfacePoint
 
