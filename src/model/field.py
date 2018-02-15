@@ -190,7 +190,7 @@ class Field(object):
             for playerCell in player.getCells():
                 opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
                 if __debug__:
-                    if len(opponentCells) > 0:
+                    if opponentCells:
                         print("\n_________")
                         print("Opponent cells of cell ", playerCell, ":")
                         for cell in opponentCells:
@@ -236,7 +236,7 @@ class Field(object):
 
     def spawnPlayers(self):
         for player in self.players:
-            if len(player.getCells()) < 1:
+            if not player.getCells():
                 self.initializePlayer(player)
 
 
