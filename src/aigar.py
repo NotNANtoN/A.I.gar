@@ -32,13 +32,10 @@ if __name__ == '__main__':
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
 
-    debug = int(input("Display debug info?: (1 == yes)\n"))
-    debug = (debug == 1)
-
     viewEnabled = int(input("Display view?: (1 == yes)\n"))
     viewEnabled = (viewEnabled == 1)
 
-    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, debug, viewEnabled)
+    model = Model(SCREEN_WIDTH, SCREEN_HEIGHT, viewEnabled)
 
     numberOfBots = int(input("Please enter the number of bots:\n"))
     if fitsLimitations(numberOfBots, MAXBOTS):

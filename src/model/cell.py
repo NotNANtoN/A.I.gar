@@ -66,7 +66,7 @@ class Cell(object):
         yPoint = numpy.sin(angle) * newCell.getRadius() * 4.5 + cellPos[1]
         movePoint = (xPoint, yPoint)
         #newCell.setMoveDirection(movePoint)
-        newCell.addMomentum(movePoint, fieldWidth, fieldHeight)
+        newCell.addMomentum(movePoint, fieldWidth, fieldHeight, self)
         newCell.resetMergeTime(1)
         self.setMass(self.mass / 2)
         self.resetMergeTime(1)
@@ -81,12 +81,12 @@ class Cell(object):
         self.blobToBeEjected = False
         return self.getPos()
 
-    def addMomentum(self, commandPoint, fieldWidth, fieldHeight):
+    def addMomentum(self, commandPoint, fieldWidth, fieldHeight, originalCell):
         checkedX = max(0, min(fieldWidth, commandPoint[0]))
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
-        speed = 3 + self.getRadius() * 0.05
+        speed = 3 + originalCell.getRadius() * 0.05
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
         self.splitVelocityCounter = self.splitVelocityCounterMax
 

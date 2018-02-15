@@ -78,7 +78,6 @@ class spatialHashTable(object):
         stepSize = min(cellWidth, self.cellSize)
         limitX = radius + min(min(radius, pos[0]), min(radius, self.width-1 - pos[0])) 
         limitY = radius + min(min(radius, pos[1]), min(radius, self.height-1 - pos[1])) 
-
         i = 0
         while i <= limitX:
             j = 0
@@ -115,4 +114,4 @@ class spatialHashTable(object):
         return ids
 
     def getHashId(self, pos):
-        return int(numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols)
+        return numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols
