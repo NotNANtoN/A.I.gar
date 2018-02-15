@@ -23,6 +23,7 @@ class Cell(object):
         self.setMass(mass)
         self.x = x
         self.y = y
+        self.pos = numpy.array([x,y])
         if self.player == None:
             self.name = ""
             self.color = (numpy.random.randint(0, 255), numpy.random.randint(0, 255), numpy.random.randint(0, 255))
@@ -121,9 +122,10 @@ class Cell(object):
         combinedVelocity = self.velocity + self.splitVelocity
         self.x = self.updateDirection(self.x, combinedVelocity[0], maxX)
         self.y = self.updateDirection(self.y, combinedVelocity[1], maxY)
-        if self.x == maxX or self.x == 0:
+        self.pos = numpy.array([self.x,self.y])
+        if self.splitVelocityCounter and self.x == maxX or self.x == 0:
             self.splitVelocity[0] *= -1
-        if self.y == maxY or self.y == 0:
+        if self.splitVelocityCounter and self.y == maxY or self.y == 0:
             self.splitVelocity[1] *= -1
 
     def overlap(self, cell):
@@ -188,9 +190,10 @@ class Cell(object):
     def setAlive(self, val):
         self.alive = val
 
-    def setPos(self, x, y):
-        self.x = x
-        self.y = y
+    def setPos(self, pos):
+        self.pos = pos
+        self.x = pos[0]
+        self.y = pos[1]
 
     def setRadius(self, val):
         self.radius = val
@@ -226,7 +229,7 @@ class Cell(object):
         return self.y
 
     def getPos(self):
-        return numpy.array([self.x, self.y])
+        return self.pos
 
     def getColor(self):
         return self.color
