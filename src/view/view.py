@@ -46,34 +46,44 @@ class View:
             pygame.draw.line(self.screen, RED, scaledPos.astype(int),
                              numpy.array(cell.getVelocity()) * 10 +
                              numpy.array(scaledPos.astype(int)))
-        if self.model.hasHuman():
-            for cell in self.model.field.pelletHashTable.getNearbyObjects(self.model.getHuman().cells[0]):
-                rad = cell.getRadius()
-                pos = numpy.array(cell.getPos())
-                scaledRad = self.modelToViewScaleRadius(rad, fovDims)
-                scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
-                self.drawSingleCell(scaledPos.astype(int), int(scaledRad), RED, cell.getPlayer())
 
     def drawCells(self, cells, fovPos, fovDims):
         for cell in cells:
-            rad = cell.getRadius()
-            pos = numpy.array(cell.getPos())
-            scaledRad = self.modelToViewScaleRadius(rad, fovDims)
-            scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
-            self.drawSingleCell(scaledPos.astype(int), int(scaledRad), cell.getColor(), cell.getPlayer())
+            self.drawSingleCell(cell, fovPos, fovDims)
 
 
-    def drawSingleCell(self, pos, rad, color, player):
+    def drawSingleCell(self, cell, fovPos, fovDims):
+        unscaledRad = cell.getRadius()
+        unscaledPos = numpy.array(cell.getPos())
+        color = cell.getColor()
+        player = cell.getPlayer()
+        rad = int(self.modelToViewScaleRadius(unscaledRad, fovDims))
+        pos = self.modelToViewScaling(unscaledPos, fovPos, fovDims).astype(int)
+
         if rad >= 4:
-            pygame.gfxdraw.aacircle(self.screen, pos[0], pos[1], rad, color)
             pygame.gfxdraw.filled_circle(self.screen, pos[0], pos[1], rad, color)
+            if cell.getName() == "Virus":
+                # Give Viruses a black surrounding circle
+                pygame.gfxdraw.aacircle(self.screen, pos[0], pos[1], rad, (0,0,0))
+            else:
+                pygame.gfxdraw.aacircle(self.screen, pos[0], pos[1], rad, color)
         else:
+            # Necessary to avoid that collectibles are drawn as little X's when the fov is huge
             pygame.draw.circle(self.screen, color, pos, rad)
-        if player != None:
+        if player != None or (__debug__ and cell.getName() == "Virus"):
             font = pygame.font.SysFont(None, int(rad / 2))
-            text = font.render(player.getName(), False, (0,0,0))
-            pos = (pos[0] - text.get_width() / 2, pos[1] - text.get_height() / 2 )
-            self.screen.blit(text, pos)
+            name = font.render(cell.getName(), True, (0,0,0))
+            textPos = [pos[0] - name.get_width() / 2, pos[1] - name.get_height() / 2]
+            self.screen.blit(name, textPos)
+
+            if __debug__:
+                mass = font.render("Mass:" + str(int(cell.getMass())), True, (0, 0, 0))
+                textPos = [pos[0] - mass.get_width() / 2, pos[1] - mass.get_height() / 2 + name.get_height()]
+                self.screen.blit(mass, textPos)
+                if cell.getMergeTime() > 0:
+                    text = font.render(str(int(cell.getMergeTime())), True, (0, 0, 0))
+                    textPos = [pos[0] - text.get_width() / 2, pos[1] - text.get_height() / 2 + name.get_height() + mass.get_height()]
+                    self.screen.blit(text, textPos)
 
 
     def drawAllCells(self):
@@ -91,7 +101,7 @@ class View:
 
     def drawHumanStats(self):
         if self.model.hasHuman():
-            totalMass = self.model.getHuman().getTotalMass()
+            totalMass = self.model.getHumans()[0].getTotalMass()
             name = "Total Mass: " + str(int(totalMass))
             font = pygame.font.SysFont(None, int(min(150, 30 + numpy.sqrt(totalMass))))
             text = font.render(name, False, (min(255,int(totalMass / 5)), min(100,int(totalMass / 10)), min(100,int(totalMass / 10))))

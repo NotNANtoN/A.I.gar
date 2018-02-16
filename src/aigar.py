@@ -15,7 +15,7 @@ def fitsLimitations(number, limit):
     return True
 
 
-def createHumans(model1):
+def createHumans(numberOfHumans, model1):
     for i in range(numberOfHumans):
         name = input("Player" + str(i + 1) + " name:\n")
         model1.createHuman(name)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     if viewEnabled:
         numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
         if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
-            createHumans(model)
+            createHumans(numberOfHumans, model)
 
         if not model.hasHuman():
             spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))

@@ -98,3 +98,19 @@ class spatialHashTable(object):
 
     def getBuckets(self):
         return self.buckets
+
+    def getCenterOfBucket(self, id):
+        x = id % self.cols * self.cellSize + self.cellSize/2
+        y = int(id /self.cols) * self.cellSize + self.cellSize/2
+        return (x,y)
+
+    def getCenterOfNextEmptyBucket(self, pos):
+        startId = self.getHashId(pos)
+        numOfBuckets = self.rows * self.cols
+
+        for i in range(numOfBuckets):
+            if not bool(self.getObjectsFromBucket((startId + i) % numOfBuckets)):
+                return self.getCenterOfBucket((startId + i) % numOfBuckets)
+        return self.getCenterOfBucket(startId)
+
+        #[(return self.getObjectsFromBuckets(self.getHashId(pos))]

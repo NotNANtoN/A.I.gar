@@ -224,6 +224,9 @@ class Cell(object):
         self.color = cell.getColor()
 
     # Getters:
+    def getMergeTime(self):
+        return self.mergeTime
+
     def getSplitVelocityCounter(self):
         return self.splitVelocityCounter
 
