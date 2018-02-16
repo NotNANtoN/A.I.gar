@@ -1,6 +1,7 @@
 import pygame
 import numpy
 import os
+from pygame import gfxdraw
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -50,7 +51,8 @@ class View:
 
 
     def drawSingleCell(self, pos, rad, color, player):
-        pygame.draw.circle(self.screen, color, pos, rad)
+        pygame.gfxdraw.aacircle(self.screen, pos[0], pos[1], rad, color)
+        pygame.gfxdraw.filled_circle(self.screen, pos[0], pos[1], rad, color)
         if player != None:
             font = pygame.font.SysFont(None, int(rad / 2))
 
@@ -76,15 +78,19 @@ class View:
         if self.model.hasHuman():
             totalMass = self.model.getHuman().getTotalMass()
             name = "Total Mass: " + str(int(totalMass))
-            font = pygame.font.SysFont(None, int(30 + numpy.sqrt(totalMass)))
+            font = pygame.font.SysFont(None, int(max(150, 30 + numpy.sqrt(totalMass))))
             text = font.render(name, False, (min(255,int(totalMass / 5)), min(100,int(totalMass / 10)), min(100,int(totalMass / 10))))
             pos = (0, self.height - text.get_height())
             self.screen.blit(text, pos)
+
+    def drawLeaderBoard(self):
+        pass
 
     def draw(self):
         self.screen.fill(WHITE)
         self.drawAllCells()
         self.drawHumanStats()
+        self.drawLeaderBoard()
         if __debug__:
             self.drawDebugInfo()
         pygame.display.update()
