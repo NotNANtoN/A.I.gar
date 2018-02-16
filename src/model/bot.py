@@ -6,8 +6,8 @@ class Bot(object):
     def __init__(self, player, field):
         self.player = player
         self.field = field
-        self.splitLikelihood = numpy.random.randint(950,1001)
-        self.ejectLikelihood = numpy.random.randint(990,1001)
+        self.splitLikelihood = numpy.random.randint(9950,10000)
+        self.ejectLikelihood = numpy.random.randint(9990,10000)
 
 
     def update(self):
@@ -38,12 +38,12 @@ class Bot(object):
             else:
                 xChoice = numpy.random.randint(x - width, x + width)
                 yChoice = numpy.random.randint(y - height, y + height)
-            randNumSplit = numpy.random.randint(0,1001)
-            randNumEject = numpy.random.randint(0,1001)
+            randNumSplit = numpy.random.randint(0,10000)
+            randNumEject = numpy.random.randint(0,10000)
             splitChoice = False
             ejectChoice = False
             if randNumSplit > self.splitLikelihood:
                 splitChoice = True
-            if randNumEject < self.ejectLikelihood:
+            if randNumEject > self.ejectLikelihood:
                 ejectChoice = True
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)

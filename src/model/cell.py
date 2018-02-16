@@ -83,7 +83,7 @@ class Cell(object):
         newCell.addMomentum(movePoint, fieldWidth, fieldHeight, self)
         newCell.resetMergeTime(1)
         self.setMass(self.mass / 2)
-        self.resetMergeTime(1)
+        #self.resetMergeTime(1)
         return newCell
 
     def prepareEject(self):
@@ -100,7 +100,7 @@ class Cell(object):
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
-        speed = 3 + originalCell.getRadius() * 0.065
+        speed = 3 + originalCell.getRadius() * 0.060
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
         self.splitVelocityCounter = self.splitVelocityCounterMax
 

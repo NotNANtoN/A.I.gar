@@ -22,6 +22,19 @@ class View:
         pygame.init()
         pygame.display.set_caption('A.I.gar')
 
+        # Rendering fonts for the leaderboard and initializing it
+        numbOfPlayers = min(10, len(model.getPlayers()))
+        self.leaderBoardTextHeight = 25
+        self.leaderBoardTitleHeight = 28
+        self.leaderBoardFont = pygame.font.SysFont(None, self.leaderBoardTextHeight)
+        leaderBoardTitleFont = pygame.font.SysFont(None, self.leaderBoardTitleHeight)
+        #leaderBoardTitleFont.set_bold(True)
+        self.leaderBoardTitle = leaderBoardTitleFont.render("Leaderboard", True, (255, 255, 255))
+        self.leaderBoardWidth = self.leaderBoardTitle.get_width() + 15
+        self.leaderBoardHeight = self.leaderBoardTitleHeight + self.leaderBoardTextHeight * numbOfPlayers + 2
+        self.leaderBoard = pygame.Surface((self.leaderBoardWidth, self.leaderBoardHeight))  # the size of your rect
+        self.leaderBoard.set_alpha(128)
+
 
     def drawDebugInfo(self):
         cells = self.model.getPlayerCells()
@@ -58,7 +71,6 @@ class View:
             pygame.draw.circle(self.screen, color, pos, rad)
         if player != None:
             font = pygame.font.SysFont(None, int(rad / 2))
-
             text = font.render(player.getName(), False, (0,0,0))
             pos = (pos[0] - text.get_width() / 2, pos[1] - text.get_height() / 2 )
             self.screen.blit(text, pos)
@@ -81,13 +93,23 @@ class View:
         if self.model.hasHuman():
             totalMass = self.model.getHuman().getTotalMass()
             name = "Total Mass: " + str(int(totalMass))
-            font = pygame.font.SysFont(None, int(max(150, 30 + numpy.sqrt(totalMass))))
+            font = pygame.font.SysFont(None, int(min(150, 30 + numpy.sqrt(totalMass))))
             text = font.render(name, False, (min(255,int(totalMass / 5)), min(100,int(totalMass / 10)), min(100,int(totalMass / 10))))
             pos = (0, self.height - text.get_height())
             self.screen.blit(text, pos)
 
     def drawLeaderBoard(self):
-        pass
+        self.leaderBoard.fill((0, 0, 0))
+        players = self.model.getTopTenPlayers()
+        numberOfPositionsShown = len(players)
+        self.leaderBoard.blit(self.leaderBoardTitle, (8, self.leaderBoardTitleHeight / 4))
+        for i in range(numberOfPositionsShown):
+            currentPlayer = players[i]
+            string = str(i + 1) + ". " + currentPlayer.getName() + ": " + str(int(currentPlayer.getTotalMass()))
+            text = self.leaderBoardFont.render(string, True, (255, 255, 255))
+            pos = (8, self.leaderBoardTitleHeight + i * self.leaderBoardTextHeight)
+            self.leaderBoard.blit(text, pos)
+        self.screen.blit(self.leaderBoard, (self.width - self.leaderBoardWidth - 10, 10))
 
     def draw(self):
         self.screen.fill(WHITE)
