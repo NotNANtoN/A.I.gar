@@ -44,6 +44,6 @@ class Bot(object):
             ejectChoice = False
             if randNumSplit > self.splitLikelihood:
                 splitChoice = True
-            if randNumEject < self.ejectLikelihood:
+            if randNumEject > self.ejectLikelihood:
                 ejectChoice = True
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)

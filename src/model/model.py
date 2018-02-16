@@ -116,7 +116,7 @@ class Model(object):
 
     # Checks:
     def hasHuman(self):
-        return self.humans is not None
+        return bool(self.humans)
 
     def hasPlayerSpectator(self):
         return self.playerSpectator is not None

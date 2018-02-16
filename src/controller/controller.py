@@ -11,7 +11,8 @@ class Controller:
 
         self.model = model
         self.view = view
-        self.screenWidth, self.screenHeight = view.getScreenDims()
+        self.fieldWidth = model.getField().getWidth()
+        self.fieldHeight = model.getField().getHeight()
         self.running = True
         self.viewEnabled = viewEnabled
 
@@ -20,7 +21,7 @@ class Controller:
         humanCommandPoint = []
         if self.model.hasHuman():
             for human in humanList:
-                humanCommandPoint.append([self.screenWidth/2, self.screenHeight/2])
+                humanCommandPoint.append([self.fieldWidth / 2, self.fieldHeight / 2])
                 if human.getIsAlive():
                     human.setSplit(False)
                     human.setEject(False)
@@ -41,7 +42,7 @@ class Controller:
                 if bool(humanList):
                     #Human1 controls
                     human1 = humanList[0]
-                    keys = pygame.key.get
+                    keys = pygame.key.get_pressed()
                     if human1.getIsAlive():
                         # "space" to Split
                         if event.key == pygame.K_SPACE and human1.getCanSplit():
@@ -56,13 +57,13 @@ class Controller:
                         human2 = humanList[1]
                         if human2.getIsAlive():
                             if keys[pygame.K_UP] and human2.getCanSplit():
-                                humanCommandPoint[1][1] -= self.screenHeight/2
+                                humanCommandPoint[1][1] -= self.fieldHeight / 2
                             if keys[pygame.K_DOWN] and human2.getCanSplit():
-                                humanCommandPoint[1][1] += self.screenHeight/2
+                                humanCommandPoint[1][1] += self.fieldHeight / 2
                             if keys[pygame.K_LEFT] and human2.getCanSplit():
-                                humanCommandPoint[1][0] -= self.screenWidth/2
+                                humanCommandPoint[1][0] -= self.fieldWidth / 2
                             if keys[pygame.K_RIGHT] and human2.getCanSplit():
-                                humanCommandPoint[1][0] += self.screenWidth/2
+                                humanCommandPoint[1][0] += self.fieldWidth / 2
                             # "space" to Split
                             if event.key == pygame.K_KP0 and human2.getCanSplit():
                                 human2.setSplit(True)
@@ -77,13 +78,13 @@ class Controller:
                         human3 = humanList[2]
                         if human3.getIsAlive():
                             if keys[pygame.K_w] and human2.getCanSplit():
-                                humanCommandPoint[2][1] -= self.screenHeight / 2
+                                humanCommandPoint[2][1] -= self.fieldHeight / 2
                             if keys[pygame.K_s] and human2.getCanSplit():
-                                humanCommandPoint[2][1] += self.screenHeight / 2
+                                humanCommandPoint[2][1] += self.fieldHeight / 2
                             if keys[pygame.K_a] and human2.getCanSplit():
-                                humanCommandPoint[2][0] -= self.screenWidth / 2
+                                humanCommandPoint[2][0] -= self.fieldWidth / 2
                             if keys[pygame.K_d] and human2.getCanSplit():
-                                humanCommandPoint[2][0] += self.screenWidth / 2
+                                humanCommandPoint[2][0] += self.fieldWidth / 2
                             # "space" to Split
                             if event.key == pygame.K_e and human3.getCanSplit():
                                 human3.setSplit(True)
