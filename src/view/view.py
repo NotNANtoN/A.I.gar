@@ -51,8 +51,11 @@ class View:
 
 
     def drawSingleCell(self, pos, rad, color, player):
-        pygame.gfxdraw.aacircle(self.screen, pos[0], pos[1], rad, color)
-        pygame.gfxdraw.filled_circle(self.screen, pos[0], pos[1], rad, color)
+        if rad >= 4:
+            pygame.gfxdraw.aacircle(self.screen, pos[0], pos[1], rad, color)
+            pygame.gfxdraw.filled_circle(self.screen, pos[0], pos[1], rad, color)
+        else:
+            pygame.draw.circle(self.screen, color, pos, rad)
         if player != None:
             font = pygame.font.SysFont(None, int(rad / 2))
 
