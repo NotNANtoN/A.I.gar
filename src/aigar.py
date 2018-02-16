@@ -5,7 +5,6 @@ from model.parameters import *
 import sys
 import os
 
-
 def fitsLimitations(number, limit):
     if number < 0:
         print("Number can't be negative.")
@@ -25,7 +24,6 @@ def createHumans(model1):
 def createBots(number, model1):
     for i in range(number):
         model1.createBot()
-
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe

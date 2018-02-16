@@ -3,7 +3,7 @@ import numpy
 class spatialHashTable(object):
     def __repr__(self):
         name = "Hash table: \n"
-        name += "Rows: " + str(self.rows) + " Cols: " + str(self.cols) + " Cellsize: " + str(self.cellSize) + "\n"
+        name += "Rows: " + str(self.rows) + " Cols: " + str(self.cols) + " Cellsize: " + str(self.bucketSize) + "\n"
         #name += "Hash table content: \n"
         total = 0
         for bucketId, content in self.buckets.items():
@@ -12,12 +12,12 @@ class spatialHashTable(object):
         name += "Total objects in table: " + str(total)
         return name
 
-    def __init__(self, width, height, cellSize):
+    def __init__(self, width, height, bucketSize):
         self.width = width
         self.height = height
-        self.rows = int(numpy.ceil(height / cellSize))
-        self.cols = int(numpy.ceil(width / cellSize))
-        self.cellSize = cellSize
+        self.rows = int(numpy.ceil(height / bucketSize))
+        self.cols = int(numpy.ceil(width / bucketSize))
+        self.bucketSize = bucketSize
         self.buckets = {}
         self.clearBuckets()
 
@@ -70,27 +70,31 @@ class spatialHashTable(object):
 
     def getIdsForArea(self, pos, radius):
         ids = set()
+        hashFunc = self.getHashId
         topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
-        limitX = radius + (min(radius, pos[0]))
-        limitY = radius + (min(radius, pos[1]))
-        #limitX = radius + ((radius))
-        #limitY = radius + ((radius))
-        stepSizeX = min(limitX, self.cellSize)
-        stepSizeY = min(limitY, self.cellSize)
-        i = 0
-        #hashFunc = self.getHashId
-        while i <= limitX:
-            j = 0
-            while j <= limitY:
-                #x = i + topLeft[0]
-                #y = j + topLeft[1]
-                x = min(self.width - 1 , i + topLeft[0])
-                y = min(self.height - 1, j + topLeft[1])
-                hashId = self.getHashId((x, y))
-                ids.add(hashId)
-                j += stepSizeY
-            i += stepSizeX
+        bucketTopLeft = (topLeft[0] - topLeft[0] % self.bucketSize, topLeft[1] - topLeft[1] % self.bucketSize)
+        stepSize = self.bucketSize
+        limitX = min(self.width - 1, pos[0] + radius)
+        limitY = min(self.height - 1, pos[1] + radius)
+
+        x = bucketTopLeft[0]
+        while x <= limitX:
+            y = bucketTopLeft[1]
+            while y <= limitY:
+                ids.add(hashFunc(x, y))
+                y += stepSize
+            x += stepSize
         return ids
 
-    def getHashId(self, pos):
-        return int(numpy.floor(pos[0] / self.cellSize) + numpy.floor(pos[1] / self.cellSize) * self.cols)
+
+    def getHashId(self, x, y):
+        return int(x / self.bucketSize) + int(y / self.bucketSize) * self.cols
+
+    def getCols(self):
+        return self.cols
+
+    def getRows(self):
+        return self.rows
+
+    def getBuckets(self):
+        return self.buckets

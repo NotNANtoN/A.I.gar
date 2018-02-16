@@ -1,6 +1,19 @@
 import numpy
+import math
 from .parameters import *
 
+'''
+# For euclidean distance
+from distutils.core import setup, Extension
+import numpy.distutils.misc_util
+
+c_ext = Extension("_euclidean", ["_euclidean.c", "euclidean.c"])
+setup(
+            ext_modules=[c_ext],
+            include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
+        )
+
+'''
 
 class Cell(object):
     _cellId = 0
@@ -36,7 +49,7 @@ class Cell(object):
         self.velocity = numpy.array([0, 0])
         self.splitVelocity = numpy.array([0, 0])
         self.splitVelocityCounter = 0
-        self.splitVelocityCounterMax = 30
+        self.splitVelocityCounterMax = 35
         self.momentum = 1
         self.mergeTime = 0
         self.blobToBeEjected = None
@@ -87,7 +100,7 @@ class Cell(object):
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
-        speed = 3 + originalCell.getRadius() * 0.05
+        speed = 3 + originalCell.getRadius() * 0.065
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
         self.splitVelocityCounter = self.splitVelocityCounterMax
 
@@ -104,7 +117,7 @@ class Cell(object):
 
     # Increases the mass of the cell by value and updates the radius accordingly
     def grow(self, foodMass):
-        newMass = self.mass + foodMass
+        newMass = min(MAX_MASS_SINGLE_CELL, self.mass + foodMass)
         self.setMass(newMass)
 
     def decayMass(self):
@@ -135,7 +148,7 @@ class Cell(object):
         else:
             biggerCell = cell
             smallerCell = self
-        if biggerCell.squaredDistance(smallerCell) * 1.1 < biggerCell.getSquaredRadius():
+        if biggerCell.squaredDistance(smallerCell) * 1.1 < biggerCell.getRadius() * biggerCell.getRadius():
             return True
         return False
 
@@ -144,10 +157,11 @@ class Cell(object):
 
     # Returns the squared distance from the self cell to another cell
     def squaredDistance(self, cell):
-        return self.squareDist(self.getPos(), cell.getPos())
+        pos2 = cell.getPos()
+        return (self.x - pos2[0]) * (self.x - pos2[0]) + (self.y - pos2[1]) * (self.y - pos2[1])
 
     def squareDist(self, pos1, pos2):
-        return numpy.sum(numpy.power(pos1-pos2, 2))
+        return (pos1[0] - pos2[0]) * (pos1[0] - pos2[0])  + (pos1[1] - pos2[1]) *  (pos1[1] - pos2[1])
 
     # Checks:
     def canEat(self, cell):
@@ -161,10 +175,7 @@ class Cell(object):
         xMax = fovPos[0] + fovDims[0] / 2
         yMin = fovPos[1] - fovDims[1] / 2
         yMax = fovPos[1] + fovDims[1] / 2
-        x = self.x
-        y = self.y
-        radius = self.radius
-        if x + radius < xMin or x - radius > xMax or y + radius < yMin or y - radius > yMax:
+        if self.x + self.radius < xMin or self.x - self.radius > xMax or self.y + self.radius < yMin or self.y - self.radius > yMax:
             return False
         return True
 
@@ -198,11 +209,11 @@ class Cell(object):
     def setRadius(self, val):
         self.radius = val
         #self.mass = numpy.power((self.radius - 4) * 6, 2)
-        self.mass = numpy.power(self.radius, 2) * numpy.pi
+        self.mass = self.radius * self.radius * numpy.pi
 
     def setMass(self, val):
         self.mass = val
-        self.radius = numpy.sqrt(self.mass / numpy.pi)
+        self.radius = math.sqrt(self.mass / numpy.pi)
         #self.radius = numpy.sqrt(self.mass) * 6 + 4
 
     def setBlobToBeEjected(self, val):
@@ -240,9 +251,6 @@ class Cell(object):
     def getMass(self):
         return self.mass
 
-    def getSquaredRadius(self):
-        return numpy.power(self.radius, 2)
-
     def getReducedSpeed(self):
         #return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
         return CELL_MOVE_SPEED * numpy.power(self.mass, -0.2)
@@ -262,7 +270,7 @@ class Cell(object):
             #randomPointInCell = (numpy.random.randint(self.getPos()[0] - self.radius, self.getPos()[0] + self.radius), numpy.random.randint(self.getPos()[1] - self.radius, self.getPos()[1] + self.radius))
             return self.getClosestSurfacePoint(randomPointInCell)
         hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
-        ratio = numpy.sqrt(hypotenuseSquared / self.getSquaredRadius())
+        ratio = numpy.sqrt(hypotenuseSquared / self.radius / self.radius)
         xFromCenter = difference[0] / ratio
         yFromCenter = difference[1] / ratio
         posFromCenter = numpy.array([xFromCenter, yFromCenter])

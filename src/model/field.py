@@ -1,4 +1,6 @@
 import numpy
+import math
+import time
 from .cell import Cell
 from .parameters import *
 from .spatialHashTable import spatialHashTable
@@ -26,21 +28,19 @@ class Field(object):
         self.virusHashTable = None
 
     def initializePlayer(self, player):
-        x = numpy.random.randint(0, self.width)
-        y = numpy.random.randint(0, self.height)
-
+        x, y = self.getSpawnPos()
         newCell = Cell(x, y, START_MASS, player)
         player.addCell(newCell)
         player.setAlive()
 
 
     def initialize(self):
-        self.width = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
-        self.height = numpy.round(SIZE_INCREASE_PER_PLAYER * numpy.sqrt(len(self.players)))
-        self.pelletHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
-        self.blobHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
-        self.playerHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
-        self.virusHashTable = spatialHashTable(self.width, self.height, HASH_CELL_SIZE)
+        self.width = int(SIZE_INCREASE_PER_PLAYER * math.sqrt(len(self.players)))
+        self.height = int(SIZE_INCREASE_PER_PLAYER * math.sqrt(len(self.players)))
+        self.pelletHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
+        self.blobHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
+        self.playerHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
+        self.virusHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
         for player in self.players:
             self.initializePlayer(player)
         self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
@@ -56,26 +56,25 @@ class Field(object):
         self.checkOverlaps()
         self.spawnStuff()
 
-        print(" ")
-        fovPos = self.players[0].getFovPos()
-        fovDims = self.players[0].getFovDims()
-        human = self.players[0]
-        humanCell = human.cells[0]
+        '''
+        if __debug__:
+            print(" ")
+            fovPos = self.players[0].getFovPos()
+            fovDims = self.players[0].getFovDims()
+            human = self.players[0]
+            humanCell = human.cells[0]
 
-
-
-
-        print("main function:", self.getPlayerCellsInFov(fovPos, fovDims))
-        print("cellsNearFov: ", self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovDims))
-        print("hashtable.getNearbyObjectsInArea: ", self.playerHashTable.getNearbyObjectsInArea(fovPos, fovDims[0] / 2) )
-        print("")
-        print("fovpos, fovdims: ", human.getFovPos(), human.getFovDims())
-        print("human ids for obj:", self.playerHashTable.getIdsForObj(humanCell))
-        print("human ids for area:", self.playerHashTable.getIdsForArea(humanCell.getPos(),humanCell.getRadius() ))
-        print("meeep: ", self.playerHashTable.getIdsForArea(fovPos, fovDims[0] / 2))
-        print("radius: ", numpy.round(humanCell.getRadius(), 2))
-        print(" ")
-
+            print("main function:", self.getPlayerCellsInFov(fovPos, fovDims))
+            print("cellsNearFov: ", self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovDims))
+            print("hashtable.getNearbyObjectsInArea: ", self.playerHashTable.getNearbyObjectsInArea(fovPos, fovDims[0] / 2) )
+            print("")
+            print("fovpos, fovdims: ", human.getFovPos(), human.getFovDims())
+            print("human ids for obj:", self.playerHashTable.getIdsForObj(humanCell))
+            print("human ids for area:", self.playerHashTable.getIdsForArea(humanCell.getPos(),humanCell.getRadius() ))
+            print("meeep: ", self.playerHashTable.getIdsForArea(fovPos, fovDims[0] / 2))
+            print("radius: ", numpy.round(humanCell.getRadius(), 2))
+            print(" ")
+'''
     def updateViruses(self):
         for virus in self.viruses:
             virus.updateMomentum()
@@ -129,19 +128,16 @@ class Field(object):
 
     def handlePlayerCollisions(self):
         for player in self.players:
-            self.handlePlayerCollision(player)
-
-    def handlePlayerCollision(self, player):
-        for cell in player.getCells():
-            if cell.justEjected():
-                continue
-            for otherCell in player.getCells():
-                if cell is otherCell or otherCell.justEjected() or (cell.canMerge() and otherCell.canMerge()):
+            for cell in player.getCells():
+                if cell.justEjected():
                     continue
-                distance = numpy.sqrt(cell.squaredDistance(otherCell))
-                summedRadii = cell.getRadius() + otherCell.getRadius()
-                if distance < summedRadii and distance != 0:
-                    self.adjustCellPositions(cell, otherCell, distance, summedRadii)
+                for otherCell in player.getCells():
+                    if cell is otherCell or otherCell.justEjected() or (cell.canMerge() and otherCell.canMerge()):
+                        continue
+                    distance = numpy.sqrt(cell.squaredDistance(otherCell))
+                    summedRadii = cell.getRadius() + otherCell.getRadius()
+                    if distance < summedRadii and distance != 0:
+                        self.adjustCellPositions(cell, otherCell, distance, summedRadii)
 
     def adjustCellPositions(self, cell1, cell2, distance, summedRadii):
         if cell1.getMass() > cell2.getMass():
@@ -246,8 +242,7 @@ class Field(object):
             self.spawnVirus()
 
     def spawnVirus(self):
-        xPos = numpy.random.randint(0, self.width)
-        yPos = numpy.random.randint(0, self.height)
+        xPos, yPos = self.getSpawnPos()
         size = VIRUS_BASE_SIZE
         virus = Cell(xPos, yPos, size, None)
         virus.setName("Virus")
@@ -259,6 +254,23 @@ class Field(object):
             if not player.getCells():
                 self.initializePlayer(player)
 
+    def getSpawnPos(self):
+        cols = self.playerHashTable.getCols()
+        totalBuckets = self.playerHashTable.getRows() * cols
+        spawnBucket = numpy.random.randint(0, totalBuckets)
+        count = 0
+        while self.playerHashTable.getBuckets()[spawnBucket] and count < totalBuckets:
+            spawnBucket = (spawnBucket + 1) % totalBuckets
+            count += 1
+        if count == totalBuckets:
+            xPos = numpy.random.randint(0, self.width)
+            yPos = numpy.random.randint(0, self.height)
+        else:
+            x = spawnBucket % cols
+            y = (spawnBucket - x) / cols
+            xPos = (x - 0.5) * HASH_BUCKET_SIZE
+            yPos = (y + 0.5) * HASH_BUCKET_SIZE
+        return xPos, yPos
 
     def spawnPellets(self):
         while len(self.pellets) < self.maxCollectibleCount:
@@ -310,7 +322,8 @@ class Field(object):
         numberOfNewCells = 16 - numberOfCells
         if numberOfNewCells == 0:
             return
-        massPerCell = (playerCell.getMass() * 0.9) / numberOfNewCells
+        #massPerCell = (playerCell.getMass() * 0.9) / numberOfNewCells
+        massPerCell = VIRUS_EXPLOSION_BASE_MASS + (playerCell.getMass() * 0.1 / numberOfNewCells)
         playerCell.resetMergeTime(0.8)
         self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
         for cellIdx in range(numberOfNewCells):

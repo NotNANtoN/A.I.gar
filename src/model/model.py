@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 # It contains the field and the players.
 # It links the actions of the players to consequences in the field and updates information.
 
-
 class Model(object):
     def __init__(self, width, height, viewEnabled):
         self.listeners = []
@@ -39,8 +38,11 @@ class Model(object):
             pass
             #print("Human merge time first cell: ", self.human.cells[0].mergeTime)
 
+
+
     def update(self):
         timeStart = time.time()
+        timeProcessStart = time.process_time()
         # Get the decisions of the bots/human. Update the field accordingly.
         for bot in self.bots:
             bot.update()
@@ -51,27 +53,30 @@ class Model(object):
             self.printDebugInfo()
         time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-        #self.visualize(timeStart)
+            
+        self.visualize(timeProcessStart)
+
 
     def visualize(self, timeStart):
-
-        print(" ")
-        print("time since update start: ", str(time.time() - timeStart))
-        print("counter: ", self.counter)
-        playerCells = self.field.getPlayerCells()
-        maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
-        print("biggest cell mass: ", maxMass)
+        if self.counter % 100 == 0:
+            print(" ")
+            print("time since update start: ", str(time.process_time() - timeStart))
+            print("counter: ", self.counter)
+            playerCells = self.field.getPlayerCells()
+            maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
+            print("biggest cell mass: ", maxMass)
+            #self.timings.append(time.time() - timeStart)
+            #self.maxMasses.append(maxMass)
+            print(" ")
         self.counter += 1
-        self.timings.append(time.time() - timeStart)
-        self.maxMasses.append(maxMass)
-        print(" ")
-
+        '''
         if self.counter % 100 == 0:
             plt.plot(self.maxMasses, self.timings, 'o')
             plt.xlabel("Maximum Masses")
             plt.ylabel("Time taken for update")
             print("mean time: ", str(numpy.mean(self.timings)))
             plt.show()
+        '''
 
     # Setters:
     def createPlayer(self, name):

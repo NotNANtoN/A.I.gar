@@ -44,14 +44,10 @@ class Player(object):
             return
         self.cells.sort(key=lambda p: p.getMass(), reverse=True)
         newCells = []
-        for cell in self.cells:
+        for cell in self.cells[:]:
             if cell.canSplit() and len(self.cells) + len(newCells) < 16:
                 newCell = cell.split(self.commandPoint, fieldWidth, fieldHeight)
-                newCells.append(newCell)
-        for newCell in newCells:
-            self.addCell(newCell)
-
-
+                self.addCell(newCell)
 
     def eject(self):
         if not self.doEject:
@@ -128,13 +124,13 @@ class Player(object):
         return False
 
     def getFovPos(self):
-        meanX = sum(cell.getX() for cell in self.cells) / len(self.cells)
-        meanY = sum(cell.getY() for cell in self.cells) / len(self.cells)
+        meanX = sum(cell.getX() * cell.getMass() for cell in self.cells) / self.getTotalMass()
+        meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
         return meanX, meanY
 
     def getFovDims(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        width = numpy.power(biggestCellRadius, 0.4) * 40 * numpy.power(len(self.cells), 1 / 6)
+        width = (biggestCellRadius ** 0.5) * (len(self.cells) ** 0.17) * 30
         height = width
         return width, height
 
