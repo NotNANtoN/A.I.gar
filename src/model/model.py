@@ -18,7 +18,7 @@ class Model(object):
 
         self.players = []
         self.bots = []
-        self.human = None
+        self.humans = []
         self.playerSpectator = None
         self.spectatedPlayer = None
         self.players = []
@@ -101,8 +101,8 @@ class Model(object):
     def addBot(self, bot):
         self.bots.append(bot)
 
-    def addHuman(self, player):
-        self.human = player
+    def addHuman(self, human):
+        self.humans.append(human)
 
     def addPlayerSpectator(self):
         self.playerSpectator = True
@@ -116,18 +116,18 @@ class Model(object):
 
     # Checks:
     def hasHuman(self):
-        return self.human is not None
+        return self.humans is not None
 
     def hasPlayerSpectator(self):
         return self.playerSpectator is not None
 
     # Getters:
-    def getHuman(self):
-        return self.human
+    def getHumans(self):
+        return self.humans
 
     def getFovPos(self):
         if self.hasHuman():
-            fovPos = numpy.array(self.human.getFovPos())
+            fovPos = numpy.array(self.humans[0].getFovPos())
         elif self.hasPlayerSpectator():
             fovPos = numpy.array(self.spectatedPlayer.getFovPos())
         else:
@@ -136,7 +136,7 @@ class Model(object):
 
     def getFovDims(self):
         if self.hasHuman():
-            fovDims = numpy.array(self.human.getFovDims())
+            fovDims = numpy.array(self.humans[0].getFovDims())
         elif self.hasPlayerSpectator():
             fovDims = numpy.array(self.spectatedPlayer.getFovDims())
         else:
@@ -160,7 +160,7 @@ class Model(object):
 
     def getSpectatedPlayer(self):
         if self.hasHuman():
-            return self.human
+            return self.humans
         if self.hasPlayerSpectator():
             return self.spectatedPlayer
         return None

@@ -34,7 +34,7 @@ class View:
                              numpy.array(cell.getVelocity()) * 10 +
                              numpy.array(scaledPos.astype(int)))
         if self.model.hasHuman():
-            for cell in self.model.field.pelletHashTable.getNearbyObjects(self.model.getHuman().cells[0]):
+            for cell in self.model.field.pelletHashTable.getNearbyObjects(self.model.getHumans()[0].cells[0]):
                 rad = cell.getRadius()
                 pos = numpy.array(cell.getPos())
                 scaledRad = self.modelToViewScaleRadius(rad, fovDims)
@@ -79,7 +79,7 @@ class View:
 
     def drawHumanStats(self):
         if self.model.hasHuman():
-            totalMass = self.model.getHuman().getTotalMass()
+            totalMass = self.model.getHumans()[0].getTotalMass()
             name = "Total Mass: " + str(int(totalMass))
             font = pygame.font.SysFont(None, int(max(150, 30 + numpy.sqrt(totalMass))))
             text = font.render(name, False, (min(255,int(totalMass / 5)), min(100,int(totalMass / 10)), min(100,int(totalMass / 10))))
