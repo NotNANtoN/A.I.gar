@@ -55,15 +55,16 @@ class View:
             self.playerScreens.append(self.screen)
 
     def drawDebugInfo(self):
-        cells = self.model.getPlayerCells()
-        fovPos = self.model.getFovPos()
-        fovDims = self.model.getFovDims()
-        for cell in cells:
-            pos = numpy.array(cell.getPos())
-            scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
-            pygame.draw.line(self.screen, RED, scaledPos.astype(int),
-                             numpy.array(cell.getVelocity()) * 10 +
-                             numpy.array(scaledPos.astype(int)))
+        for humanNr in range(self.numberOfScreens):
+            cells = self.model.getPlayerCells()
+            fovPos = self.model.getFovPos(humanNr)
+            fovDims = self.model.getFovDims(humanNr)
+            for cell in cells:
+                pos = numpy.array(cell.getPos())
+                scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
+                pygame.draw.line(self.playerScreens[humanNr], RED, scaledPos.astype(int),
+                                 numpy.array(cell.getVelocity()) * 10 +
+                                 numpy.array(scaledPos.astype(int)))
 
     def drawCells(self, cells, fovPos, fovDims, screen):
         for cell in cells:
