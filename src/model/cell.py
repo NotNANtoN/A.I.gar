@@ -49,8 +49,7 @@ class Cell(object):
         self.velocity = numpy.array([0, 0])
         self.splitVelocity = numpy.array([0, 0])
         self.splitVelocityCounter = 0
-        self.splitVelocityCounterMax = 35
-        self.momentum = 1
+        self.splitVelocityCounterMax = 15
         self.mergeTime = 0
         self.blobToBeEjected = None
         self.ejecterCell = None # Used in case of blobs to determine which player ejected this blob
@@ -100,7 +99,7 @@ class Cell(object):
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
-        speed = 3 + originalCell.getRadius() * 0.060
+        speed = 2 + originalCell.getRadius() * 0.04
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
         self.splitVelocityCounter = self.splitVelocityCounterMax
 
@@ -109,8 +108,8 @@ class Cell(object):
             return
         elif self.splitVelocityCounter > 0:
             self.splitVelocityCounter -= 1
-            speedRatio = self.splitVelocityCounter / self.splitVelocityCounterMax
-            self.splitVelocity *= speedRatio
+            #speedRatio = math.pow(self.splitVelocityCounter,1) / math.pow(self.splitVelocityCounterMax,1)
+            #self.splitVelocity *= speedRatio
         else:
             self.splitVelocity = numpy.array([0,0])
             self.splitVelocityCounter = -1
@@ -129,7 +128,7 @@ class Cell(object):
             self.mergeTime -= 1
 
     def updateDirection(self, x, v, maxX):
-        return min(maxX, max(0, x + v * self.momentum))
+        return min(maxX, max(0, x + v))
 
     def updatePos(self, maxX, maxY):
         combinedVelocity = self.velocity + self.splitVelocity
@@ -180,7 +179,7 @@ class Cell(object):
         return True
 
     def justEjected(self):
-        return self.momentum > 1
+        return self.splitVelocityCounter > 0
 
     def canSplit(self):
         return self.mass > 36
@@ -256,7 +255,7 @@ class Cell(object):
 
     def getReducedSpeed(self):
         #return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
-        return CELL_MOVE_SPEED * numpy.power(self.mass, -0.2)
+        return CELL_MOVE_SPEED * math.pow(self.mass, -0.439)
 
     def getVelocity(self):
         return self.velocity + self.splitVelocity
