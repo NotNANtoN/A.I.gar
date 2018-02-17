@@ -124,6 +124,12 @@ class Model(object):
         return self.playerSpectator is not None
 
     # Getters:
+    def getTopTenPlayers(self):
+        players = self.getPlayers()[:]
+        players.sort(key=lambda p: p.getTotalMass(), reverse=True)
+        return players[0:10]
+
+
     def getHumans(self):
         return self.humans
 
