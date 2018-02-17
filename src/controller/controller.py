@@ -11,8 +11,7 @@ class Controller:
 
         self.model = model
         self.view = view
-        self.fieldWidth = model.getField().getWidth()
-        self.fieldHeight = model.getField().getHeight()
+        self.screenWidth, self.screenHeight = self.view.getScreenDims()
         self.running = True
         self.viewEnabled = viewEnabled
 
@@ -21,11 +20,34 @@ class Controller:
         humanCommandPoint = []
         if self.model.hasHuman():
             for human in humanList:
-                humanCommandPoint.append([self.fieldWidth / 2, self.fieldHeight / 2])
+                humanCommandPoint.append([self.screenWidth/2, self.screenHeight/2])
                 if human.getIsAlive():
                     human.setSplit(False)
                     human.setEject(False)
+            #Human1 direction control
             humanCommandPoint[0] = pygame.mouse.get_pos()
+            keys = pygame.key.get_pressed()
+            #Human2 direction control
+            if keys[pygame.K_UP]:
+                humanCommandPoint[1][1] -= self.screenHeight/2
+            if keys[pygame.K_DOWN]:
+                humanCommandPoint[1][1] += self.screenHeight/2
+            if keys[pygame.K_LEFT]:
+                humanCommandPoint[1][0] -= self.screenWidth/2
+            if keys[pygame.K_RIGHT]:
+                humanCommandPoint[1][0] += self.screenWidth/2
+            #Human3 direction controls
+            if keys[pygame.K_w]:
+                humanCommandPoint[2][1] -= self.screenHeight/2
+            if keys[pygame.K_s]:
+                humanCommandPoint[2][1] += self.screenHeight/2
+            if keys[pygame.K_a]:
+                humanCommandPoint[2][0] -= self.screenWidth/2
+            if keys[pygame.K_d]:
+                humanCommandPoint[2][0] += self.screenWidth/2
+
+            for i in range(len(humanList)):
+                self.mousePosition(humanList[i], humanCommandPoint[i], i)
 
         for event in pygame.event.get():
             # Event types
@@ -42,7 +64,6 @@ class Controller:
                 if bool(humanList):
                     #Human1 controls
                     human1 = humanList[0]
-                    keys = pygame.key.get_pressed()
                     if human1.getIsAlive():
                         # "space" to Split
                         if event.key == pygame.K_SPACE and human1.getCanSplit():
@@ -56,14 +77,6 @@ class Controller:
                         #Human2 controls
                         human2 = humanList[1]
                         if human2.getIsAlive():
-                            if keys[pygame.K_UP] and human2.getCanSplit():
-                                humanCommandPoint[1][1] -= self.fieldHeight / 2
-                            if keys[pygame.K_DOWN] and human2.getCanSplit():
-                                humanCommandPoint[1][1] += self.fieldHeight / 2
-                            if keys[pygame.K_LEFT] and human2.getCanSplit():
-                                humanCommandPoint[1][0] -= self.fieldWidth / 2
-                            if keys[pygame.K_RIGHT] and human2.getCanSplit():
-                                humanCommandPoint[1][0] += self.fieldWidth / 2
                             # "space" to Split
                             if event.key == pygame.K_KP0 and human2.getCanSplit():
                                 human2.setSplit(True)
@@ -77,14 +90,6 @@ class Controller:
                         #Human3 controls
                         human3 = humanList[2]
                         if human3.getIsAlive():
-                            if keys[pygame.K_w] and human2.getCanSplit():
-                                humanCommandPoint[2][1] -= self.fieldHeight / 2
-                            if keys[pygame.K_s] and human2.getCanSplit():
-                                humanCommandPoint[2][1] += self.fieldHeight / 2
-                            if keys[pygame.K_a] and human2.getCanSplit():
-                                humanCommandPoint[2][0] -= self.fieldWidth / 2
-                            if keys[pygame.K_d] and human2.getCanSplit():
-                                humanCommandPoint[2][0] += self.fieldWidth / 2
                             # "space" to Split
                             if event.key == pygame.K_e and human3.getCanSplit():
                                 human3.setSplit(True)
@@ -111,12 +116,9 @@ class Controller:
                     self.model.setViewEnabled(True)
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.model.setViewEnabled(False)
-        if self.model.hasHuman():
-            for i in range(len(humanList)):
-                print(humanCommandPoint[i])
-                self.mousePosition(humanList[i], humanCommandPoint[i])
+
 
     # Find the point where the player moved, taking into account that he only sees the fov
-    def mousePosition(self, human, mousePos):
-        relativeMousePos = self.view.viewToModelScaling(mousePos)
+    def mousePosition(self, human, mousePos, humanNr):
+        relativeMousePos = self.view.viewToModelScaling(mousePos, humanNr)
         human.setMoveTowards(relativeMousePos)

@@ -126,7 +126,7 @@ class Player(object):
     def getFovPos(self):
         meanX = sum(cell.getX() * cell.getMass() for cell in self.cells) / self.getTotalMass()
         meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
-        return meanX, meanY
+        return [meanX, meanY]
 
     def getFovDims(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()

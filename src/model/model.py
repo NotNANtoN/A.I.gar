@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # It links the actions of the players to consequences in the field and updates information.
 
 class Model(object):
-    def __init__(self, width, height, viewEnabled):
+    def __init__(self, viewEnabled):
         self.listeners = []
         self.viewEnabled = viewEnabled
 
@@ -23,8 +23,8 @@ class Model(object):
         self.spectatedPlayer = None
         self.players = []
         self.field = Field()
-        self.screenWidth = width
-        self.screenHeight = height
+        self.screenWidth = None
+        self.screenHeight = None
         self.counter = 0
         self.timings = []
         self.maxMasses = []
@@ -37,8 +37,6 @@ class Model(object):
         if self.hasHuman():
             pass
             #print("Human merge time first cell: ", self.human.cells[0].mergeTime)
-
-
 
     def update(self):
         timeStart = time.time()
@@ -114,6 +112,10 @@ class Model(object):
     def setViewEnabled(self, boolean):
         self.viewEnabled = boolean
 
+    def setScreenSize(self, width, height):
+        self.screenWidth = width
+        self.screenHeight = height
+
     # Checks:
     def hasHuman(self):
         return bool(self.humans)
@@ -125,18 +127,18 @@ class Model(object):
     def getHumans(self):
         return self.humans
 
-    def getFovPos(self):
+    def getFovPos(self, humanNr):
         if self.hasHuman():
-            fovPos = numpy.array(self.humans[0].getFovPos())
+            fovPos = numpy.array(self.humans[humanNr].getFovPos())
         elif self.hasPlayerSpectator():
             fovPos = numpy.array(self.spectatedPlayer.getFovPos())
         else:
             fovPos = numpy.array([self.field.getWidth() / 2, self.field.getHeight() / 2])
         return fovPos
 
-    def getFovDims(self):
+    def getFovDims(self, humanNr):
         if self.hasHuman():
-            fovDims = numpy.array(self.humans[0].getFovDims())
+            fovDims = numpy.array(self.humans[humanNr].getFovDims())
         elif self.hasPlayerSpectator():
             fovDims = numpy.array(self.spectatedPlayer.getFovDims())
         else:
