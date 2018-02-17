@@ -359,8 +359,8 @@ class Field(object):
         player.removeCell(playerCell)
 
     def randomSize(self):
-        maxRand = 20
-        maxPelletSize = 5
+        maxRand = 50
+        maxPelletSize = 4
         sizeRand = numpy.random.randint(0, maxRand)
         if sizeRand > (maxRand - maxPelletSize):
             return maxRand - sizeRand

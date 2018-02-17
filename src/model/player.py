@@ -130,7 +130,7 @@ class Player(object):
 
     def getFovDims(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        width = (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.25) * 30
+        width = (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 30
         height = width
         return width, height
 
