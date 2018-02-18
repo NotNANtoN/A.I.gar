@@ -56,27 +56,29 @@ class Cell(object):
         self.alive = True
 
     def setMoveDirection(self, commandPoint):
-        difference = numpy.subtract(commandPoint, self.getPos())
+        xDiff = commandPoint[0] - self.x
+        yDiff = commandPoint[1] - self.y
         # If cursor is within cell, reduce speed based on distance from cell center (as a percentage)
-        hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
-        radiusSquared = numpy.power(self.radius, 2)
+        hypotenuseSquared = xDiff * xDiff + yDiff * yDiff
+        radiusSquared = self.radius * self.radius
         speedModifier = min(hypotenuseSquared, radiusSquared) / radiusSquared
         # Check polar coordinate of cursor from cell center
-        angle = self.calculateAngle(commandPoint)
-        self.velocity = self.getReducedSpeed() * speedModifier * numpy.array([numpy.cos(angle), numpy.sin(angle)])
-
+        angle = math.atan2(yDiff, xDiff)
+        self.velocity[0] =  self.getReducedSpeed() * speedModifier * math.cos(angle)
+        self.velocity[1] =  self.getReducedSpeed() * speedModifier * math.sin(angle)
 
     def calculateAngle(self, point):
-        difference = numpy.subtract(point, self.getPos())
-        return numpy.arctan2(difference[1], difference[0])
+        xDiff = point[0] - self.x
+        yDiff = point[1] - self.y
+        return math.atan2(yDiff, xDiff)
 
     def split(self, commandPoint, fieldWidth, fieldHeight):
         cellPos = self.getPos()
         newCell = Cell(cellPos[0], cellPos[1], self.mass / 2, self.player)
         angle = newCell.calculateAngle(commandPoint)
 
-        xPoint = numpy.cos(angle) * newCell.getRadius() * 4.5 + cellPos[0]
-        yPoint = numpy.sin(angle) * newCell.getRadius() * 4.5 + cellPos[1]
+        xPoint = math.cos(angle) * newCell.getRadius() * 4.5 + cellPos[0]
+        yPoint = math.sin(angle) * newCell.getRadius() * 4.5 + cellPos[1]
         movePoint = (xPoint, yPoint)
         #newCell.setMoveDirection(movePoint)
         newCell.addMomentum(movePoint, fieldWidth, fieldHeight, self)
@@ -100,7 +102,7 @@ class Cell(object):
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
         speed = 2 + originalCell.getRadius() * 0.05
-        self.splitVelocity = [numpy.cos(angle) * speed, numpy.sin(angle) * speed]
+        self.splitVelocity = [math.cos(angle) * speed, math.sin(angle) * speed]
         self.splitVelocityCounter = self.splitVelocityCounterMax
 
     def updateMomentum(self):
@@ -211,13 +213,11 @@ class Cell(object):
 
     def setRadius(self, val):
         self.radius = val
-        #self.mass = numpy.power((self.radius - 4) * 6, 2)
         self.mass = self.radius * self.radius * numpy.pi
 
     def setMass(self, val):
         self.mass = val
         self.radius = math.sqrt(self.mass / numpy.pi)
-        #self.radius = numpy.sqrt(self.mass) * 6 + 4
 
     def setBlobToBeEjected(self, val):
         self.blobToBeEjected = False
@@ -266,22 +266,6 @@ class Cell(object):
 
     def getSplitVelocity(self):
         return self.splitVelocity
-
-    def getClosestSurfacePoint(self, commandPoint):
-        # TODO Change this method so that ejection also works properly if the mouse is inside of a cell that ejects
-        difference = numpy.subtract(commandPoint, self.getPos())
-        # Make sure commandPoint != center of cell since ratio is then a division by 0
-        if difference[0] == 0 and difference[1] == 1:
-            randomPointInCell = numpy.array(commandPoint) + 1
-            #randomPointInCell = (numpy.random.randint(self.getPos()[0] - self.radius, self.getPos()[0] + self.radius), numpy.random.randint(self.getPos()[1] - self.radius, self.getPos()[1] + self.radius))
-            return self.getClosestSurfacePoint(randomPointInCell)
-        hypotenuseSquared = numpy.sum(numpy.power(difference, 2))
-        ratio = numpy.sqrt(hypotenuseSquared / self.radius / self.radius)
-        xFromCenter = difference[0] / ratio
-        yFromCenter = difference[1] / ratio
-        posFromCenter = numpy.array([xFromCenter, yFromCenter])
-        surfacePoint = self.getPos() + posFromCenter
-        return surfacePoint
 
     def getBlobToBeEjected(self):
         return self.blobToBeEjected

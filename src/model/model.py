@@ -59,15 +59,15 @@ class Model(object):
     def visualize(self, timeStart):
         playerCells = self.field.getPlayerCells()
         maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
-
-        if self.counter % 100 == 0:
+        stepsTillUpdate = 100
+        self.timings.append(time.process_time() - timeStart)
+        if self.counter % stepsTillUpdate == 0:
             print(" ")
-            print("time since update start: ", str(time.process_time() - timeStart))
+            print("avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
             print("counter: ", self.counter)
             print("biggest cell mass: ", maxMass)
             print(" ")
         self.counter += 1
-        self.timings.append(time.process_time() - timeStart)
         self.maxMasses.append(maxMass)
 
         if self.counter % 5000 == 0:
