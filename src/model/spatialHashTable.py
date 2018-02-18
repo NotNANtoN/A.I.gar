@@ -71,21 +71,17 @@ class spatialHashTable(object):
     def getIdsForArea(self, pos, radius):
         ids = set()
         hashFunc = self.getHashId
-        topLeft = (max(0, pos[0] - radius), max(0, pos[1] - radius))
-        bucketTopLeft = (topLeft[0] - topLeft[0] % self.bucketSize, topLeft[1] - topLeft[1] % self.bucketSize)
-        stepSize = self.bucketSize
-        limitX = min(self.width - 1, pos[0] + radius)
-        limitY = min(self.height - 1, pos[1] + radius)
+        cellLeft = max(0, pos[0] - radius)
+        cellTop = max(0, pos[1] - radius)
+        bucketLeft = int(cellLeft - cellLeft % self.bucketSize)
+        bucketTop = int(cellTop - cellTop % self.bucketSize)
+        limitX = int(min(self.width - 1, pos[0] + radius)) + 1
+        limitY = int(min(self.height - 1, pos[1] + radius)) + 1
 
-        x = bucketTopLeft[0]
-        while x <= limitX:
-            y = bucketTopLeft[1]
-            while y <= limitY:
+        for x in range(bucketLeft, limitX, self.bucketSize):
+            for y in range(bucketTop, limitY, self.bucketSize):
                 ids.add(hashFunc(x, y))
-                y += stepSize
-            x += stepSize
         return ids
-
 
     def getHashId(self, x, y):
         return int(x / self.bucketSize) + int(y / self.bucketSize) * self.cols

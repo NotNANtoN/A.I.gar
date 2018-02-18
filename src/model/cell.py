@@ -36,7 +36,7 @@ class Cell(object):
         self.setMass(mass)
         self.x = x
         self.y = y
-        self.pos = numpy.array([x,y])
+        self.pos = [x,y]
         if self.player == None:
             self.name = ""
             self.color = (numpy.random.randint(0, 255), numpy.random.randint(0, 255), numpy.random.randint(0, 255))
@@ -46,8 +46,8 @@ class Cell(object):
             self.color = self.player.getColor()
             self.id = self.cellId
             self.cellId += 1
-        self.velocity = numpy.array([0, 0])
-        self.splitVelocity = numpy.array([0, 0])
+        self.velocity = [0, 0]
+        self.splitVelocity = [0, 0]
         self.splitVelocityCounter = 0
         self.splitVelocityCounterMax = 15
         self.mergeTime = 0
@@ -100,7 +100,7 @@ class Cell(object):
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
         speed = 2 + originalCell.getRadius() * 0.05
-        self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
+        self.splitVelocity = [numpy.cos(angle) * speed, numpy.sin(angle) * speed]
         self.splitVelocityCounter = self.splitVelocityCounterMax
 
     def updateMomentum(self):
@@ -110,9 +110,10 @@ class Cell(object):
             self.splitVelocityCounter -= 1
             counterRatio = self.splitVelocityCounter / self.splitVelocityCounterMax
             if counterRatio < 0.1:
-                self.splitVelocity *= (1 - counterRatio)
+                self.splitVelocity[0] *= (1 - counterRatio)
+                self.splitVelocity[1] *= (1 - counterRatio)
         else:
-            self.splitVelocity = numpy.array([0,0])
+            self.splitVelocity = [0,0]
             self.splitVelocityCounter = -1
 
     # Increases the mass of the cell by value and updates the radius accordingly
@@ -132,10 +133,11 @@ class Cell(object):
         return min(maxX, max(0, x + v))
 
     def updatePos(self, maxX, maxY):
-        combinedVelocity = self.velocity + self.splitVelocity
-        self.x = self.updateDirection(self.x, combinedVelocity[0], maxX)
-        self.y = self.updateDirection(self.y, combinedVelocity[1], maxY)
-        self.pos = numpy.array([self.x,self.y])
+        xSpeed = self.velocity[0] + self.splitVelocity[0]
+        ySpeed = self.velocity[1] + self.splitVelocity[1]
+        self.x = self.updateDirection(self.x, xSpeed, maxX)
+        self.y = self.updateDirection(self.y, ySpeed, maxY)
+        self.pos = [self.x, self.y]
         if self.splitVelocityCounter and self.x == maxX or self.x == 0:
             self.splitVelocity[0] *= -1
         if self.splitVelocityCounter and self.y == maxY or self.y == 0:
@@ -260,7 +262,7 @@ class Cell(object):
         return CELL_MOVE_SPEED * math.pow(self.mass, -0.35)
 
     def getVelocity(self):
-        return self.velocity + self.splitVelocity
+        return self.velocity
 
     def getSplitVelocity(self):
         return self.splitVelocity

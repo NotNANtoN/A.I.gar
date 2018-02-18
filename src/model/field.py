@@ -146,14 +146,20 @@ class Field(object):
         else:
             biggerCell = cell2
             smallerCell = cell1
-        posDiff = biggerCell.getPos() - smallerCell.getPos()
-        scaling = (summedRadii - distance) / distance
-        posDiffScaled = posDiff * scaling
+        bigPos = biggerCell.getPos()
+        smallPos = smallerCell.getPos()
+        distanceScaling = (summedRadii - distance) / distance
         massDifferenceScaling = smallerCell.getMass() /  biggerCell.getMass()
-        biggerCellMoveTo =  biggerCell.getPos() + posDiffScaled * (massDifferenceScaling)
-        smallerCellMoveTo = smallerCell.getPos() - posDiffScaled * (1 - massDifferenceScaling)
-        self.adjustCellPos(biggerCell, biggerCellMoveTo, self.playerHashTable)
-        self.adjustCellPos(smallerCell, smallerCellMoveTo, self.playerHashTable)
+        xDiffScaled = (bigPos[0] - smallPos[0]) * distanceScaling
+        yDiffScaled = (bigPos[1] - smallPos[1]) * distanceScaling
+        newXBigCell = bigPos[0] + xDiffScaled * massDifferenceScaling
+        newYBigCell = bigPos[1] + yDiffScaled * massDifferenceScaling
+        newXSmallCell = smallPos[0] - xDiffScaled * (1 - massDifferenceScaling)
+        newYSmallCell = smallPos[1] - yDiffScaled * (1 - massDifferenceScaling)
+        newPosBig = [newXBigCell, newYBigCell]
+        newPosSmall = [newXSmallCell, newYSmallCell]
+        self.adjustCellPos(biggerCell, newPosBig, self.playerHashTable)
+        self.adjustCellPos(smallerCell, newPosSmall, self.playerHashTable)
 
     def mergePlayerCells(self):
         for player in self.players:
@@ -322,17 +328,15 @@ class Field(object):
         numberOfNewCells = 16 - numberOfCells
         if numberOfNewCells == 0:
             return
-        #massPerCell = (playerCell.getMass() * 0.9) / numberOfNewCells
         massPerCell = VIRUS_EXPLOSION_BASE_MASS + (playerCell.getMass() * 0.1 / numberOfNewCells)
         playerCell.resetMergeTime(0.8)
         self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
         for cellIdx in range(numberOfNewCells):
             cellPos = playerCell.getPos()
             newCell = Cell(cellPos[0], cellPos[1], massPerCell, player)
-            #cellAngle = (360 / numberOfNewCells) * (cellIdx + 1)
             cellAngle = numpy.deg2rad(numpy.random.randint(0,360))
-            xPoint = numpy.cos(cellAngle) * playerCell.getRadius() * 12 + cellPos[0]
-            yPoint = numpy.sin(cellAngle) * playerCell.getRadius() * 12 + cellPos[1]
+            xPoint = math.cos(cellAngle) * playerCell.getRadius() * 12 + cellPos[0]
+            yPoint = math.sin(cellAngle) * playerCell.getRadius() * 12 + cellPos[1]
             movePoint = (xPoint, yPoint)
             newCell.setMoveDirection(movePoint)
             newCell.addMomentum(movePoint, self.width, self.height, playerCell)
@@ -391,7 +395,7 @@ class Field(object):
         #hashtable.deleteObject(cell)
         x = min(self.width, max(0, newPos[0]))
         y = min(self.height, max(0, newPos[1]))
-        cell.setPos(numpy.array([x,y]))
+        cell.setPos([x,y])
         #hashtable.insertObject(cell)
 
     # Setters:
