@@ -100,8 +100,8 @@ class spatialHashTable(object):
         return self.buckets
 
     def getCenterOfBucket(self, id):
-        x = id % self.cols * self.cellSize + self.cellSize/2
-        y = int(id /self.cols) * self.cellSize + self.cellSize/2
+        x = id % self.cols * self.bucketSize + self.bucketSize / 2
+        y = int(id /self.cols) * self.bucketSize + self.bucketSize / 2
         return (x,y)
 
     def getCenterOfNextEmptyBucket(self, pos):

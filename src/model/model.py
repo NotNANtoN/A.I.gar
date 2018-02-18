@@ -49,7 +49,8 @@ class Model(object):
             self.notify()
         if __debug__:
             self.printDebugInfo()
-        time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+        if self.humans:
+            time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
             
         self.visualize(timeProcessStart)
@@ -142,14 +143,14 @@ class Model(object):
             fovPos = numpy.array([self.field.getWidth() / 2, self.field.getHeight() / 2])
         return fovPos
 
-    def getFovDims(self, humanNr):
+    def getFovSize(self, humanNr):
         if self.hasHuman():
-            fovDims = numpy.array(self.humans[humanNr].getFovDims())
+            fovSize = self.humans[humanNr].getFovSize()
         elif self.hasPlayerSpectator():
-            fovDims = numpy.array(self.spectatedPlayer.getFovDims())
+            fovSize = self.spectatedPlayer.getFovSize()
         else:
-            fovDims = numpy.array([self.field.getWidth(), self.field.getHeight()])
-        return fovDims
+            fovSize = self.field.getWidth()
+        return fovSize
 
     def getField(self):
         return self.field

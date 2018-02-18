@@ -60,18 +60,18 @@ class Field(object):
         if __debug__:
             print(" ")
             fovPos = self.players[0].getFovPos()
-            fovDims = self.players[0].getFovDims()
+            fovSize = self.players[0].getfovSize()
             human = self.players[0]
             humanCell = human.cells[0]
 
-            print("main function:", self.getPlayerCellsInFov(fovPos, fovDims))
-            print("cellsNearFov: ", self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovDims))
-            print("hashtable.getNearbyObjectsInArea: ", self.playerHashTable.getNearbyObjectsInArea(fovPos, fovDims[0] / 2) )
+            print("main function:", self.getPlayerCellsInFov(fovPos, fovSize))
+            print("cellsNearFov: ", self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovSize))
+            print("hashtable.getNearbyObjectsInArea: ", self.playerHashTable.getNearbyObjectsInArea(fovPos, fovSize[0] / 2) )
             print("")
-            print("fovpos, fovdims: ", human.getFovPos(), human.getFovDims())
+            print("fovpos, fovSize: ", human.getFovPos(), human.getfovSize())
             print("human ids for obj:", self.playerHashTable.getIdsForObj(humanCell))
             print("human ids for area:", self.playerHashTable.getIdsForArea(humanCell.getPos(),humanCell.getRadius() ))
-            print("meeep: ", self.playerHashTable.getIdsForArea(fovPos, fovDims[0] / 2))
+            print("meeep: ", self.playerHashTable.getIdsForArea(fovPos, fovSize[0] / 2))
             print("radius: ", numpy.round(humanCell.getRadius(), 2))
             print(" ")
 '''
@@ -400,31 +400,31 @@ class Field(object):
         self.players.append(player)
 
     # Getters:
-    def getPortionOfCellsInFov(self, cells, fovPos, fovDims):
-        return [cell for cell in cells if cell.isInFov(fovPos,fovDims)]
+    def getPortionOfCellsInFov(self, cells, fovPos, fovSize):
+        return [cell for cell in cells if cell.isInFov(fovPos,fovSize)]
 
-    def getPlayerCellsInFov(self, fovPos, fovDims):
-        cellsNearFov = self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovDims)
-        return self.getPortionOfCellsInFov(cellsNearFov, fovPos, fovDims)
+    def getPlayerCellsInFov(self, fovPos, fovSize):
+        cellsNearFov = self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovSize)
+        return self.getPortionOfCellsInFov(cellsNearFov, fovPos, fovSize)
 
     def getEnemyPlayerCellsInFov(self, fovPlayer):
-        playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovDims())
+        playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovSize())
         return [cell for cell in playerCellsInFov if cell.getPlayer() is not fovPlayer]
 
-    def getPelletsInFov(self, fovPos, fovDims):
-        pelletsNearFov = self.getCellsFromHashTableInFov(self.pelletHashTable, fovPos, fovDims)
-        return self.getPortionOfCellsInFov(pelletsNearFov, fovPos, fovDims)
+    def getPelletsInFov(self, fovPos, fovSize):
+        pelletsNearFov = self.getCellsFromHashTableInFov(self.pelletHashTable, fovPos, fovSize)
+        return self.getPortionOfCellsInFov(pelletsNearFov, fovPos, fovSize)
 
-    def getVirusesInFov(self, fovPos, fovDims):
-        virusesNearFov = self.getCellsFromHashTableInFov(self.virusHashTable, fovPos, fovDims)
-        return self.getPortionOfCellsInFov(virusesNearFov, fovPos, fovDims)
+    def getVirusesInFov(self, fovPos, fovSize):
+        virusesNearFov = self.getCellsFromHashTableInFov(self.virusHashTable, fovPos, fovSize)
+        return self.getPortionOfCellsInFov(virusesNearFov, fovPos, fovSize)
     
-    def getBlobsInFov(self, fovPos, fovDims):
-        blobsNearFov = self.getCellsFromHashTableInFov(self.blobHashTable, fovPos, fovDims)
-        return self.getPortionOfCellsInFov(blobsNearFov, fovPos, fovDims)
+    def getBlobsInFov(self, fovPos, fovSize):
+        blobsNearFov = self.getCellsFromHashTableInFov(self.blobHashTable, fovPos, fovSize)
+        return self.getPortionOfCellsInFov(blobsNearFov, fovPos, fovSize)
 
-    def getCellsFromHashTableInFov(self, hashtable, fovPos, fovDims):
-        return hashtable.getNearbyObjectsInArea(fovPos, fovDims[0] / 2)
+    def getCellsFromHashTableInFov(self, hashtable, fovPos, fovSize):
+        return hashtable.getNearbyObjectsInArea(fovPos, fovSize / 2)
     
     def getWidth(self):
         return self.width

@@ -99,7 +99,7 @@ class Cell(object):
         checkedY = max(0, min(fieldHeight, commandPoint[1]))
         checkedPoint = (checkedX, checkedY)
         angle = self.calculateAngle(checkedPoint)
-        speed = 2 + originalCell.getRadius() * 0.04
+        speed = 2 + originalCell.getRadius() * 0.05
         self.splitVelocity = numpy.array([numpy.cos(angle), numpy.sin(angle)]) * speed
         self.splitVelocityCounter = self.splitVelocityCounterMax
 
@@ -108,8 +108,9 @@ class Cell(object):
             return
         elif self.splitVelocityCounter > 0:
             self.splitVelocityCounter -= 1
-            #speedRatio = math.pow(self.splitVelocityCounter,1) / math.pow(self.splitVelocityCounterMax,1)
-            #self.splitVelocity *= speedRatio
+            counterRatio = self.splitVelocityCounter / self.splitVelocityCounterMax
+            if counterRatio < 0.1:
+                self.splitVelocity *= (1 - counterRatio)
         else:
             self.splitVelocity = numpy.array([0,0])
             self.splitVelocityCounter = -1
@@ -169,11 +170,12 @@ class Cell(object):
     def isAlive(self):
         return self.alive == True
 
-    def isInFov(self, fovPos, fovDims):
-        xMin = fovPos[0] - fovDims[0] / 2
-        xMax = fovPos[0] + fovDims[0] / 2
-        yMin = fovPos[1] - fovDims[1] / 2
-        yMax = fovPos[1] + fovDims[1] / 2
+    def isInFov(self, fovPos, fovSize):
+        halvedFovDims = fovSize / 2
+        xMin = fovPos[0] - halvedFovDims
+        xMax = fovPos[0] + halvedFovDims
+        yMin = fovPos[1] - halvedFovDims
+        yMax = fovPos[1] + halvedFovDims
         if self.x + self.radius < xMin or self.x - self.radius > xMax or self.y + self.radius < yMin or self.y - self.radius > yMax:
             return False
         return True
@@ -254,8 +256,8 @@ class Cell(object):
         return self.mass
 
     def getReducedSpeed(self):
-        #return CELL_MOVE_SPEED * numpy.power(self.mass, -0.439)
-        return CELL_MOVE_SPEED * math.pow(self.mass, -0.439)
+        #return CELL_MOVE_SPEED * math.pow(self.mass, -0.439)
+        return CELL_MOVE_SPEED * math.pow(self.mass, -0.35)
 
     def getVelocity(self):
         return self.velocity + self.splitVelocity

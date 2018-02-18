@@ -14,14 +14,12 @@ class Bot(object):
         if self.player.getIsAlive():
             # This bot does random stuff
             midPoint = self.player.getFovPos()
-            dims = self.player.getFovDims()
+            size = self.player.getFovSize()
             x = int(midPoint[0])
             y = int(midPoint[1])
-            width = int(dims[0])
-            height = int(dims[1])
-            fovPos = self.player.getFovPos()
-            fovDims = self.player.getFovDims()
-            cellsInFov = self.field.getPelletsInFov(fovPos, fovDims)
+            width = int(size)
+            height = int(size)
+            cellsInFov = self.field.getPelletsInFov(midPoint, size)
             playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
             firstPlayerCell = self.player.getCells()[0]
             for opponentCell in playerCellsInFov:

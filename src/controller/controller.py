@@ -8,7 +8,6 @@ class Controller:
     """
 
     def __init__(self, model, viewEnabled, view):
-
         self.model = model
         self.view = view
         self.screenWidth, self.screenHeight = self.view.getScreenDims()
@@ -61,11 +60,11 @@ class Controller:
                 # "Escape" to Quit
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                elif event.key == pygame.K_b:
-                    self.model.createBot()
-                    player = self.model.players[-1]
-                    self.model.getField().initializePlayer(player)
-                if bool(humanList):
+                #elif event.key == pygame.K_b:
+                #    self.model.createBot()
+                #    player = self.model.players[-1]
+                #    self.model.getField().initializePlayer(player)
+                if humanList:
                     #Human1 controls
                     human1 = humanList[0]
                     if human1.getIsAlive():
@@ -103,7 +102,7 @@ class Controller:
                             elif event.key == pygame.K_r:
                                 human3.addMass(human3.getTotalMass() * 0.2)
 
-                if self.model.hasPlayerSpectator() and not bool(humanList):
+                if self.model.hasPlayerSpectator() and not humanList:
                     spectatedPlayer = self.model.getSpectatedPlayer()
                     if event.key == pygame.K_RIGHT:
                         players = self.model.getPlayers()

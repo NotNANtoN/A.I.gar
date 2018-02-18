@@ -128,16 +128,15 @@ class Player(object):
         meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
         return [meanX, meanY]
 
-    def getFovDims(self):
+    def getFovSize(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        width = (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 30
-        height = width
-        return width, height
+        return  (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 30
+
 
     def getFov(self):
         fovPos = self.getFovPos()
-        fovDims = self.getFovDims()
-        return fovPos, fovDims
+        fovSize = self.getFovSize()
+        return fovPos, fovSize
 
     def getColor(self):
         return self.color

@@ -58,25 +58,25 @@ class View:
         for humanNr in range(self.numberOfScreens):
             cells = self.model.getPlayerCells()
             fovPos = self.model.getFovPos(humanNr)
-            fovDims = self.model.getFovDims(humanNr)
+            fovSize = self.model.getFovSize(humanNr)
             for cell in cells:
                 pos = numpy.array(cell.getPos())
-                scaledPos = self.modelToViewScaling(pos, fovPos, fovDims)
+                scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
                 pygame.draw.line(self.playerScreens[humanNr], RED, scaledPos.astype(int),
                                  numpy.array(cell.getVelocity()) * 10 +
                                  numpy.array(scaledPos.astype(int)))
 
-    def drawCells(self, cells, fovPos, fovDims, screen):
+    def drawCells(self, cells, fovPos, fovSize, screen):
         for cell in cells:
-            self.drawSingleCell(cell, fovPos, fovDims, screen)
+            self.drawSingleCell(cell, fovPos, fovSize, screen)
 
-    def drawSingleCell(self, cell, fovPos, fovDims, screen):
+    def drawSingleCell(self, cell, fovPos, fovSize, screen):
         unscaledRad = cell.getRadius()
         unscaledPos = numpy.array(cell.getPos())
         color = cell.getColor()
         player = cell.getPlayer()
-        rad = int(self.modelToViewScaleRadius(unscaledRad, fovDims))
-        pos = self.modelToViewScaling(unscaledPos, fovPos, fovDims).astype(int)
+        rad = int(self.modelToViewScaleRadius(unscaledRad, fovSize))
+        pos = self.modelToViewScaling(unscaledPos, fovPos, fovSize).astype(int)
         if rad >= 4:
             pygame.gfxdraw.filled_circle(screen, pos[0], pos[1], rad, color)
             if cell.getName() == "Virus":
@@ -105,15 +105,15 @@ class View:
     def drawAllCells(self):
         for humanNr in range(self.numberOfScreens):
             fovPos = self.model.getFovPos(humanNr)
-            fovDims = self.model.getFovDims(humanNr)
-            pellets = self.model.getField().getPelletsInFov(fovPos, fovDims)
-            blobs = self.model.getField().getBlobsInFov(fovPos, fovDims)
-            viruses = self.model.getField().getVirusesInFov(fovPos, fovDims)
-            playerCells = self.model.getField().getPlayerCellsInFov(fovPos, fovDims)
+            fovSize = self.model.getFovSize(humanNr)
+            pellets = self.model.getField().getPelletsInFov(fovPos, fovSize)
+            blobs = self.model.getField().getBlobsInFov(fovPos, fovSize)
+            viruses = self.model.getField().getVirusesInFov(fovPos, fovSize)
+            playerCells = self.model.getField().getPlayerCellsInFov(fovPos, fovSize)
             allCells = pellets + blobs + viruses + playerCells
             allCells.sort(key = lambda p: p.getMass())
 
-            self.drawCells(allCells, fovPos, fovDims, self.playerScreens[humanNr])
+            self.drawCells(allCells, fovPos, fovSize, self.playerScreens[humanNr])
 
 
     def drawHumanStats(self):
@@ -163,20 +163,20 @@ class View:
     def model_event(self):
         self.draw()
 
-    def modelToViewScaling(self, pos, fovPos, fovDims):
-        adjustedPos = pos - fovPos + (fovDims / 2)
-        scaledPos = adjustedPos * (self.screenDims / fovDims)
+    def modelToViewScaling(self, pos, fovPos, fovSize):
+        adjustedPos = pos - fovPos + (fovSize / 2)
+        scaledPos = adjustedPos * (self.screenDims / fovSize)
         return scaledPos
 
     def viewToModelScaling(self, pos, humanNr):
         fovPos = self.model.getFovPos(humanNr)
-        fovDims = self.model.getFovDims(humanNr)
-        scaledPos = pos / (self.screenDims / fovDims)
-        adjustedPos = scaledPos + fovPos - (fovDims / 2)
+        fovSize = self.model.getFovSize(humanNr)
+        scaledPos = pos / (self.screenDims / fovSize)
+        adjustedPos = scaledPos + fovPos - (fovSize / 2)
         return adjustedPos
 
-    def modelToViewScaleRadius(self, rad, fovDims):
-        return rad * (self.screenDims[0] / fovDims[0])
+    def modelToViewScaleRadius(self, rad, fovSize):
+        return rad * (self.screenDims[0] / fovSize)
 
     # Checks:
     def getScreenDims(self):
