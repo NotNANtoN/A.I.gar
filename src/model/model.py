@@ -57,25 +57,26 @@ class Model(object):
 
 
     def visualize(self, timeStart):
+        playerCells = self.field.getPlayerCells()
+        maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
+
         if self.counter % 100 == 0:
             print(" ")
             print("time since update start: ", str(time.process_time() - timeStart))
             print("counter: ", self.counter)
-            playerCells = self.field.getPlayerCells()
-            maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
             print("biggest cell mass: ", maxMass)
-            #self.timings.append(time.time() - timeStart)
-            #self.maxMasses.append(maxMass)
             print(" ")
         self.counter += 1
-        '''
-        if self.counter % 100 == 0:
+        self.timings.append(time.process_time() - timeStart)
+        self.maxMasses.append(maxMass)
+
+        if self.counter % 5000 == 0:
             plt.plot(self.maxMasses, self.timings, 'o')
             plt.xlabel("Maximum Masses")
             plt.ylabel("Time taken for update")
             print("mean time: ", str(numpy.mean(self.timings)))
             plt.show()
-        '''
+
 
     # Setters:
     def createPlayer(self, name):
