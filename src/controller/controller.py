@@ -38,7 +38,7 @@ class Controller:
                     if keys[pygame.K_RIGHT]:
                         humanCommandPoint[1][0] += self.screenWidth/2
                     #Human3 direction controls
-                if humanList[2].getIsAlive():
+                if len(humanList) > 2 and humanList[2].getIsAlive():
                     if keys[pygame.K_w]:
                         humanCommandPoint[2][1] -= self.screenHeight/2
                     if keys[pygame.K_s]:
@@ -80,23 +80,23 @@ class Controller:
                         #Human2 controls
                         human2 = humanList[1]
                         if human2.getIsAlive():
-                            # "space" to Split
-                            if event.key == pygame.K_KP0 and human2.getCanSplit():
+                            # "." to Split
+                            if event.key == pygame.K_k and human2.getCanSplit():
                                 human2.setSplit(True)
-                            # "w" to Eject
-                            elif event.key == pygame.K_KP1 and human2.getCanEject():
+                            # "-" to Eject
+                            elif event.key == pygame.K_l and human2.getCanEject():
                                 human2.setEject(True)
-                            elif event.key == pygame.K_KP2:
+                            elif event.key == pygame.K_j:
                                 human2.addMass(human2.getTotalMass() * 0.2)
                             humanList[1] = human2
                     if len(humanList) > 2:
                         #Human3 controls
                         human3 = humanList[2]
                         if human3.getIsAlive():
-                            # "space" to Split
+                            # "e" to Split
                             if event.key == pygame.K_e and human3.getCanSplit():
                                 human3.setSplit(True)
-                            # "w" to Eject
+                            # "r" to Eject
                             elif event.key == pygame.K_q and human3.getCanEject():
                                 human3.setEject(True)
                             elif event.key == pygame.K_r:

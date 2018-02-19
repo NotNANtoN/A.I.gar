@@ -294,7 +294,9 @@ class Field(object):
     def virusEatBlob(self, virus, blob):
         self.eatCell(virus, self.virusHashTable, blob, self.blobHashTable, self.blobs)
         if virus.getMass() >= VIRUS_BASE_SIZE + 7 * EJECTEDBLOB_BASE_MASS * 0.8:
-            oppositePoint = 2 * virus.getPos() - blob.getPos()
+            oppositeX = 2 * virus.getPos()[0] - blob.getPos()[0]
+            oppositeY = 2 * virus.getPos()[1] - blob.getPos()[1]
+            oppositePoint = [oppositeX, oppositeY]
             newVirus = virus.split(oppositePoint, self.width, self.height)
             newVirus.setColor(virus.getColor())
             newVirus.setName(virus.getName())

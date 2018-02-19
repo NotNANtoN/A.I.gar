@@ -130,7 +130,7 @@ class Player(object):
 
     def getFovSize(self):
         biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        return  (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 30
+        return  (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 35
 
 
     def getFov(self):
