@@ -212,16 +212,18 @@ class Field(object):
             for playerCell in player.getCells():
                 opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
                 if __debug__:
+                    '''
                     if opponentCells:
                         print("\n_________")
                         print("Opponent cells of cell ", playerCell, ":")
                         for cell in opponentCells:
                             print(cell, end= " ")
                         print("\n____________\n")
+                    '''
                 for opponentCell in opponentCells:
                         if playerCell.overlap(opponentCell):
-                            if __debug__:
-                                print(playerCell, " and ", opponentCell, " overlap!")
+                            #if __debug__:
+                            #    print(playerCell, " and ", opponentCell, " overlap!")
                             if playerCell.canEat(opponentCell):
                                 self.eatPlayerCell(playerCell, opponentCell)
                             elif opponentCell.canEat(playerCell):
@@ -319,8 +321,8 @@ class Field(object):
         cell.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell):
-        if __debug__:
-            print(largerCell, " eats ", smallerCell, "!")
+        #if __debug__:
+        #    print(largerCell, " eats ", smallerCell, "!")
         self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 
@@ -354,8 +356,8 @@ class Field(object):
         else:
             biggerCell = secondCell
             smallerCell = firstCell
-        if __debug__:
-            print(smallerCell, " is merged into ", biggerCell, "!")
+        #if __debug__:
+        #    print(smallerCell, " is merged into ", biggerCell, "!")
         self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 

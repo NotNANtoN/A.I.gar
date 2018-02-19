@@ -84,10 +84,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self):
+    def createBot(self, type):
         name = "Bot " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field)
+        bot = Bot(newPlayer, self.field, type)
         self.addBot(bot)
 
     def createHuman(self, name):

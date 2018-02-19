@@ -4,6 +4,7 @@ from controller.controller import Controller
 from model.parameters import *
 import sys
 import os
+
 def modelMustHavePlayers():
     print("Model must have players")
     quit()
@@ -33,9 +34,9 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model1):
+def createBots(number, model1, type):
     for i in range(number):
-        model1.createBot()
+        model1.createBot(type)
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
@@ -47,11 +48,18 @@ if __name__ == '__main__':
 
     model = Model(viewEnabled)
 
-    numberOfBots = int(input("Please enter the number of bots:\n"))
+    numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
+    numberOfBots = numberOfGreedyBots
+    if fitsLimitations(numberOfBots, MAXBOTS):
+        createBots(numberOfGreedyBots, model, "Greedy")
+
+    numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
+    numberOfBots += numberOfNNBots
+    if fitsLimitations(numberOfBots, MAXBOTS):
+        createBots(numberOfNNBots, model, "NN")
+
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
-    if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfBots, model)
 
     numberOfHumans = 0
     if viewEnabled:
