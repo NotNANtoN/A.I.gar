@@ -17,7 +17,7 @@ class Bot(object):
             self.model.compile(loss=keras.losses.categorical_crossentropy,
                                optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
 
-        print(self.model)
+        #print(self.model)
         self.player = player
         self.field = field
         self.splitLikelihood = numpy.random.randint(9950,10000)

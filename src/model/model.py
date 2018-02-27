@@ -49,11 +49,12 @@ class Model(object):
             self.notify()
         if __debug__:
             self.printDebugInfo()
+            self.visualize(timeProcessStart)
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
             
-        self.visualize(timeProcessStart)
+        
 
 
     def visualize(self, timeStart):
