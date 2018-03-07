@@ -86,7 +86,7 @@ class Model(object):
         return newPlayer
 
     def createBot(self, type):
-        name = "Bot " + str(len(self.bots))
+        name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
         bot = Bot(newPlayer, self.field, type)
         self.addBot(bot)

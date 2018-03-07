@@ -1,8 +1,4 @@
 from random import randint
-from .cell import Cell
-from .parameters import *
-import numpy
-
 
 class Player(object):
     """docstring for Player"""

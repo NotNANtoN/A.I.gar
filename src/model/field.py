@@ -460,3 +460,6 @@ class Field(object):
 
     def getPlayers(self):
         return self.players
+
+    def getReward(self, player):
+        return player.getTotalMass()
