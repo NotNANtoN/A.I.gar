@@ -93,7 +93,7 @@ class Player(object):
 
     # Getters:
     def getTotalMass(self):
-        return sum(cell.getMass() for cell in self.cells)
+        return sum(cell.getMass() for cell in self.cells) if self.cells else 0
 
     def getCells(self):
         return self.cells

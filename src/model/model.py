@@ -60,10 +60,6 @@ class Model(object):
                 bot.saveModel()
                 savedTypes.append(type)
 
-
-        
-
-
     def visualize(self, timeStart):
         playerCells = self.field.getPlayerCells()
         maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
