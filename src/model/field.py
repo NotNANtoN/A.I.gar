@@ -56,25 +56,6 @@ class Field(object):
         self.checkOverlaps()
         self.spawnStuff()
 
-        '''
-        if __debug__:
-            print(" ")
-            fovPos = self.players[0].getFovPos()
-            fovSize = self.players[0].getfovSize()
-            human = self.players[0]
-            humanCell = human.cells[0]
-
-            print("main function:", self.getPlayerCellsInFov(fovPos, fovSize))
-            print("cellsNearFov: ", self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovSize))
-            print("hashtable.getNearbyObjectsInArea: ", self.playerHashTable.getNearbyObjectsInArea(fovPos, fovSize[0] / 2) )
-            print("")
-            print("fovpos, fovSize: ", human.getFovPos(), human.getfovSize())
-            print("human ids for obj:", self.playerHashTable.getIdsForObj(humanCell))
-            print("human ids for area:", self.playerHashTable.getIdsForArea(humanCell.getPos(),humanCell.getRadius() ))
-            print("meeep: ", self.playerHashTable.getIdsForArea(fovPos, fovSize[0] / 2))
-            print("radius: ", numpy.round(humanCell.getRadius(), 2))
-            print(" ")
-'''
     def updateViruses(self):
         for virus in self.viruses:
             virus.updateMomentum()
@@ -210,20 +191,9 @@ class Field(object):
     def playerPlayerOverlap(self):
         for player in self.players:
             for playerCell in player.getCells():
-                opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)
-                if __debug__:
-                    '''
-                    if opponentCells:
-                        print("\n_________")
-                        print("Opponent cells of cell ", playerCell, ":")
-                        for cell in opponentCells:
-                            print(cell, end= " ")
-                        print("\n____________\n")
-                    '''
+                opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)                
                 for opponentCell in opponentCells:
                         if playerCell.overlap(opponentCell):
-                            #if __debug__:
-                            #    print(playerCell, " and ", opponentCell, " overlap!")
                             if playerCell.canEat(opponentCell):
                                 self.eatPlayerCell(playerCell, opponentCell)
                             elif opponentCell.canEat(playerCell):
@@ -251,6 +221,9 @@ class Field(object):
 
     def spawnVirus(self):
         xPos, yPos = self.getSpawnPos()
+        acceptableSpawnRange = HASH_BUCKET_SIZE - VIRUS_BASE_RADIUS
+        xPos += numpy.random.randint((-1)*acceptableSpawnRange/2, acceptableSpawnRange/2)
+        yPos += numpy.random.randint((-1)*acceptableSpawnRange/2, acceptableSpawnRange/2)
         size = VIRUS_BASE_SIZE
         virus = Cell(xPos, yPos, size, None)
         virus.setName("Virus")
@@ -321,8 +294,6 @@ class Field(object):
         cell.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell):
-        #if __debug__:
-        #    print(largerCell, " eats ", smallerCell, "!")
         self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 
@@ -356,8 +327,6 @@ class Field(object):
         else:
             biggerCell = secondCell
             smallerCell = firstCell
-        #if __debug__:
-        #    print(smallerCell, " is merged into ", biggerCell, "!")
         self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 

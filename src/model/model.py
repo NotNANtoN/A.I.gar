@@ -36,7 +36,6 @@ class Model(object):
     def printDebugInfo(self):
         if self.hasHuman():
             pass
-            #print("Human merge time first cell: ", self.human.cells[0].mergeTime)
 
     def update(self):
         timeStart = time.time()
