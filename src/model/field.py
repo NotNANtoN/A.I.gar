@@ -258,9 +258,20 @@ class Field(object):
         self.addVirus(virus)
 
     def spawnPlayers(self):
+        for player in self.deadPlayers[:]:
+            self.deadPlayers.remove(player)
         for player in self.players:
             if not player.getCells():
                 self.initializePlayer(player)
+                self.deadPlayers.append(player)
+
+
+
+    def checkForDeadPlayers(self):
+        for player in self.players[:]:
+            if not player.getCells():
+                self.deadPlayers.append(player)
+                self.players.remove(player)
 
     def getSpawnPos(self):
         cols = self.playerHashTable.getCols()
@@ -332,7 +343,7 @@ class Field(object):
         numberOfNewCells = 16 - numberOfCells
         if numberOfNewCells == 0:
             return
-        massPerCell = VIRUS_EXPLOSION_BASE_MASS + (playerCell.getMass() * 0.1 / numberOfNewCells)
+        massPerCell = VIRUS_EXPLOSION_BASE_MASS + (playerCell.getMass() / numberOfNewCells - VIRUS_EXPLOSION_BASE_MASS) * 0.2
         playerCell.resetMergeTime(0.8)
         self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
         for cellIdx in range(numberOfNewCells):

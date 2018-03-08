@@ -1,6 +1,7 @@
 import numpy
 import math
 import keras
+from .parameters import *
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 
@@ -23,9 +24,12 @@ class Bot(object):
     actionLen = 4
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
+    valueNetwork.add(Dense(stateReprLen + actionLen, input_dim= stateReprLen + actionLen, activation='relu',
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
+    valueNetwork.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
+                       bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
+                       kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
     valueNetwork.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
 ))
@@ -40,10 +44,10 @@ class Bot(object):
         self.oldState = None
 
         if self.type == "NN":
-            self.lastMass = 0
+            self.lastMass = START_MASS
             self.reward = 0
             self.lastAction = [0, 0, 0, 0]
-            self.discount = 0.95
+            self.discount = 0.99
             self.epsilon = 0.9
         else:
             self.splitLikelihood = numpy.random.randint(9950,10000)
@@ -110,11 +114,20 @@ class Bot(object):
                 print(round(info, 2), end=" ")
             print(" ")
             print("Action: ", newAction)
-            print("qValueNew: ", qValueNew[0][0])
+        if round(reward, 2) > 0 or round(reward, 2) < 0:
+            print("reward: ", round(reward, 2))
+
+        print("qValueNew: ", round(qValueNew[0][0], 2))
+        print(" ")
         if math.isnan(qValueNew):
             print("ERROR: qValueNew is nan!")
             quit()
-        target = reward + self.discount * qValueNew - qValueOld
+        # If the player died, the target is the reward
+        if self.player in self.field.getDeadPlayers():
+            target = numpy.array([reward])
+        else:
+            target = reward + self.discount * qValueNew - qValueOld
+            #target = reward + self.discount * qValueNew
         self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
 
         if numpy.random.random(1) > self.epsilon:
@@ -138,7 +151,6 @@ class Bot(object):
 
     def update(self):
         if self.player.getIsAlive():
-            totalMass = self.player.getTotalMass()
             midPoint = self.player.getFovPos()
             size = self.player.getFovSize()
             x = int(midPoint[0])
@@ -195,6 +207,8 @@ class Bot(object):
         self.valueNetwork.save(self.type + "_latestModel.h5")
 
     def getReward(self):
+        if self.player in self.field.getDeadPlayers():
+            return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
         self.lastMass = currentMass
