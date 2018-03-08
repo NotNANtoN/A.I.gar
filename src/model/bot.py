@@ -28,12 +28,25 @@ class Bot(object):
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     valueNetwork.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
-                       bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
-                       kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
+                        bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
+                        kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
-    valueNetwork.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
-))
+    valueNetwork.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0,
+                        stddev=0.05, seed=None),))
     valueNetwork.compile(loss='mean_squared_error',
+                              optimizer=keras.optimizers.SGD(lr=0.001, momentum=0.0, nesterov=True))
+
+    valueNetwork2 = Sequential()
+    valueNetwork2.add(Dense(stateReprLen + actionLen, input_dim= stateReprLen + actionLen, activation='relu',
+                           bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
+                           kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
+    valueNetwork2.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
+                        bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
+                        kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
+    # self.valueNetwork.add(Dense(10, activation = 'relu'))
+    valueNetwork2.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0,
+                        stddev=0.05, seed=None),))
+    valueNetwork2.compile(loss='mean_squared_error',
                               optimizer=keras.optimizers.SGD(lr=0.001, momentum=0.0, nesterov=True))
 
     def __init__(self, player, field, type):
@@ -126,8 +139,8 @@ class Bot(object):
         if self.player in self.field.getDeadPlayers():
             target = numpy.array([reward])
         else:
-            target = reward + self.discount * qValueNew - qValueOld
-            #target = reward + self.discount * qValueNew
+            #target = reward + self.discount * qValueNew - qValueOld
+            target = reward + self.discount * qValueNew
         self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
 
         if numpy.random.random(1) > self.epsilon:

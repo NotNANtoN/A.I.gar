@@ -55,6 +55,7 @@ class Field(object):
         self.mergePlayerCells()
         self.checkOverlaps()
         self.spawnStuff()
+        self.checkForDeadPlayers()
 
     def updateViruses(self):
         for virus in self.viruses:
@@ -76,15 +77,17 @@ class Field(object):
 
     def updatePlayers(self):
         for player in self.players:
-            player.update(self.width, self.height)
-            self.performEjections(player)
-        self.handlePlayerCollisions()
+            if player.getIsAlive():
+                player.update(self.width, self.height)
+                self.performEjections(player)
+                self.handlePlayerCollisions(player)
 
     def updateHashTables(self):
         self.playerHashTable.clearBuckets()
         for player in self.players:
-            playerCells = player.getCells()
-            self.playerHashTable.insertAllObjects(playerCells)
+            if player.getIsAlive():
+                playerCells = player.getCells()
+                self.playerHashTable.insertAllObjects(playerCells)
 
         self.blobHashTable.clearBuckets()
         self.blobHashTable.insertAllObjects(self.blobs)
@@ -107,18 +110,17 @@ class Field(object):
                 blob.setEjecterCell(cell)
 
 
-    def handlePlayerCollisions(self):
-        for player in self.players:
-            for cell in player.getCells():
-                if cell.justEjected():
+    def handlePlayerCollisions(self, player):
+        for cell in player.getCells():
+            if cell.justEjected():
+                continue
+            for otherCell in player.getCells():
+                if cell is otherCell or otherCell.justEjected() or (cell.canMerge() and otherCell.canMerge()):
                     continue
-                for otherCell in player.getCells():
-                    if cell is otherCell or otherCell.justEjected() or (cell.canMerge() and otherCell.canMerge()):
-                        continue
-                    distance = numpy.sqrt(cell.squaredDistance(otherCell))
-                    summedRadii = cell.getRadius() + otherCell.getRadius()
-                    if distance < summedRadii and distance != 0:
-                        self.adjustCellPositions(cell, otherCell, distance, summedRadii)
+                distance = numpy.sqrt(cell.squaredDistance(otherCell))
+                summedRadii = cell.getRadius() + otherCell.getRadius()
+                if distance < summedRadii and distance != 0:
+                    self.adjustCellPositions(cell, otherCell, distance, summedRadii)
 
     def adjustCellPositions(self, cell1, cell2, distance, summedRadii):
         if cell1.getMass() > cell2.getMass():
@@ -144,19 +146,20 @@ class Field(object):
 
     def mergePlayerCells(self):
         for player in self.players:
-            cells = player.getMergableCells()
-            if len(cells) > 1:
-                cells.sort(key = lambda p: p.getMass(), reverse = True)
-                for cell1 in cells:
-                    if not cell1.isAlive():
-                        continue
-                    for cell2 in cells:
-                        if (not cell2.isAlive()) or (cell2 is cell1):
+            if player.getIsAlive():
+                cells = player.getMergableCells()
+                if len(cells) > 1:
+                    cells.sort(key = lambda p: p.getMass(), reverse = True)
+                    for cell1 in cells:
+                        if not cell1.isAlive():
                             continue
-                        if cell1.overlap(cell2):
-                            self.mergeCells(cell1, cell2)
-                            if not cell1.isAlive():
-                                break
+                        for cell2 in cells:
+                            if (not cell2.isAlive()) or (cell2 is cell1):
+                                continue
+                            if cell1.overlap(cell2):
+                                self.mergeCells(cell1, cell2)
+                                if not cell1.isAlive():
+                                    break
 
     def checkOverlaps(self):
         self.virusBlobOverlap()
@@ -167,38 +170,42 @@ class Field(object):
 
     def playerPelletOverlap(self):
         for player in self.players:
-            for cell in player.getCells():
-                for pellet in self.pelletHashTable.getNearbyObjects(cell):
-                    if cell.overlap(pellet):
-                        self.eatPellet(cell, pellet)
+            if player.getIsAlive():
+                for cell in player.getCells():
+                    for pellet in self.pelletHashTable.getNearbyObjects(cell):
+                        if cell.overlap(pellet):
+                            self.eatPellet(cell, pellet)
 
     def playerBlobOverlap(self):
         for player in self.players:
-            for cell in player.getCells():
-                for blob in self.blobHashTable.getNearbyObjects(cell):
-                    # If the ejecter player's cell is not the one overlapping with blob
-                    if cell.overlap(blob) and blob.getEjecterCell() is not cell:
-                        self.eatBlob(cell, blob)
+            if player.getIsAlive():
+                for cell in player.getCells():
+                    for blob in self.blobHashTable.getNearbyObjects(cell):
+                        # If the ejecter player's cell is not the one overlapping with blob
+                        if cell.overlap(blob) and blob.getEjecterCell() is not cell:
+                            self.eatBlob(cell, blob)
 
 
     def playerVirusOverlap(self):
         for player in self.players:
-            for cell in player.getCells():
-                for virus in self.virusHashTable.getNearbyObjects(cell):
-                    if cell.overlap(virus) and cell.getMass() > 1.5 * virus.getMass():
-                        self.eatVirus(cell, virus)
+            if player.getIsAlive():
+                for cell in player.getCells():
+                    for virus in self.virusHashTable.getNearbyObjects(cell):
+                        if cell.overlap(virus) and cell.getMass() > 1.5 * virus.getMass():
+                            self.eatVirus(cell, virus)
 
     def playerPlayerOverlap(self):
         for player in self.players:
-            for playerCell in player.getCells():
-                opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)                
-                for opponentCell in opponentCells:
-                        if playerCell.overlap(opponentCell):
-                            if playerCell.canEat(opponentCell):
-                                self.eatPlayerCell(playerCell, opponentCell)
-                            elif opponentCell.canEat(playerCell):
-                                self.eatPlayerCell(opponentCell, playerCell)
-                                break
+            if player.getIsAlive():
+                for playerCell in player.getCells():
+                    opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)                
+                    for opponentCell in opponentCells:
+                            if playerCell.overlap(opponentCell):
+                                if playerCell.canEat(opponentCell):
+                                    self.eatPlayerCell(playerCell, opponentCell)
+                                elif opponentCell.canEat(playerCell):
+                                    self.eatPlayerCell(opponentCell, playerCell)
+                                    break
 
     def virusBlobOverlap(self):
         # After 7 feedings the virus splits in roughly the opposite direction of the last incoming ejectable
@@ -233,18 +240,17 @@ class Field(object):
     def spawnPlayers(self):
         for player in self.deadPlayers[:]:
             self.deadPlayers.remove(player)
-        for player in self.players:
-            if not player.getCells():
-                self.initializePlayer(player)
-                self.deadPlayers.append(player)
-
-
+            self.initializePlayer(player)
+        # for player in self.players:
+        #     if not player.getCells():
+        #         self.initializePlayer(player)
+        #         self.deadPlayers.append(player)
 
     def checkForDeadPlayers(self):
         for player in self.players[:]:
             if not player.getCells():
                 self.deadPlayers.append(player)
-                self.players.remove(player)
+                player.setDead()
 
     def getSpawnPos(self):
         cols = self.playerHashTable.getCols()
