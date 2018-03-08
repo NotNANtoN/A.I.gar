@@ -11,42 +11,43 @@ def squareDist(self, pos1, pos2):
 
 class Bot(object):
     """docstring for Bot"""
+    # Create all possible discrete actions
+    possibleLimitedActions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
+                              eject in [0, 1]]
+    # Filter out actions that do a split and eject at the same time
+    for action in possibleLimitedActions[:]:
+        if action[2] and action[3]:
+            possibleLimitedActions.remove(action)
+
+    stateReprLen = 8
+    actionLen = 4
+
+    valueNetwork = Sequential()
+    valueNetwork.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
+                           bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
+                           kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
+    # self.valueNetwork.add(Dense(10, activation = 'relu'))
+    valueNetwork.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
+))
+    valueNetwork.compile(loss='mean_squared_error',
+                              optimizer=keras.optimizers.SGD(lr=0.001, momentum=0.0, nesterov=True))
 
     def __init__(self, player, field, type):
         self.policyNetwork = None
         self.type = type
         self.player = player
         self.field = field
-
         self.oldState = None
 
         if self.type == "NN":
-            stateReprLen = 8
-            actionLen = 4
-
-            self.policyNetwork = Sequential()
-            self.policyNetwork.add(Dense(50, input_dim = stateReprLen, activation ='relu'))
-            self.policyNetwork.add(Dense(4, activation ='linear'))
-            self.policyNetwork.compile(loss='mean_squared_error',
-                                       optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
-
-            self.valueNetwork = Sequential()
-            self.valueNetwork.add(Dense(20, input_dim = stateReprLen + actionLen, activation = 'relu'))
-            #self.valueNetwork.add(Dense(10, activation = 'relu'))
-            self.valueNetwork.add(Dense(1, activation = 'linear'))
-            self.valueNetwork.compile(loss='mean_squared_error',
-                                       optimizer=keras.optimizers.SGD(lr=0.0005, momentum = 0.0, nesterov=True))
+            self.lastMass = 0
             self.reward = 0
             self.lastAction = [0, 0, 0, 0]
             self.discount = 0.95
-            self.epsilon = 0.95
-
-
-        #print(self.model)
-        self.splitLikelihood = numpy.random.randint(9950,10000)
-        self.ejectLikelihood = numpy.random.randint(9990,10000)
-
-
+            self.epsilon = 0.9
+        else:
+            self.splitLikelihood = numpy.random.randint(9950,10000)
+            self.ejectLikelihood = numpy.random.randint(9990,10000)
 
     def isCellData(self, cell):
         return [cell.getX(), cell.getY(), cell.getMass()]
@@ -86,17 +87,53 @@ class Bot(object):
         totalInfo = []
         for info in cellInfos:
             totalInfo += info
-
-
         if closestEnemyCell == None:
             totalInfo += [0, 0, 0]
         else:
             totalInfo += self.isRelativeCellData(closestEnemyCell, left, top, size, maximumCellMass)
-
         totalInfo += closestPelletPos
+        return totalInfo
 
-        inputNN = totalInfo
-        return inputNN
+
+    def qLearn(self, newState, reward):
+        actions = self.possibleLimitedActions
+        oldStateNumpy = numpy.array([self.lastAction + self.oldState])
+        qValueOld = self.valueNetwork.predict(oldStateNumpy)
+        # TODO can we merge newAction and self.lastAction into one? Is this then TD-Learning?
+        # This is the policy: take the actions that yield the highest Q value
+        newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
+        qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
+
+        if __debug__:
+            print("State: ", end=" ")
+            for info in newState:
+                print(round(info, 2), end=" ")
+            print(" ")
+            print("Action: ", newAction)
+            print("qValueNew: ", qValueNew[0][0])
+        if math.isnan(qValueNew):
+            print("ERROR: qValueNew is nan!")
+            quit()
+        target = reward + self.discount * qValueNew - qValueOld
+        self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
+
+        if numpy.random.random(1) > self.epsilon:
+            if __debug__:
+                print("Exploration!")
+            self.lastAction = actions[numpy.random.randint(len(actions))]
+        else:
+            qValues = [self.valueNetwork.predict(numpy.array([action + newState])) for action in actions]
+            if __debug__:
+                print("qValues:")
+                for value in qValues:
+                    print(value[0][0], end = " ")
+                print("")
+            maxIndex = numpy.argmax(qValues)
+            self.lastAction = actions[maxIndex]
+        if __debug__:
+          print("action:")
+          print(self.lastAction)
+        self.oldState = newState
 
 
     def update(self):
@@ -114,48 +151,18 @@ class Bot(object):
                 self.oldState = self.getStateRepresentation()
 
             if self.type == "NN":
-                possibleLimitedActions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for eject in [0, 1]]
+                # Get current State, Reward and the old State
                 newState = self.getStateRepresentation()
-
-                reward = self.field.getReward(self.player)
-                oldStateNumpy = numpy.array([self.lastAction + self.oldState])
-                qValueOld = self.valueNetwork.predict(oldStateNumpy)
-                #TODO can we merge newAction and self.lastAction into one?
-                newAction = max(possibleLimitedActions, key = lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
-
-
-                qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
-                if __debug__:
-                    print("State: ", end=" ")
-                    for info in newState:
-                        print(round(info, 2), end=" ")
-                    print(" ")
-                    print(("Action: ", newAction))
-                    print("qValueNew: ", qValueNew[0][0])
-                    print(" ")
-                if math.isnan(qValueNew):
-                    print("ERROR: qValueNew is nan!")
-                    quit()
-                target = reward + self.discount * qValueNew - qValueOld
-                self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose = 0)
-
-                if numpy.random.random(1) > self.epsilon:
-                    self.lastAction = possibleLimitedActions[numpy.random.randint(len(possibleLimitedActions))]
-                else:
-                    self.lastAction = max(possibleLimitedActions, key = lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
-                self.oldState = newState
+                reward = self.getReward()
+                self.qLearn(newState, reward)
 
                 xChoice = left + self.lastAction[0] * size
                 yChoice = top + self.lastAction[1] * size
                 splitChoice = True if self.lastAction[2] > 0.5 else False
                 ejectChoice = True if self.lastAction[3] > 0.5 else False
-
-                # TODO if we delete cells from the getCells list during the game the order changes. Order by id maybe?
-
-
                 if __debug__:
                     print("xChoice: ", round(xChoice, 2), " yChoice: ", round(yChoice,2) , " Split: ", splitChoice, " Eject: ", ejectChoice)
-
+                    print(" ")
 
             elif self.type == "Greedy":
                 playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
@@ -183,3 +190,15 @@ class Bot(object):
                     ejectChoice = True
 
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
+
+    def saveModel(self):
+        self.valueNetwork.save(self.type + "_latestModel.h5")
+
+    def getReward(self):
+        currentMass = self.player.getTotalMass()
+        reward = currentMass - self.lastMass
+        self.lastMass = currentMass
+        return reward
+
+    def getType(self):
+        return self.type

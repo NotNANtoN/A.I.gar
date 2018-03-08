@@ -85,3 +85,5 @@ if __name__ == '__main__':
     while controller.running:
         controller.process_input()
         model.update()
+
+    model.saveModels()

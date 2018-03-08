@@ -53,7 +53,15 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-            
+    def saveModels(self):
+        savedTypes = []
+        for bot in self.bots:
+            type = bot.getType()
+            if type != "Greedy" and type not in savedTypes:
+                bot.saveModel()
+                savedTypes.append(type)
+
+
         
 
 
