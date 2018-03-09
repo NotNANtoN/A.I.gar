@@ -112,36 +112,44 @@ class Bot(object):
         return totalInfo
 
 
-    def qLearn(self, newState, reward):
+    def qLearn(self):
         actions = self.possibleLimitedActions
-        oldStateNumpy = numpy.array([self.lastAction + self.oldState])
-        qValueOld = self.valueNetwork.predict(oldStateNumpy)
-        # TODO can we merge newAction and self.lastAction into one? Is this then TD-Learning?
-        # This is the policy: take the actions that yield the highest Q value
-        newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
-        qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
-
-        if __debug__:
-            print("State: ", end=" ")
-            for info in newState:
-                print(round(info, 2), end=" ")
-            print(" ")
-            print("Action: ", newAction)
-        if round(reward, 2) > 0 or round(reward, 2) < 0:
-            print("reward: ", round(reward, 2))
-
-        print("qValueNew: ", round(qValueNew[0][0], 2))
-        print(" ")
-        if math.isnan(qValueNew):
-            print("ERROR: qValueNew is nan!")
-            quit()
-        # If the player died, the target is the reward
-        if self.player in self.field.getDeadPlayers():
-            target = numpy.array([reward])
+        #After S has been initialized, set S as oldState and take action A based on policy
+        if self.oldState == None:
+            newState = self.getStateRepresentation()
+            newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
         else:
-            #target = reward + self.discount * qValueNew - qValueOld
-            target = reward + self.discount * qValueNew
-        self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
+            # Get current State, Reward and the old State
+            newState = self.getStateRepresentation()
+            reward = self.getReward()
+            oldStateNumpy = numpy.array([self.lastAction + self.oldState])
+            qValueOld = self.valueNetwork.predict(oldStateNumpy)
+            # TODO can we merge newAction and self.lastAction into one? Is this then TD-Learning?
+            # This is the policy: take the actions that yield the highest Q value
+            newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
+            qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
+
+            if __debug__:
+                print("State: ", end=" ")
+                for info in newState:
+                    print(round(info, 2), end=" ")
+                print(" ")
+                print("Action: ", newAction)
+            if round(reward, 2) > 0 or round(reward, 2) < 0:
+                print("reward: ", round(reward, 2))
+
+            print("qValueNew: ", round(qValueNew[0][0], 2))
+            print(" ")
+            if math.isnan(qValueNew):
+                print("ERROR: qValueNew is nan!")
+                quit()
+            # If the player died, the target is the reward
+            if not self.player.getIsAlive():
+                target = numpy.array([reward])
+            else:
+                #target = reward + self.discount * qValueNew - qValueOld
+                target = reward + self.discount * qValueNew
+            self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
 
         if numpy.random.random(1) > self.epsilon:
             if __debug__:
@@ -159,7 +167,10 @@ class Bot(object):
         if __debug__:
           print("action:")
           print(self.lastAction)
-        self.oldState = newState
+        if not self.player.getIsAlive():
+            self.oldState = None
+        else:
+            self.oldState = newState
 
 
     def update(self):
@@ -172,14 +183,10 @@ class Bot(object):
             top = y - int(size / 2)
             size = int(size)
             cellsInFov = self.field.getPelletsInFov(midPoint, size)
-            if self.oldState == None:
-                self.oldState = self.getStateRepresentation()
 
             if self.type == "NN":
-                # Get current State, Reward and the old State
-                newState = self.getStateRepresentation()
-                reward = self.getReward()
-                self.qLearn(newState, reward)
+                
+                self.qLearn()
 
                 xChoice = left + self.lastAction[0] * size
                 yChoice = top + self.lastAction[1] * size
