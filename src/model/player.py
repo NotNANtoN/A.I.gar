@@ -16,6 +16,8 @@ class Player(object):
         self.commandPoint = [-1, -1]
         self.doSplit = False
         self.doEject = False
+        self.fovPos = []
+        self.fovSize = None
 
     def update(self, fieldWidth, fieldHeight):
         if self.isAlive:
@@ -120,14 +122,17 @@ class Player(object):
         return False
 
     def getFovPos(self):
-        meanX = sum(cell.getX() * cell.getMass() for cell in self.cells) / self.getTotalMass()
-        meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
-        return [meanX, meanY]
+        if self.isAlive:
+            meanX = sum(cell.getX() * cell.getMass() for cell in self.cells) / self.getTotalMass()
+            meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
+            self.fovPos = [meanX, meanY]
+        return self.fovPos
 
     def getFovSize(self):
-        biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
-        return  (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 35
-
+        if self.isAlive:
+            biggestCellRadius = max(self.cells, key=lambda p: p.getRadius()).getRadius()
+            self.fovSize = (biggestCellRadius ** 0.475) * (len(self.cells) ** 0.32) * 35
+        return self.fovSize
 
     def getFov(self):
         fovPos = self.getFovPos()
