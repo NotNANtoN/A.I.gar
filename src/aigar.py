@@ -1,5 +1,6 @@
 from model.model import *
 from view.view import View
+from view.startScreen import StartScreen
 from controller.controller import Controller
 from model.parameters import *
 import sys
@@ -76,7 +77,10 @@ if __name__ == '__main__':
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
+    startScreen = StartScreen(model)
     view = View(model, screenWidth, screenHeight)
+
+
     model.initialize()
     controller = Controller(model, viewEnabled, view)
 
