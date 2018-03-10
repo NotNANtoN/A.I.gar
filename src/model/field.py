@@ -28,7 +28,7 @@ class Field(object):
         self.virusHashTable = None
 
     def initializePlayer(self, player):
-        x, y = self.getSpawnPos()
+        x, y = self.getSpawnPos(START_RADIUS)
         newCell = Cell(x, y, START_MASS, player)
         player.addCell(newCell)
         player.setAlive()
@@ -227,7 +227,7 @@ class Field(object):
             self.spawnVirus()
 
     def spawnVirus(self):
-        xPos, yPos = self.getSpawnPos()
+        xPos, yPos = self.getSpawnPos(VIRUS_BASE_RADIUS)
         acceptableSpawnRange = HASH_BUCKET_SIZE - VIRUS_BASE_RADIUS
         xPos += numpy.random.randint((-1)*acceptableSpawnRange/2, acceptableSpawnRange/2)
         yPos += numpy.random.randint((-1)*acceptableSpawnRange/2, acceptableSpawnRange/2)
@@ -252,7 +252,7 @@ class Field(object):
                 self.deadPlayers.append(player)
                 player.setDead()
 
-    def getSpawnPos(self):
+    def getSpawnPos(self, radius):
         cols = self.playerHashTable.getCols()
         totalBuckets = self.playerHashTable.getRows() * cols
         spawnBucket = numpy.random.randint(0, totalBuckets)
@@ -266,8 +266,10 @@ class Field(object):
         else:
             x = spawnBucket % cols
             y = (spawnBucket - x) / cols
-            xPos = (x - 0.5) * HASH_BUCKET_SIZE
-            yPos = (y + 0.5) * HASH_BUCKET_SIZE
+            left = (x - 1)  * HASH_BUCKET_SIZE
+            top =  y * HASH_BUCKET_SIZE
+            xPos = numpy.random.randint(left + radius, left + HASH_BUCKET_SIZE - radius)
+            yPos = numpy.random.randint(top + radius, top + HASH_BUCKET_SIZE - radius)
         return xPos, yPos
 
     def spawnPellets(self):

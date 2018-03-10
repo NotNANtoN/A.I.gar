@@ -24,10 +24,10 @@ class Bot(object):
     actionLen = 4
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(stateReprLen + actionLen, input_dim= stateReprLen + actionLen, activation='relu',
+    valueNetwork.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
-    valueNetwork.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
+    valueNetwork.add(Dense(25,  activation='relu',
                         bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                         kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
@@ -37,10 +37,10 @@ class Bot(object):
                               optimizer=keras.optimizers.SGD(lr=0.001, momentum=0.0, nesterov=True))
 
     valueNetwork2 = Sequential()
-    valueNetwork2.add(Dense(stateReprLen + actionLen, input_dim= stateReprLen + actionLen, activation='relu',
+    valueNetwork2.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
-    valueNetwork2.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
+    valueNetwork2.add(Dense(25, activation='relu',
                         bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                         kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
@@ -59,7 +59,7 @@ class Bot(object):
         if self.type == "NN":
             self.lastMass = START_MASS
             self.reward = 0
-            self.lastAction = [0, 0, 0, 0]
+            self.currentAction = [0, 0, 0, 0]
             self.discount = 0.99
             self.epsilon = 0.9
         else:
@@ -117,44 +117,49 @@ class Bot(object):
         #After S has been initialized, set S as oldState and take action A based on policy
         if self.oldState == None:
             newState = self.getStateRepresentation()
+            self.lastMass = self.player.getTotalMass()
             newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
         else:
             # Get current State, Reward and the old State
-            newState = self.getStateRepresentation()
             reward = self.getReward()
-            oldStateNumpy = numpy.array([self.lastAction + self.oldState])
+            oldStateNumpy = numpy.array([self.currentAction + self.oldState])
             qValueOld = self.valueNetwork.predict(oldStateNumpy)
-            # TODO can we merge newAction and self.lastAction into one? Is this then TD-Learning?
+            # TODO can we merge newAction and self.currentAction into one? Is this then TD-Learning?
             # This is the policy: take the actions that yield the highest Q value
-            newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
-            qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
-
+            
             if __debug__:
                 print("State: ", end=" ")
                 for info in newState:
                     print(round(info, 2), end=" ")
                 print(" ")
                 print("Action: ", newAction)
-            if round(reward, 2) > 0 or round(reward, 2) < 0:
-                print("reward: ", round(reward, 2))
+                if round(reward, 2) > 0 or round(reward, 2) < 0:
+                  print("reward: ", round(reward, 2))
 
-            print("qValueNew: ", round(qValueNew[0][0], 2))
-            print(" ")
-            if math.isnan(qValueNew):
-                print("ERROR: qValueNew is nan!")
-                quit()
+                print(" ")
             # If the player died, the target is the reward
-            if not self.player.getIsAlive():
-                target = numpy.array([reward])
-            else:
-                #target = reward + self.discount * qValueNew - qValueOld
+            if self.player.getIsAlive():
+                newState = self.getStateRepresentation()
+                newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
+                qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
                 target = reward + self.discount * qValueNew
-            self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
+                self.takeAction(newState, actions)
+            else:
+                target = numpy.array([reward])
+            #Calibrate Q-function
+            self.valueNetwork.fit(numpy.array([self.oldState + self.currentAction]), target, verbose=0)
+        if self.player.getIsAlive():
+            self.oldState = newState
+        else:
+            self.oldState = None
+            self.lastMass = None
 
+    def takeAction(self, newState, actions):
+        #Determine next action
         if numpy.random.random(1) > self.epsilon:
             if __debug__:
                 print("Exploration!")
-            self.lastAction = actions[numpy.random.randint(len(actions))]
+            self.currentAction = actions[numpy.random.randint(len(actions))]
         else:
             qValues = [self.valueNetwork.predict(numpy.array([action + newState])) for action in actions]
             if __debug__:
@@ -163,71 +168,71 @@ class Bot(object):
                     print(value[0][0], end = " ")
                 print("")
             maxIndex = numpy.argmax(qValues)
-            self.lastAction = actions[maxIndex]
+            self.currentAction = actions[maxIndex]
         if __debug__:
           print("action:")
-          print(self.lastAction)
-        if not self.player.getIsAlive():
-            self.oldState = None
-        else:
-            self.oldState = newState
+          print(self.currentAction)
+        # Check if end of episode (player death)
+        
 
 
     def update(self):
-        if self.player.getIsAlive():
-            midPoint = self.player.getFovPos()
-            size = self.player.getFovSize()
-            x = int(midPoint[0])
-            y = int(midPoint[1])
-            left = x - int(size / 2)
-            top = y - int(size / 2)
-            size = int(size)
-            cellsInFov = self.field.getPelletsInFov(midPoint, size)
+    
+        midPoint = self.player.getFovPos()
+        size = self.player.getFovSize()
+        x = int(midPoint[0])
+        y = int(midPoint[1])
+        left = x - int(size / 2)
+        top = y - int(size / 2)
+        size = int(size)
+        cellsInFov = self.field.getPelletsInFov(midPoint, size)
 
-            if self.type == "NN":
-                
-                self.qLearn()
+        if self.type == "NN":
+            
+            self.qLearn()
 
-                xChoice = left + self.lastAction[0] * size
-                yChoice = top + self.lastAction[1] * size
-                splitChoice = True if self.lastAction[2] > 0.5 else False
-                ejectChoice = True if self.lastAction[3] > 0.5 else False
-                if __debug__:
-                    print("xChoice: ", round(xChoice, 2), " yChoice: ", round(yChoice,2) , " Split: ", splitChoice, " Eject: ", ejectChoice)
-                    print(" ")
+            xChoice = left + self.currentAction[0] * size
+            yChoice = top + self.currentAction[1] * size
+            splitChoice = True if self.currentAction[2] > 0.5 else False
+            ejectChoice = True if self.currentAction[3] > 0.5 else False
+            if __debug__:
+                print("xChoice: ", round(xChoice, 2), " yChoice: ", round(yChoice,2) , " Split: ", splitChoice, " Eject: ", ejectChoice)
+                print(" ")
 
-            elif self.type == "Greedy":
-                playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
-                firstPlayerCell = self.player.getCells()[0]
-                for opponentCell in playerCellsInFov:
-                    # If the single celled bot can eat the opponent cell add it to list
-                    if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
-                        cellsInFov.append(opponentCell)
-                if cellsInFov:
-                    bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
-                    bestCellPos = bestCell.getPos()
-                    xChoice = bestCellPos[0]
-                    yChoice = bestCellPos[1]
-                else:
-                    size = int(size / 2)
-                    xChoice = numpy.random.randint(x - size, x + size)
-                    yChoice = numpy.random.randint(y - size, y + size)
-                randNumSplit = numpy.random.randint(0,10000)
-                randNumEject = numpy.random.randint(0,10000)
-                splitChoice = False
-                ejectChoice = False
-                if randNumSplit > self.splitLikelihood:
-                    splitChoice = True
-                if randNumEject > self.ejectLikelihood:
-                    ejectChoice = True
+        elif self.type == "Greedy":
+            if not self.player.getIsAlive():
+                return
+            playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
+            firstPlayerCell = self.player.getCells()[0]
+            for opponentCell in playerCellsInFov:
+                # If the single celled bot can eat the opponent cell add it to list
+                if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
+                    cellsInFov.append(opponentCell)
+            if cellsInFov:
+                bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
+                bestCellPos = bestCell.getPos()
+                xChoice = bestCellPos[0]
+                yChoice = bestCellPos[1]
+            else:
+                size = int(size / 2)
+                xChoice = numpy.random.randint(x - size, x + size)
+                yChoice = numpy.random.randint(y - size, y + size)
+            randNumSplit = numpy.random.randint(0,10000)
+            randNumEject = numpy.random.randint(0,10000)
+            splitChoice = False
+            ejectChoice = False
+            if randNumSplit > self.splitLikelihood:
+                splitChoice = True
+            if randNumEject > self.ejectLikelihood:
+                ejectChoice = True
 
-            self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
+        self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
     def saveModel(self):
         self.valueNetwork.save(self.type + "_latestModel.h5")
 
     def getReward(self):
-        if self.player in self.field.getDeadPlayers():
+        if not self.player.getIsAlive():
             return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
