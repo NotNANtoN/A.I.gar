@@ -88,10 +88,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type):
+    def createBot(self, type, expRep):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type)
+        bot = Bot(newPlayer, self.field, type, expRep)
         self.addBot(bot)
 
     def createHuman(self, name):

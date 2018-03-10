@@ -1,5 +1,6 @@
 from model.model import *
 from view.view import View
+from view.startScreen import StartScreen
 from controller.controller import Controller
 from model.parameters import *
 import sys
@@ -34,9 +35,9 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model1, type):
+def createBots(number, model1, type, expRep):
     for i in range(number):
-        model1.createBot(type)
+        model1.createBot(type, expRep)
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
@@ -51,12 +52,13 @@ if __name__ == '__main__':
     numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
     numberOfBots = numberOfGreedyBots
     if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfGreedyBots, model, "Greedy")
+        createBots(numberOfGreedyBots, model, "Greedy", False)
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
     if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfNNBots, model, "NN")
+        enableExpReplay = int(input("Do you want to enable experience replay? (1=yes)"))
+        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1)
 
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
@@ -76,7 +78,10 @@ if __name__ == '__main__':
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
+    startScreen = StartScreen(model)
     view = View(model, screenWidth, screenHeight)
+
+
     model.initialize()
     controller = Controller(model, viewEnabled, view)
 
