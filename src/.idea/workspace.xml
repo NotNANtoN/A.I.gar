@@ -28,9 +28,10 @@
         <entry file="file://$PROJECT_DIR$/model/field.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="4597">
-              <caret line="421" column="4" lean-forward="true" selection-start-line="421" selection-start-column="4" selection-end-line="421" selection-end-column="4" />
+              <caret line="427" column="4" lean-forward="true" selection-start-line="427" selection-start-column="4" selection-end-line="427" selection-end-column="4" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
+                <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
               </folding>
             </state>
           </provider>
@@ -97,8 +98,8 @@
       <file leaf-file-name="bot.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/model/bot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="678">
-              <caret line="261" column="48" lean-forward="false" selection-start-line="261" selection-start-column="48" selection-end-line="261" selection-end-column="48" />
+            <state relative-caret-position="1699">
+              <caret line="181" column="26" lean-forward="true" selection-start-line="181" selection-start-column="26" selection-end-line="181" selection-end-column="26" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -109,8 +110,8 @@
       <file leaf-file-name="parameters.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model/parameters.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+            <state relative-caret-position="288">
+              <caret line="16" column="0" lean-forward="false" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -139,7 +140,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>debug</find>
       <find>self.x</find>
       <find>getPos</find>
       <find>adjustCellPos</find>
@@ -169,6 +169,7 @@
       <find>createB</find>
       <find>print</find>
       <find>lastMass</find>
+      <find>lastAction</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -423,6 +424,7 @@
           <caret line="135" column="34" lean-forward="false" selection-start-line="135" selection-start-column="34" selection-end-line="135" selection-end-column="34" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -516,6 +518,7 @@
           <caret line="40" column="30" lean-forward="true" selection-start-line="40" selection-start-column="30" selection-end-line="40" selection-end-column="30" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -579,6 +582,7 @@
           <caret line="62" column="0" lean-forward="false" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -641,6 +645,7 @@
           <caret line="62" column="0" lean-forward="true" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -793,8 +798,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/model/parameters.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="288">
+          <caret line="16" column="0" lean-forward="false" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -833,17 +838,18 @@
     <entry file="file://$PROJECT_DIR$/model/field.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4597">
-          <caret line="421" column="4" lean-forward="true" selection-start-line="421" selection-start-column="4" selection-end-line="421" selection-end-column="4" />
+          <caret line="427" column="4" lean-forward="true" selection-start-line="427" selection-start-column="4" selection-end-line="427" selection-end-column="4" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model/bot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="678">
-          <caret line="261" column="48" lean-forward="false" selection-start-line="261" selection-start-column="48" selection-end-line="261" selection-end-column="48" />
+        <state relative-caret-position="1699">
+          <caret line="181" column="26" lean-forward="true" selection-start-line="181" selection-start-column="26" selection-end-line="181" selection-end-column="26" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>

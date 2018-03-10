@@ -19,10 +19,10 @@ class Bot(object):
     actionLen = 4
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(stateReprLen + actionLen, input_dim= stateReprLen + actionLen, activation='relu',
+    valueNetwork.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
-    valueNetwork.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
+    valueNetwork.add(Dense(25,  activation='relu',
                         bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                         kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
@@ -37,10 +37,10 @@ class Bot(object):
     memories = []
 
     valueNetwork2 = Sequential()
-    valueNetwork2.add(Dense(stateReprLen + actionLen, input_dim= stateReprLen + actionLen, activation='relu',
+    valueNetwork2.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
-    valueNetwork2.add(Dense(int((stateReprLen + actionLen) / 3), activation='relu',
+    valueNetwork2.add(Dense(25, activation='relu',
                         bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                         kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
@@ -56,14 +56,13 @@ class Bot(object):
         self.player = player
         self.field = field
         self.oldState = None
-        self.lastAction = [0,0,0,0]
+        self.currentAction = [0, 0, 0, 0]
 
         if self.type == "NN":
             self.lastMass = None
             self.reward = None
             self.discount = 0.99
             self.epsilon = 0.9
-            self.lastAction = None
         else:
             self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = numpy.random.randint(9990,10000)
@@ -78,7 +77,7 @@ class Bot(object):
     def getRelativeCellPos(self, cell, left, top, size):
         return [(cell.getX() - left) / size, (cell.getY() - top) / size]
 
-    def getStateRepresentation(self):
+    def getSimpleStateRepresentation(self):
         size = self.player.getFovSize()
         midPoint = self.player.getFovPos()
         x = int(midPoint[0])
@@ -127,32 +126,65 @@ class Bot(object):
         else:
             self.memories.append([state, action, reward, newState])
 
+    def getGridStateRepresentation(self):
+        size = self.player.getFovSize()
+        midPoint = self.player.getFovPos()
+        x = int(midPoint[0])
+        y = int(midPoint[1])
+        left = x - int(size / 2)
+        top = y - int(size / 2)
+        gridCellSize = size/GRID_COLUMNS_NUMBER, size/GRID_ROWS_NUMBER
+        gridPelletProportion = []
+        gridCellMidPoint = [left + gridCellSize[0]/2, top + gridCellSize[1]/2]
+        # Create pellet representation
+        totalPellets = len(self.field.getPelletsInFov(midPoint, size))
+        for i in range(GRID_ROWS_NUMBER*GRID_COLUMNS_NUMBER):
+            gridCellMidPoint[0] += gridCellSize[0]*r
+            gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
+            # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
+            # work on interpretting the number of pellets relative to the size (and Fov) of the player
+            gridPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
+        # for c in range(GRID_ROWS_NUMBER):
+        #     rowPelletProportion = []
+        #     for r in range(GRID_COLUMNS_NUMBER):
+        #         gridCellMidPoint[0] += gridCellSize[0]*r
+        #         gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
+        #         rowPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
+        #         # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
+        #         # work on interpretting the number of pellets relative to the size (and Fov) of the player
+        #     gridPelletProportion.append(rowPelletProportion)
+        #     gridCellSize[0] = left + gridCellSize[0]/2
+        #     gridCellSize[1] += gridCellSize[1]*c 
+
+        #Create player representation
+
+
     def qLearn(self):
         #After S has been initialized, set S as oldState and take action A based on policy
         if self.oldState == None:
             self.lastMass = self.player.getTotalMass()
-            newState = self.getStateRepresentation()
-            self.lastAction = max(self.actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
+            newState = self.getSimpleStateRepresentation()
+            self.currentAction = max(self.actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
         else:
             # Get current State, Reward and the old State
             reward = self.getReward()
+            newState = None
             if self.player.getIsAlive():
-                newState = self.getStateRepresentation()
+                newState = self.getSimpleStateRepresentation()
+                if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
+                    if self.player.getIsAlive():
+                        print("state: ", end=" ")
+                        for number in newState:
+                            print(round(number, 2), end=" ")
+                        print(" ")
             if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
-                if self.player.getIsAlive():
-                    print("state: ", end=" ")
-                    for number in newState:
-                        print(round(number, 2), end=" ")
-                    print(" ")
                 print("reward: ", round(reward, 2))
                 print(" ")
             if self.expRepEnabled:
                 # Fit value network using experience replay of random past states:
-                self.experienceReplay(reward)
+                self.experienceReplay(reward, newState)
             else:
                 # Fit value network using only the current experience
-
-
                 # If the player died, the target is the reward
                 if not self.player.getIsAlive():
                     target = numpy.array([reward])
@@ -160,26 +192,20 @@ class Bot(object):
                     newAction = max(self.actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
                     qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
                     target = reward + self.discount * qValueNew
-                self.valueNetwork.fit(numpy.array([self.oldState + self.lastAction]), target, verbose=0)
+                self.valueNetwork.fit(numpy.array([self.oldState + self.currentAction]), target, verbose=0)
                 if self.player.getIsAlive():
-                    # Choose actions according to policy:
-                    if numpy.random.random(1) > self.epsilon:
-                        self.lastAction = self.actions[numpy.random.randint(len(self.actions))]
-                    else:
-                        qValues = [self.valueNetwork.predict(numpy.array([action + newState])) for action in self.actions]
-                        maxIndex = numpy.argmax(qValues)
-                        self.lastAction = self.actions[maxIndex]
+                    self.takeAction(newState)
+
         if not self.player.getIsAlive():
             self.oldState = None
         else:
             self.oldState = newState
 
-    def experienceReplay(self, reward):
+    def experienceReplay(self, reward, newState):
         if self.player.getIsAlive():
-            newState = self.getStateRepresentation()
-            self.remember(self.oldState, self.lastAction, reward, newState)
+            self.remember(self.oldState, self.currentAction, reward, newState)
         len_memory = len(self.memories)
-        inputSize = len(self.oldState) + len(self.lastAction)
+        inputSize = len(self.oldState) + len(self.currentAction)
         outputSize = 1
         training_memory_count = min(self.memoriesPerUpdate, len_memory)
         # Fit value network on memories
@@ -207,34 +233,35 @@ class Bot(object):
         if self.type == "NN":
             self.qLearn()
         elif self.type == "Greedy":
-            if self.player.getIsAlive():
-                midPoint = self.player.getFovPos()
-                size = self.player.getFovSize()
-                cellsInFov = self.field.getPelletsInFov(midPoint, size)
+            if not self.player.getIsAlive():
+                return
+            midPoint = self.player.getFovPos()
+            size = self.player.getFovSize()
+            cellsInFov = self.field.getPelletsInFov(midPoint, size)
 
-                playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
-                firstPlayerCell = self.player.getCells()[0]
-                for opponentCell in playerCellsInFov:
-                    # If the single celled bot can eat the opponent cell add it to list
-                    if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
-                        cellsInFov.append(opponentCell)
-                if cellsInFov:
-                    bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
-                    bestCellPos = bestCell.getPos()
-                    self.lastAction[0] = bestCellPos[0]
-                    self.lastAction[1] = bestCellPos[1]
-                else:
-                    size = int(size / 2)
-                    self.lastAction[0] = numpy.random.random()
-                    self.lastAction[1] = numpy.random.random()
-                randNumSplit = numpy.random.randint(0,10000)
-                randNumEject = numpy.random.randint(0,10000)
-                self.lastAction[2] = False
-                self.lastAction[3] = False
-                if randNumSplit > self.splitLikelihood:
-                    self.lastAction[2] = True
-                if randNumEject > self.ejectLikelihood:
-                    self.lastAction[3] = True
+            playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
+            firstPlayerCell = self.player.getCells()[0]
+            for opponentCell in playerCellsInFov:
+                # If the single celled bot can eat the opponent cell add it to list
+                if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
+                    cellsInFov.append(opponentCell)
+            if cellsInFov:
+                bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
+                bestCellPos = bestCell.getPos()
+                self.currentAction[0] = bestCellPos[0]
+                self.currentAction[1] = bestCellPos[1]
+            else:
+                size = int(size / 2)
+                self.currentAction[0] = numpy.random.random()
+                self.currentAction[1] = numpy.random.random()
+            randNumSplit = numpy.random.randint(0,10000)
+            randNumEject = numpy.random.randint(0,10000)
+            self.currentAction[2] = False
+            self.currentAction[3] = False
+            if randNumSplit > self.splitLikelihood:
+                self.currentAction[2] = True
+            if randNumEject > self.ejectLikelihood:
+                self.currentAction[3] = True
 
         if self.player.getIsAlive():
             midPoint = self.player.getFovPos()
@@ -244,12 +271,22 @@ class Bot(object):
             left = x - int(size / 2)
             top = y - int(size / 2)
             size = int(size)
-            xChoice = left + self.lastAction[0] * size
-            yChoice = top + self.lastAction[1] * size
-            splitChoice = True if self.lastAction[2] > 0.5 else False
-            ejectChoice = True if self.lastAction[3] > 0.5 else False
+            xChoice = left + self.currentAction[0] * size
+            yChoice = top + self.currentAction[1] * size
+            splitChoice = True if self.currentAction[2] > 0.5 else False
+            ejectChoice = True if self.currentAction[3] > 0.5 else False
 
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
+
+    def takeAction(self, newState):
+        if numpy.random.random(1) > self.epsilon:
+            self.currentAction = self.actions[numpy.random.randint(len(self.actions))]
+        else:
+            qValues = [self.valueNetwork.predict(numpy.array([action + newState])) for action in self.actions]
+            maxIndex = numpy.argmax(qValues)
+            self.currentAction = self.actions[maxIndex]
+        
+
 
     def saveModel(self):
         self.valueNetwork.save(self.type + "_latestModel.h5")
