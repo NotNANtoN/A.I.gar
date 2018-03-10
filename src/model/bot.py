@@ -86,7 +86,7 @@ class Bot(object):
         top = y - int(size / 2)
         size = int(size)
         pelletsInFov = self.field.getPelletsInFov(midPoint, size)
-        closestPelletPos = self.getRelativeCellPos(max(pelletsInFov, key=lambda p: p.getMass()), left, top,
+        closestPelletPos = self.getRelativeCellPos(min(pelletsInFov, key=lambda p: p.squaredDistance(firstPlayerCell)), left, top,
                                                    size) if pelletsInFov else [0, 0]
         playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
         firstPlayerCell = self.player.getCells()[0]
