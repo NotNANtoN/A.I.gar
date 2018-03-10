@@ -76,7 +76,7 @@ class Bot(object):
     def getRelativeCellPos(self, cell, left, top, size):
         return [(cell.getX() - left) / size, (cell.getY() - top) / size]
 
-    def getStateRepresentation(self):
+    def getSimpleStateRepresentation(self):
         size = self.player.getFovSize()
         midPoint = self.player.getFovPos()
         x = int(midPoint[0])
@@ -111,12 +111,45 @@ class Bot(object):
         totalInfo += closestPelletPos
         return totalInfo
 
+    def getGridStateRepresentation(self):
+        size = self.player.getFovSize()
+        midPoint = self.player.getFovPos()
+        x = int(midPoint[0])
+        y = int(midPoint[1])
+        left = x - int(size / 2)
+        top = y - int(size / 2)
+        gridCellSize = size/GRID_COLUMNS_NUMBER, size/GRID_ROWS_NUMBER
+        gridPelletProportion = []
+        gridCellMidPoint = [left + gridCellSize[0]/2, top + gridCellSize[1]/2]
+        # Create pellet representation
+        totalPellets = len(self.field.getPelletsInFov(midPoint, size))
+        for i in range(GRID_ROWS_NUMBER*GRID_COLUMNS_NUMBER):
+            gridCellMidPoint[0] += gridCellSize[0]*r
+            gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
+            # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
+            # work on interpretting the number of pellets relative to the size (and Fov) of the player
+            gridPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
+        # for c in range(GRID_ROWS_NUMBER):
+        #     rowPelletProportion = []
+        #     for r in range(GRID_COLUMNS_NUMBER):
+        #         gridCellMidPoint[0] += gridCellSize[0]*r
+        #         gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
+        #         rowPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
+        #         # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
+        #         # work on interpretting the number of pellets relative to the size (and Fov) of the player
+        #     gridPelletProportion.append(rowPelletProportion)
+        #     gridCellSize[0] = left + gridCellSize[0]/2
+        #     gridCellSize[1] += gridCellSize[1]*c 
+
+        #Create player representation
+
+
 
     def qLearn(self):
         actions = self.possibleLimitedActions
         #After S has been initialized, set S as oldState and take action A based on policy
         if self.oldState == None:
-            newState = self.getStateRepresentation()
+            newState = self.getSimpleStateRepresentation()
             self.lastMass = self.player.getTotalMass()
             newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
         else:
@@ -133,13 +166,13 @@ class Bot(object):
                     print(round(info, 2), end=" ")
                 print(" ")
                 print("Action: ", newAction)
-                if round(reward, 2) > 0 or round(reward, 2) < 0:
-                  print("reward: ", round(reward, 2))
+            if round(reward, 2) > 0 or round(reward, 2) < 0:
+                print("reward: ", round(reward, 2))
 
-                print(" ")
+                #print(" ")
             # If the player died, the target is the reward
             if self.player.getIsAlive():
-                newState = self.getStateRepresentation()
+                newState = self.getSimpleStateRepresentation()
                 newAction = max(actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
                 qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
                 target = reward + self.discount * qValueNew
@@ -174,7 +207,6 @@ class Bot(object):
           print(self.currentAction)
         # Check if end of episode (player death)
         
-
 
     def update(self):
     

@@ -407,6 +407,10 @@ class Field(object):
         playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovSize())
         return [cell for cell in playerCellsInFov if cell.getPlayer() is not fovPlayer]
 
+    def getEnemyPlayerCellsInGivenFov(self, fovPlayer, fovPos, fovSize):
+        playerCellsInFov = self.getPlayerCellsInFov(fovPos, fovSize)
+        return [cell for cell in playerCellsInFov if cell.getPlayer() is not fovPlayer]
+
     def getPelletsInFov(self, fovPos, fovSize):
         pelletsNearFov = self.getCellsFromHashTableInFov(self.pelletHashTable, fovPos, fovSize)
         return self.getPortionOfCellsInFov(pelletsNearFov, fovPos, fovSize)
