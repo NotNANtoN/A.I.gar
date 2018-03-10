@@ -238,6 +238,11 @@ class Bot(object):
                 return
             midPoint = self.player.getFovPos()
             size = self.player.getFovSize()
+            x = int(midPoint[0])
+            y = int(midPoint[1])
+            left = x - int(size / 2)
+            top = y - int(size / 2)
+
             cellsInFov = self.field.getPelletsInFov(midPoint, size)
 
             playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
@@ -248,7 +253,7 @@ class Bot(object):
                     cellsInFov.append(opponentCell)
             if cellsInFov:
                 bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
-                bestCellPos = bestCell.getPos()
+                bestCellPos = self.getRelativeCellPos(bestCell, left, top, size)
                 self.currentAction[0] = bestCellPos[0]
                 self.currentAction[1] = bestCellPos[1]
             else:
