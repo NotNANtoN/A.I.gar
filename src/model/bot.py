@@ -142,6 +142,9 @@ class Bot(object):
         #     gridCellSize[1] += gridCellSize[1]*c 
 
         #Create player representation
+        playerCells = self.getEnemyPlayerCellsInFov(self.player)
+        
+
 
 
 
