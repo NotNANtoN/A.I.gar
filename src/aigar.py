@@ -35,9 +35,9 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model1, type, expRep):
+def createBots(number, model1, type, expRep, gridView):
     for i in range(number):
-        model1.createBot(type, expRep)
+        model1.createBot(type, expRep, gridView)
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
@@ -52,13 +52,15 @@ if __name__ == '__main__':
     numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
     numberOfBots = numberOfGreedyBots
     if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfGreedyBots, model, "Greedy", False)
+        createBots(numberOfGreedyBots, model, "Greedy", False, False)
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
-    if fitsLimitations(numberOfBots, MAXBOTS):
-        enableExpReplay = int(input("Do you want to enable experience replay? (1=yes)"))
-        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1)
+    if fitsLimitations(numberOfBots, MAXBOTS) and numberOfNNBots > 0:
+        enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
+        enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
+        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1)
+
 
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
