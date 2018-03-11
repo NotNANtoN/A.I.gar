@@ -19,17 +19,12 @@ class Bot(object):
     actionLen = 4
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(20, input_dim= stateReprLen + actionLen, activation='relu',
-                           bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
-                           kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
-    valueNetwork.add(Dense(10,  activation='relu',
-                        bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
-                        kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
+    valueNetwork.add(Dense(20, input_dim= stateReprLen + actionLen, activation='relu'))
+    valueNetwork.add(Dense(10,  activation='relu'))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
-    valueNetwork.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0,
-                        stddev=0.05, seed=None),))
+    valueNetwork.add(Dense(1, activation='linear'))
     valueNetwork.compile(loss='mean_squared_error',
-                              optimizer=keras.optimizers.SGD(lr=0.002, momentum=0.9, nesterov=True))
+                              optimizer=keras.optimizers.SGD(lr=0.0001, momentum=0.0, nesterov=True))
 
 
     memoryCapacity = 500
@@ -61,7 +56,7 @@ class Bot(object):
         if self.type == "NN":
             self.lastMass = None
             self.reward = None
-            self.discount = 0.99
+            self.discount = 0.995
             self.epsilon = 0.9
         else:
             self.splitLikelihood = numpy.random.randint(9950,10000)
@@ -140,7 +135,7 @@ class Bot(object):
         # Create pellet representation
         totalPellets = len(self.field.getPelletsInFov(midPoint, size))
         for i in range(GRID_ROWS_NUMBER*GRID_COLUMNS_NUMBER):
-            gridCellMidPoint[0] += gridCellSize[0]*r
+            gridCellMidPoint[0] += gridCellSize[0] * r
             gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
             # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
             # work on interpretting the number of pellets relative to the size (and Fov) of the player
@@ -177,6 +172,11 @@ class Bot(object):
             oppositeAction[0] = abs(1 - self.currentAction[0])
             oppositeAction[1] = abs(1 - self.currentAction[1])
             oppositeAction[2:4] = self.currentAction[2:4]
+            predictedReward = round(self.valueNetwork.predict(numpy.array([self.oldState + self.currentAction]))[0][0],
+                                    5)
+            predictedOppositeReward = round(
+                self.valueNetwork.predict(numpy.array([self.oldState + oppositeAction]))[0][0], 5)
+
             if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
                 if self.oldState:
                     print("state: ", end=" ")
@@ -187,11 +187,8 @@ class Bot(object):
                     print("currentAction: ", self.currentAction)
                     print("oppositeAction: ", oppositeAction)
                 print("reward: ", round(reward, 2))
-                predictedReward = round(self.valueNetwork.predict(numpy.array([self.oldState + self.currentAction]))[0][0], 4)
                 print("predicted reward (Q(s,a)): ", predictedReward)
-
-                print("predicted reward opposite action (Q(s,a)): ", round(self.valueNetwork.predict(numpy.array([self.oldState
-                                                                                            + oppositeAction])))[0][0], 4)
+                print("predicted reward opposite action (Q(s,a)): ", predictedOppositeReward)
                 if math.isnan(predictedReward):
                     print("ERROR: predicted reward is nan")
                     quit()
@@ -199,12 +196,7 @@ class Bot(object):
             if self.expRepEnabled:
                 # Fit value network using experience replay of random past states:
                 self.experienceReplay(reward, newState)
-                if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
-                  print("updated prediction after training (Q(s,a)): ", round(self.valueNetwork.predict(numpy.array([self.oldState
-                                                                                            + self.currentAction])))[0][0], 4)
-                  print("updated prediction opposite action after training (Q(s,a)): ", round(self.valueNetwork.predict(numpy.array([self.oldState
-                                                                                            + oppositeAction])))[0][0], 4)
-                  print("")
+
             else:
                 # Fit value network using only the current experience
                 # If the player died, the target is the reward
@@ -214,9 +206,26 @@ class Bot(object):
                     newAction = max(self.actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
                     qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
                     target = reward + self.discount * qValueNew
-                self.valueNetwork.fit(numpy.array([self.oldState + self.currentAction]), target, verbose=0)
+                if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
+                    print("target: ", target[0])
+                #self.valueNetwork.fit(numpy.array([self.oldState + self.currentAction]), target, verbose=0)
+                self.valueNetwork.train_on_batch(numpy.array([self.oldState + self.currentAction]), target)
+            if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
+                updatedPrediction = round(self.valueNetwork.predict(numpy.array([self.oldState
+                                                                   + self.currentAction]))[0][0], 5)
+                print("updated prediction after training (Q(s,a)): ",
+                      updatedPrediction)
+                print("prediction changed by: ", round(predictedReward - updatedPrediction,6))
+                updatedOppositePrediction = round(self.valueNetwork.predict(numpy.array([self.oldState
+                                                                   + oppositeAction]))[0][0], 5)
+                print("updated prediction opposite action after training (Q(s,a)): ",
+                      updatedOppositePrediction)
+                print("opposite prediction changed by: ", round(predictedOppositeReward - updatedOppositePrediction,6))
+
+                print("")
             if self.player.getIsAlive():
                 self.takeAction(newState)
+
 
         if not self.player.getIsAlive():
             self.oldState = None
@@ -249,6 +258,7 @@ class Bot(object):
             inputs[idx] =  s + a
             targets[idx] = target
         self.valueNetwork.train_on_batch(inputs, targets)
+        #self.valueNetwork.fit(inputs, targets)
 
 
     def update(self):

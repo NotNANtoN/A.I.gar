@@ -27,8 +27,6 @@ class Model(object):
         self.screenHeight = None
         self.counter = 0
         self.timings = []
-        self.maxMasses = []
-
 
     def initialize(self):
         self.field.initialize()
@@ -48,7 +46,7 @@ class Model(object):
             self.notify()
         if __debug__:
             self.printDebugInfo()
-            self.visualize(timeProcessStart)
+        self.visualize(timeProcessStart)
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
@@ -61,25 +59,14 @@ class Model(object):
                 savedTypes.append(type)
 
     def visualize(self, timeStart):
-        playerCells = self.field.getPlayerCells()
-        maxMass = max(playerCells, key=lambda p: p.getMass()).getMass()
         stepsTillUpdate = 100
         self.timings.append(time.process_time() - timeStart)
         if self.counter % stepsTillUpdate == 0:
             print(" ")
-            print("avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
-            print("counter: ", self.counter)
-            print("biggest cell mass: ", maxMass)
+            print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
+            print("Step: ", self.counter)
             print(" ")
         self.counter += 1
-        self.maxMasses.append(maxMass)
-
-        if self.counter % 5000 == 0:
-            plt.plot(self.maxMasses, self.timings, 'o')
-            plt.xlabel("Maximum Masses")
-            plt.ylabel("Time taken for update")
-            print("mean time: ", str(numpy.mean(self.timings)))
-            plt.show()
 
 
     # Setters:
