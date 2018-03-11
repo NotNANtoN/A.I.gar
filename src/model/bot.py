@@ -19,10 +19,10 @@ class Bot(object):
     actionLen = 4
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(50, input_dim= stateReprLen + actionLen, activation='relu',
+    valueNetwork.add(Dense(20, input_dim= stateReprLen + actionLen, activation='relu',
                            bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                            kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
-    valueNetwork.add(Dense(25,  activation='relu',
+    valueNetwork.add(Dense(10,  activation='relu',
                         bias_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None),
                         kernel_initializer = keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None)))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
@@ -87,8 +87,6 @@ class Bot(object):
         top = y - int(size / 2)
         size = int(size)
         pelletsInFov = self.field.getPelletsInFov(midPoint, size)
-        closestPelletPos = self.getRelativeCellPos(max(pelletsInFov, key=lambda p: p.getMass()), left, top,
-                                                   size) if pelletsInFov else [0, 0]
         playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
         firstPlayerCell = self.player.getCells()[0]
         closestEnemyCell = min(playerCellsInFov,
@@ -111,6 +109,9 @@ class Bot(object):
             totalInfo += [0, 0, 0]
         else:
             totalInfo += self.isRelativeCellData(closestEnemyCell, left, top, size, maximumCellMass)
+        closestPelletPos = self.getRelativeCellPos(min(pelletsInFov, key=lambda p: p.squaredDistance(firstPlayerCell)),
+                                                   left, top,
+                                                   size) if pelletsInFov else [0, 0]
         totalInfo += closestPelletPos
         return totalInfo
 
@@ -198,9 +199,9 @@ class Bot(object):
                 else:
                     newState = self.getSimpleStateRepresentation()
                 if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
-                    if self.player.getIsAlive():
+                    if self.oldState:
                         print("state: ", end=" ")
-                        for number in newState:
+                        for number in self.oldState:
                             print(round(number, 2), end=" ")
                         print(" ")
             if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
@@ -263,6 +264,11 @@ class Bot(object):
                 return
             midPoint = self.player.getFovPos()
             size = self.player.getFovSize()
+            x = int(midPoint[0])
+            y = int(midPoint[1])
+            left = x - int(size / 2)
+            top = y - int(size / 2)
+
             cellsInFov = self.field.getPelletsInFov(midPoint, size)
 
             playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
@@ -273,7 +279,7 @@ class Bot(object):
                     cellsInFov.append(opponentCell)
             if cellsInFov:
                 bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
-                bestCellPos = bestCell.getPos()
+                bestCellPos = self.getRelativeCellPos(bestCell, left, top, size)
                 self.currentAction[0] = bestCellPos[0]
                 self.currentAction[1] = bestCellPos[1]
             else:
