@@ -15,11 +15,11 @@ class Bot(object):
         if action[2] and action[3]:
             actions.remove(action)
 
-    stateReprLen = 6
+    stateReprLen = 10
     actionLen = 4
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(20, input_dim= stateReprLen + actionLen, activation='relu'))
+    valueNetwork.add(Dense(25, input_dim= stateReprLen + actionLen, activation='relu'))
     valueNetwork.add(Dense(10,  activation='relu'))
     # self.valueNetwork.add(Dense(10, activation = 'relu'))
     valueNetwork.add(Dense(1, activation='linear'))
@@ -107,6 +107,13 @@ class Bot(object):
                                                    left, top,
                                                    size) if pelletsInFov else [0, 0]
         totalInfo += closestPelletPos
+        width = self.field.getWidth()
+        height = self.field.getHeight()
+        distLeft = x / size if left <= 0 else 1
+        distRight = (width - x) / size if left + size >= width else 1
+        distTop = y / size if top <= 0 else 1
+        distBottom = (height - y) / size if top + size >= height else 1
+        totalInfo += [distLeft, distRight, distTop, distBottom]
         return totalInfo
 
     def remember(self, state, action, reward, newState):
@@ -215,12 +222,12 @@ class Bot(object):
                                                                    + self.currentAction]))[0][0], 5)
                 print("updated prediction after training (Q(s,a)): ",
                       updatedPrediction)
-                print("prediction changed by: ", round(predictedReward - updatedPrediction,6))
+                print("prediction changed by: ", round(updatedPrediction - predictedReward,6))
                 updatedOppositePrediction = round(self.valueNetwork.predict(numpy.array([self.oldState
                                                                    + oppositeAction]))[0][0], 5)
                 print("updated prediction opposite action after training (Q(s,a)): ",
                       updatedOppositePrediction)
-                print("opposite prediction changed by: ", round(predictedOppositeReward - updatedOppositePrediction,6))
+                print("opposite prediction changed by: ", round(updatedOppositePrediction - predictedOppositeReward,6))
 
                 print("")
             if self.player.getIsAlive():
