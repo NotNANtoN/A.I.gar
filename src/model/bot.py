@@ -29,10 +29,10 @@ class Bot(object):
     valueNetwork.add(Dense(1, activation='linear', bias_initializer = keras.initializers.TruncatedNormal(mean=0.0,
                         stddev=0.05, seed=None),))
     valueNetwork.compile(loss='mean_squared_error',
-                              optimizer=keras.optimizers.SGD(lr=0.001, momentum=0.8, nesterov=True))
+                              optimizer=keras.optimizers.SGD(lr=0.002, momentum=0.9, nesterov=True))
 
 
-    memoryCapacity = 200
+    memoryCapacity = 500
     memoriesPerUpdate = 10
     memories = []
 
@@ -118,7 +118,7 @@ class Bot(object):
         # Store current state, action, reward, state pair in memory
         # Delete oldest memory if memory is at full capacity
         if len(self.memories) > self.memoryCapacity:
-            if numpy.random.random() > 0.8:
+            if numpy.random.random() > 0.0:
                 del self.memories[0]
             else:
                 self.memories.remove(min(self.memories, key = lambda memory: abs(memory[2])))
@@ -172,18 +172,39 @@ class Bot(object):
             newState = None
             if self.player.getIsAlive():
                 newState = self.getSimpleStateRepresentation()
-                if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
-                    if self.oldState:
-                        print("state: ", end=" ")
-                        for number in self.oldState:
-                            print(round(number, 2), end=" ")
-                        print(" ")
+
+            oppositeAction = [0, 0, 0, 0]
+            oppositeAction[0] = abs(1 - self.currentAction[0])
+            oppositeAction[1] = abs(1 - self.currentAction[1])
+            oppositeAction[2:4] = self.currentAction[2:4]
             if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
+                if self.oldState:
+                    print("state: ", end=" ")
+                    for number in self.oldState:
+                        print(round(number, 2), end=" ")
+                    print(" ")
+                if self.currentAction:
+                    print("currentAction: ", self.currentAction)
+                    print("oppositeAction: ", oppositeAction)
                 print("reward: ", round(reward, 2))
-                print(" ")
+                predictedReward = round(self.valueNetwork.predict(numpy.array([self.oldState + self.currentAction]))[0][0], 4)
+                print("predicted reward (Q(s,a)): ", predictedReward)
+
+                print("predicted reward opposite action (Q(s,a)): ", round(self.valueNetwork.predict(numpy.array([self.oldState
+                                                                                            + oppositeAction])))[0][0], 4)
+                if math.isnan(predictedReward):
+                    print("ERROR: predicted reward is nan")
+                    quit()
+
             if self.expRepEnabled:
                 # Fit value network using experience replay of random past states:
                 self.experienceReplay(reward, newState)
+                if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
+                  print("updated prediction after training (Q(s,a)): ", round(self.valueNetwork.predict(numpy.array([self.oldState
+                                                                                            + self.currentAction])))[0][0], 4)
+                  print("updated prediction opposite action after training (Q(s,a)): ", round(self.valueNetwork.predict(numpy.array([self.oldState
+                                                                                            + oppositeAction])))[0][0], 4)
+                  print("")
             else:
                 # Fit value network using only the current experience
                 # If the player died, the target is the reward
@@ -194,8 +215,8 @@ class Bot(object):
                     qValueNew = self.valueNetwork.predict(numpy.array([newAction + newState]))
                     target = reward + self.discount * qValueNew
                 self.valueNetwork.fit(numpy.array([self.oldState + self.currentAction]), target, verbose=0)
-                if self.player.getIsAlive():
-                    self.takeAction(newState)
+            if self.player.getIsAlive():
+                self.takeAction(newState)
 
         if not self.player.getIsAlive():
             self.oldState = None
@@ -220,7 +241,7 @@ class Bot(object):
             r = memory[2]
             sPrime = memory[3]
             target = r
-            # If the memory state is not final, then sPrime is not empty:
+            # If the memory state is not final, then sPrime is not empty, so we need to adjust the target:
             if sPrime:
                 aPrime = max(self.actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + sPrime])))
                 qValueNew = self.valueNetwork.predict(numpy.array([aPrime + sPrime]))
@@ -299,7 +320,7 @@ class Bot(object):
 
     def getReward(self):
         if not self.player.getIsAlive():
-            reward = -1 * self.lastMass
+            reward = -2 * self.lastMass
             self.lastMass = None
             return reward
         currentMass = self.player.getTotalMass()
