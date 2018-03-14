@@ -15,7 +15,7 @@ class Bot(object):
         if action[2] and action[3]:
             actions.remove(action)
 
-    stateReprLen = 4*3+1
+    stateReprLen = 6
     actionLen = 4
 
     valueNetwork = Sequential()
@@ -198,15 +198,16 @@ class Bot(object):
                     newState = self.getGridStateRepresentation()
                 else:
                     newState = self.getSimpleStateRepresentation()
+            if __debug__:
                 if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
                     if self.oldState:
                         print("state: ", end=" ")
                         for number in self.oldState:
                             print(round(number, 2), end=" ")
                         print(" ")
-            if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
-                print("reward: ", round(reward, 2))
-                print(" ")
+                if round(reward, 2) > 0.1 or round(reward, 2) < -0.1:
+                    print("reward: ", round(reward, 2))
+                    print(" ")
             if self.expRepEnabled:
                 # Fit value network using experience replay of random past states:
                 self.experienceReplay(reward, newState)
