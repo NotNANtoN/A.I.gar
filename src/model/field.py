@@ -70,7 +70,7 @@ class Field(object):
                 continue
             blob.updateMomentum()
             blob.updatePos(self.width, self.height)
-        for blob in notMovingBlobs:  
+        for blob in notMovingBlobs:
             self.blobs.remove(blob)
             self.blobHashTable.deleteObject(blob)
             self.addPellet(blob)
@@ -173,7 +173,7 @@ class Field(object):
             if player.getIsAlive():
                 for cell in player.getCells():
                     for pellet in self.pelletHashTable.getNearbyObjects(cell):
-                        if cell.overlap(pellet):
+                        if cell.overlap(pellet) and cell.canEat(pellet):
                             self.eatPellet(cell, pellet)
 
     def playerBlobOverlap(self):
@@ -182,7 +182,7 @@ class Field(object):
                 for cell in player.getCells():
                     for blob in self.blobHashTable.getNearbyObjects(cell):
                         # If the ejecter player's cell is not the one overlapping with blob
-                        if cell.overlap(blob) and blob.getEjecterCell() is not cell:
+                        if cell.overlap(blob) and blob.getEjecterCell() is not cell and cell.canEat(blob):
                             self.eatBlob(cell, blob)
 
 

@@ -27,6 +27,8 @@ class Model(object):
         self.screenHeight = None
         self.counter = 0
         self.timings = []
+        self.rewards = []
+        self.tdErrors = []
 
     def initialize(self):
         self.field.initialize()
@@ -49,7 +51,12 @@ class Model(object):
         self.visualize(timeProcessStart)
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
-
+        for bot in self.bots:
+            if bot.getType() != "Greedy" and bot.lastMass and bot.getPlayer().getIsAlive():
+                reward = bot.getReward()
+                tdError = bot.getTDError(reward)
+                self.rewards.append(reward)
+                self.tdErrors.append(abs(tdError))
         self.counter += 1
 
     def saveModels(self):
@@ -62,10 +69,15 @@ class Model(object):
 
     def visualize(self, timeStart):
         stepsTillUpdate = 100
+        numReward = len(self.rewards)
         self.timings.append(time.process_time() - timeStart)
         if self.counter % stepsTillUpdate == 0:
+            recentMeanReward = numpy.mean(self.rewards[numReward - stepsTillUpdate:])
+            recentMeanTDError = numpy.mean(self.tdErrors[numReward - stepsTillUpdate:])
             print(" ")
             print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
+            print("Avg reward last 100 steps: ", recentMeanReward)
+            print("Avg TD-Error last 100 steps: ", recentMeanTDError)
             print("Step: ", self.counter)
             print(" ")
 

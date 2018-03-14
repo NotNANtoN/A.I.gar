@@ -112,10 +112,10 @@ class Bot(object):
             target += self.discount * action_Q_values[newActionIdx]
         return target
 
-    def createInputOutputPair(self, state, reward, alive):
+    def createInputOutputPair(self, state, actionIdx, reward, newState, alive):
         state_Q_values = self.valueNetwork.predict(numpy.array([state]))[0]
-        target = self.calculateTarget(state, reward, alive)
-        state_Q_values[self.currentActionIdx] = target
+        target = self.calculateTarget(newState, reward, alive)
+        state_Q_values[actionIdx] = target
         return numpy.array([state]), numpy.array([state_Q_values])
 
     def qLearn(self):
@@ -137,7 +137,7 @@ class Bot(object):
             else:
                 # Fit value network using only the current experience
                 # If the player died, the target is the reward
-                input, target = self.createInputOutputPair(self.oldState, reward, alive)
+                input, target = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward, newState, alive)
                 self.valueNetwork.train_on_batch(input, target)
             if alive:
                 self.takeAction(newState)
@@ -145,6 +145,7 @@ class Bot(object):
         if alive:
             self.oldState = newState
         else:
+            self.lastMass = None
             self.oldState = None
 
     def experienceReplay(self, reward, newState):
@@ -181,7 +182,7 @@ class Bot(object):
             r = memory[2]
             sPrime = memory[3]
             alive = (sPrime != None)
-            input, target = self.createInputOutputPair(s, r, alive)
+            input, target = self.createInputOutputPair(s, a, r, sPrime, alive)
             inputs[idx] = input
             targets[idx] = target
         self.valueNetwork.train_on_batch(inputs, targets)
@@ -371,12 +372,17 @@ class Bot(object):
         return [self.isRelativeCellData(cells[idx], left, top, size) if idx < totalCells else [0, 0, 0]
                      for idx in range(1)]
 
-
+    def getTDError(self, reward):
+        if self.oldState and self.player.getIsAlive():
+            newState = self.getStateRepresentation()
+            target = self.calculateTarget(newState, reward, True)
+            predictedValue = self.valueNetwork.predict(numpy.array([self.oldState]))[0][self.currentActionIdx]
+            return target - predictedValue
+        return None
 
     def getReward(self):
         if not self.player.getIsAlive():
             reward = -1 * self.lastMass
-            self.lastMass = None
             return reward
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
