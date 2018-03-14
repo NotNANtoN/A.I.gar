@@ -50,6 +50,8 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
+        self.counter += 1
+
     def saveModels(self):
         savedTypes = []
         for bot in self.bots:
@@ -66,7 +68,6 @@ class Model(object):
             print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
             print("Step: ", self.counter)
             print(" ")
-        self.counter += 1
 
 
     # Setters:
@@ -155,6 +156,9 @@ class Model(object):
 
     def getPlayers(self):
         return self.players
+
+    def getBots(self):
+        return self.bots
 
     def getPlayerCells(self):
         return self.field.getPlayerCells()

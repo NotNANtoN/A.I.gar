@@ -78,6 +78,11 @@ class View:
         rad = int(self.modelToViewScaleRadius(unscaledRad, fovSize))
         pos = self.modelToViewScaling(unscaledPos, fovPos, fovSize).astype(int)
         if rad >= 4:
+            if __debug__:
+                for bot in self.model.getBots():
+                    botPlayer = bot.getPlayer()
+                    if bot.exploring and botPlayer is cell.getPlayer():
+                        color = (255, 0, 0)
             pygame.gfxdraw.filled_circle(screen, pos[0], pos[1], rad, color)
             if cell.getName() == "Virus":
                 # Give Viruses a black surrounding circle
