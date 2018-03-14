@@ -45,8 +45,9 @@ class Bot(object):
     valueNetwork2.compile(loss='mean_squared_error',
                               optimizer=keras.optimizers.SGD(lr=0.5, momentum=0.0, nesterov=True))
 
-    def __init__(self, player, field, type, expRepEnabled):
+    def __init__(self, player, field, type, expRepEnabled, gridViewEnabled):
         self.expRepEnabled = expRepEnabled
+        self.gridViewEnabled = gridViewEnabled
         self.type = type
         self.player = player
         self.field = field
@@ -137,44 +138,68 @@ class Bot(object):
         y = int(midPoint[1])
         left = x - int(size / 2)
         top = y - int(size / 2)
-        gridCellSize = size/GRID_COLUMNS_NUMBER, size/GRID_ROWS_NUMBER
-        gridPelletProportion = []
-        gridCellMidPoint = [left + gridCellSize[0]/2, top + gridCellSize[1]/2]
-        # Create pellet representation
+        # ATTENTION: We are assuming gridSquares don't have the ability to be rectangular
+        gsSize = [size/GRID_COLUMNS_NUMBER, size/GRID_ROWS_NUMBER] #(gs = grid square)
+        gsMidPoint = [left + gsSize[0]/2, top + gsSize[1]/2]
+        # Pellet vision grid related
+        gsPelletProportion = []
         totalPellets = len(self.field.getPelletsInFov(midPoint, size))
-        for i in range(GRID_ROWS_NUMBER*GRID_COLUMNS_NUMBER):
-            gridCellMidPoint[0] += gridCellSize[0] * r
-            gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
-            # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
-            # work on interpretting the number of pellets relative to the size (and Fov) of the player
-            gridPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
-        # for c in range(GRID_ROWS_NUMBER):
-        #     rowPelletProportion = []
-        #     for r in range(GRID_COLUMNS_NUMBER):
-        #         gridCellMidPoint[0] += gridCellSize[0]*r
-        #         gridPelletNumber = len(self.field.getPelletsInFov(gridCellMidPoint, gridCellSize))
-        #         rowPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
-        #         # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
-        #         # work on interpretting the number of pellets relative to the size (and Fov) of the player
-        #     gridPelletProportion.append(rowPelletProportion)
-        #     gridCellSize[0] = left + gridCellSize[0]/2
-        #     gridCellSize[1] += gridCellSize[1]*c 
-
-        #Create player representation
-
+        # Mass vision grid related
+        gsBiggestEnemyCellMassProportion = []
+        playerMass = self.player.getCells()[0].getMass()
+        enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
+        # Player cell number vision greed related
+        gsEnemyCellCount = []
+        totalEnemyCells = len(enemyCells)
+        for c in range(GRID_ROWS_NUMBER):
+            for r in range(GRID_COLUMNS_NUMBER):
+                # Create pellet representation
+                # Make the visionGrid's pellet count a percentage so that the network doesn't have to 
+                # work on interpretting the number of pellets relative to the size (and Fov) of the player
+                gridPelletNumber = len(self.field.getPelletsInFov(gsMidPoint, gsSize[0]))
+                gsPelletProportion.append(gridPelletNumber/totalPellets if totalPellets != 0 else 0)
+                
+                # Create Enemy Cell mass representation
+                # Make the visionGrid's enemy cell representation a percentage. The player's mass
+                # in proportion to the biggest enemy cell's mass in each grid square.
+                gsEnemyCells = self.field.getEnemyPlayerCellsInGivenFov(self.player, gsMidPoint, gsSize[0])
+                if gsEnemyCells == []:
+                    gsBiggestEnemyCellMassProportion.append(0)
+                else:
+                    biggestEnemyCellMassInSquare = max(gsEnemyCells, key = lambda p: p.getMass()).getMass()
+                    gsBiggestEnemyCellMassProportion.append(playerMass/biggestEnemyCellMassInSquare)
+                
+                # Create Enemy Cell number representation
+                # Just a grid with number of enemy cells on each square
+                gsEnemyCellCount.append(len(gsEnemyCells)/totalEnemyCells if totalEnemyCells !=0 else 0)
+                # Increment grid square position horizontally
+                gsMidPoint[0] += gsSize[0]
+            # Reset horizontal grid square, increment grid square position
+            gsMidPoint[0] = left + gsSize[0]/2
+            gsMidPoint[1] += gsSize[1]
+        # Collect all relevant data
+        totalInfo = gsPelletProportion + gsBiggestEnemyCellMassProportion + gsEnemyCellCount
+        totalInfo += [self.player.getCells()[0].getMass()]
+        return totalInfo
 
     def qLearn(self):
         #After S has been initialized, set S as oldState and take action A based on policy
         if self.oldState == None:
             self.lastMass = self.player.getTotalMass()
-            newState = self.getSimpleStateRepresentation()
+            if self.gridViewEnabled:
+                newState = self.getGridStateRepresentation()
+            else:
+                newState = self.getSimpleStateRepresentation()
             self.currentAction = max(self.actions, key=lambda p: self.valueNetwork.predict(numpy.array([p + newState])))
         else:
             # Get current State, Reward and the old State
             reward = self.getReward()
             newState = None
             if self.player.getIsAlive():
-                newState = self.getSimpleStateRepresentation()
+                if self.gridViewEnabled:
+                    newState = self.getGridStateRepresentation()
+                else:
+                    newState = self.getSimpleStateRepresentation()
 
             oppositeAction = [0, 0, 0, 0]
             oppositeAction[0] = abs(1 - self.currentAction[0])

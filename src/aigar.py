@@ -36,9 +36,9 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, expRep, modelName, explore = True):
+def createBots(number, model, type, expRep, gridView, modelName, explore = True):
     for i in range(number):
-        model.createBot(type, expRep)
+        model.createBot(type, expRep, gridView)
     # Load a stored model:
     if modelName is not None:
         for bot in model.getBots():
@@ -64,21 +64,23 @@ if __name__ == '__main__':
     numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
     numberOfBots = numberOfGreedyBots
     if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfGreedyBots, model, "Greedy", False, None)
+        createBots(numberOfGreedyBots, model, "Greedy", False, False, None)
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
     if fitsLimitations(numberOfBots, MAXBOTS):
         modelName = None
-        loadModel = int(input("Do you want to load a model? (1=yes) (2=load model from last run)\n"))
+        loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last run)\n"))
         if loadModel == 1:
             while modelName == None:
                 modelName = input("Enter the model name (without .h5): ")
         if loadModel == 2:
             modelName = "NN_latestModel"
-        enableExpReplay = int(input("Do you want to enable experience replay? (1=yes)\n"))
-        explore = int(input("Do you want to enable exploration?"))
-        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, modelName, explore == 1)
+        enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
+        enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
+        explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
+        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1, modelName, explore == 1)
+
 
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
