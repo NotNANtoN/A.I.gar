@@ -36,7 +36,7 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, expRep, modelName):
+def createBots(number, model, type, expRep, modelName, explore = True):
     for i in range(number):
         model.createBot(type, expRep)
     # Load a stored model:
@@ -45,6 +45,10 @@ def createBots(number, model, type, expRep, modelName):
             if bot.getType() == type:
                 Bot.valueNetwork = load_model(modelName + ".h5")
                 break
+    if explore == False:
+        for bot in model.getBots():
+            if bot.getType() == type:
+                bot.setEpsilon(1)
 
 
 if __name__ == '__main__':
@@ -73,7 +77,8 @@ if __name__ == '__main__':
         if loadModel == 2:
             modelName = "NN_latestModel"
         enableExpReplay = int(input("Do you want to enable experience replay? (1=yes)\n"))
-        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, modelName)
+        explore = int(input("Do you want to enable exploration?"))
+        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, modelName, explore == 1)
 
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()

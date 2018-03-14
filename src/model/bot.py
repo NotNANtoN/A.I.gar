@@ -362,6 +362,9 @@ class Bot(object):
             return
         self.valueNetwork.save(path)
 
+    def setEpsilon(self, val):
+        self.epsilon = val
+
     def getReward(self):
         if not self.player.getIsAlive():
             reward = -1 * self.lastMass
