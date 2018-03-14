@@ -340,6 +340,7 @@ class Bot(object):
             if decision == 1:
                 name = input("Enter the name of the model: ")
                 self.saveModel(name)
+                return
             else:
                 path = self.type + "_latestModel.h5"
                 print("No specific name chosen, saving model under: ", path )
