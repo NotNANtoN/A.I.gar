@@ -111,8 +111,9 @@ class Cell(object):
         self.setMass(newMass)
 
     def decayMass(self):
-        newMass = self.mass * CELL_MASS_DECAY_RATE
-        self.setMass(newMass)
+        if self.mass >= 4:
+            newMass = self.mass * CELL_MASS_DECAY_RATE
+            self.setMass(newMass)
 
     def updateMerge(self):
         if self.mergeTime > 0:

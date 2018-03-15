@@ -2,6 +2,8 @@ from random import randint
 
 class Player(object):
     """docstring for Player"""
+    stepsUntilRespawn = 1
+
     def __repr__(self):
         return self.name
 
@@ -18,6 +20,7 @@ class Player(object):
         self.doEject = False
         self.fovPos = []
         self.fovSize = None
+        self.respawnTime = 0
 
     def update(self, fieldWidth, fieldHeight):
         if self.isAlive:
@@ -58,6 +61,9 @@ class Player(object):
         for cell in self.cells:
             cell.updatePos(fieldWidth, fieldHeight)
 
+    def updateRespawnTime(self):
+        self.respawnTime -= 1
+
     # Setters:
     def setMoveTowards(self, relativeMousePos):
         self.commandPoint = relativeMousePos
@@ -86,14 +92,17 @@ class Player(object):
         self.doEject = val
 
     def setDead(self):
-        self.isAlive = False
+        self.respawnTime = self.stepsUntilRespawn
 
     def setAlive(self):
-        self.isAlive = True
+        self.respawnTime = 0
 
     # Checks:
 
     # Getters:
+    def getRespawnTime(self):
+        return self.respawnTime
+
     def getTotalMass(self):
         return sum(cell.getMass() for cell in self.cells) if self.cells else 0
 
@@ -146,7 +155,7 @@ class Player(object):
         return self.name
 
     def getIsAlive(self):
-        return self.isAlive
+        return self.respawnTime == 0
 
     def getCommandPoint(self):
         return self.commandPoint

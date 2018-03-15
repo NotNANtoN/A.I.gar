@@ -113,4 +113,6 @@ if __name__ == '__main__':
         controller.process_input()
         model.update()
 
+    model.plotTDerror()
     model.saveModels()
+

@@ -41,9 +41,8 @@ class Bot(object):
         if self.type == "NN":
             self.lastMass = None
             self.reward = None
-            self.discount = 0.995
-            self.epsilon = 0.925
-            self.exploreStepsMax = 10
+            self.discount = 0.9
+            self.epsilon = 0.9
         else:
             self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = numpy.random.randint(9990,10000)
@@ -103,33 +102,35 @@ class Bot(object):
 
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
-    def calculateTarget(self, state, reward, alive):
+    def calculateTarget(self, newState, reward, alive):
         target = reward
         if alive:
             # The target is the reward plus the discounted prediction of the value network
-            action_Q_values = self.valueNetwork.predict(numpy.array([state]))[0]
+            action_Q_values = self.valueNetwork.predict(numpy.array([newState]))[0]
             newActionIdx = numpy.argmax(action_Q_values)
             target += self.discount * action_Q_values[newActionIdx]
         return target
 
-    def createInputOutputPair(self, state, actionIdx, reward, newState, alive):
-        state_Q_values = self.valueNetwork.predict(numpy.array([state]))[0]
+    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive):
+        state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState, reward, alive)
+        if abs(round(reward, 2)) > 1.5:
+            print("state to be updated: ", oldState)
+            print("reward: " ,round(reward, 2))
+            print("Qvalue of action before trainig: ", round(state_Q_values[actionIdx], 4))
+            print("Target Qvalue of that action: ", round(target, 4))
+            print("All qvalues: ", numpy.round(state_Q_values, 3))
         state_Q_values[actionIdx] = target
-        return numpy.array([state]), numpy.array([state_Q_values])
+        return numpy.array([oldState]), numpy.array([state_Q_values])
 
     def qLearn(self):
         #After S has been initialized, set S as oldState and take action A based on policy
         alive = self.player.getIsAlive()
-        if self.oldState == None:
-            # If no oldState then the current state is the first state of an episode
-            self.lastMass = self.player.getTotalMass()
-            newState = self.getStateRepresentation()
-            self.takeAction(newState)
-        else:
-            # Get current state and reward
+        newState = self.getStateRepresentation()
+
+        if self.oldState:
+            # Get current reward
             reward = self.getReward()
-            newState = self.getStateRepresentation()
             # Either use experience replay or fit on current experience
             if self.expRepEnabled:
                 # Fit value network using experience replay of random past states:
@@ -139,10 +140,15 @@ class Bot(object):
                 # If the player died, the target is the reward
                 input, target = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward, newState, alive)
                 self.valueNetwork.train_on_batch(input, target)
-            if alive:
-                self.takeAction(newState)
+
+                updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([self.oldState]))[0][self.currentActionIdx]
+                if abs(round(reward, 2)) > 1.5:
+                    print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
+                    print("")
 
         if alive:
+            self.takeAction(newState)
+            self.lastMass = self.player.getTotalMass()
             self.oldState = newState
         else:
             self.lastMass = None
@@ -191,12 +197,12 @@ class Bot(object):
         # Take random action with probability 1 - epsilon
         if numpy.random.random(1) > self.epsilon:
             self.currentActionIdx = numpy.random.randint(len(self.actions))
-            self.currentAction = self.actions[self.currentActionIdx]
         else:
             # Take action based on greediness towards Q values
             qValues = self.valueNetwork.predict(numpy.array([newState]))
-            self.currentActionIdx = numpy.argmax(qValues)
-            self.currentAction = self.actions[self.currentActionIdx]
+            argMax = numpy.argmax(qValues)
+            self.currentActionIdx = argMax
+        self.currentAction = self.actions[self.currentActionIdx]
 
     def getStateRepresentation(self):
         if self.player.getIsAlive():
@@ -382,14 +388,20 @@ class Bot(object):
 
     def getReward(self):
         if not self.player.getIsAlive():
-            reward = -1 * self.lastMass
-            return reward
+            return 0
+        return self.player.getTotalMass()
+
+        '''
+        if self.lastMass is None:
+            return None
+        if not self.player.getIsAlive():
+            return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
-        self.lastMass = currentMass
         if abs(reward) < 0.1:
-            return reward - 1
+            reward -=  1
         return reward
+        '''
 
     def getType(self):
         return self.type

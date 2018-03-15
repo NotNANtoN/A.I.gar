@@ -55,7 +55,6 @@ class Field(object):
         self.mergePlayerCells()
         self.checkOverlaps()
         self.spawnStuff()
-        self.checkForDeadPlayers()
 
     def updateViruses(self):
         for virus in self.viruses:
@@ -81,6 +80,8 @@ class Field(object):
                 player.update(self.width, self.height)
                 self.performEjections(player)
                 self.handlePlayerCollisions(player)
+            else:
+                player.updateRespawnTime()
 
     def updateHashTables(self):
         self.playerHashTable.clearBuckets()
@@ -239,18 +240,9 @@ class Field(object):
 
     def spawnPlayers(self):
         for player in self.deadPlayers[:]:
-            self.deadPlayers.remove(player)
-            self.initializePlayer(player)
-        # for player in self.players:
-        #     if not player.getCells():
-        #         self.initializePlayer(player)
-        #         self.deadPlayers.append(player)
-
-    def checkForDeadPlayers(self):
-        for player in self.players[:]:
-            if not player.getCells():
-                self.deadPlayers.append(player)
-                player.setDead()
+            if player.getRespawnTime() == 0:
+                self.deadPlayers.remove(player)
+                self.initializePlayer(player)
 
     def getSpawnPos(self, radius):
         cols = self.playerHashTable.getCols()
@@ -353,6 +345,10 @@ class Field(object):
         self.playerHashTable.deleteObject(playerCell)
         player = playerCell.getPlayer()
         player.removeCell(playerCell)
+        if not player.getCells():
+            self.deadPlayers.append(player)
+            player.setDead()
+
 
     def randomSize(self):
         maxRand = 50
