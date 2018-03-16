@@ -22,6 +22,8 @@ class Player(object):
         self.fovSize = None
         self.respawnTime = 0
 
+        self.selected = False
+
     def update(self, fieldWidth, fieldHeight):
         if self.isAlive:
             self.decayMass()
@@ -65,6 +67,9 @@ class Player(object):
         self.respawnTime -= 1
 
     # Setters:
+    def setSelected(self, val):
+        self.selected = val
+
     def setMoveTowards(self, relativeMousePos):
         self.commandPoint = relativeMousePos
 
@@ -100,6 +105,9 @@ class Player(object):
     # Checks:
 
     # Getters:
+    def getSelected(self):
+        return self.selected
+
     def getRespawnTime(self):
         return self.respawnTime
 
