@@ -13,6 +13,8 @@ class Controller:
         self.screenWidth, self.screenHeight = self.view.getScreenDims()
         self.running = True
         self.viewEnabled = viewEnabled
+        self.selectedPlayer = None
+        self.paused = False
 
     def process_input(self):
         humanList = self.model.getHumans()
@@ -60,10 +62,7 @@ class Controller:
                 # "Escape" to Quit
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                #elif event.key == pygame.K_b:
-                #    self.model.createBot()
-                #    player = self.model.players[-1]
-                #    self.model.getField().initializePlayer(player)
+
                 if humanList:
                     #Human1 controls
                     human1 = humanList[0]
@@ -102,6 +101,7 @@ class Controller:
                             elif event.key == pygame.K_r:
                                 human3.addMass(human3.getTotalMass() * 0.2)
 
+
                 if self.model.hasPlayerSpectator() and not humanList:
                     spectatedPlayer = self.model.getSpectatedPlayer()
                     if event.key == pygame.K_RIGHT:
@@ -118,10 +118,24 @@ class Controller:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     self.model.setViewEnabled(True)
                 if event.type == pygame.MOUSEBUTTONUP:
-                    self.model.setViewEnabled(False)
+                    fovPos = self.model.getFovPos(None)
+                    fovSize = self.model.getFovSize(None)
+                    relativeMousePos = self.view.viewToModelScaling(pygame.mouse.get_pos(), fovPos, fovSize)
+                    if self.selectedPlayer:
+                        self.selectedPlayer.setSelected(False)
+                        self.selectedPlayer = None
+                    for cell in self.model.getPlayerCells():
+                        radius = cell.getRadius()
+                        if cell.squareDist(cell.getPos(), relativeMousePos) < radius * radius:
+                            self.selectedPlayer = cell.getPlayer()
+                            self.selectedPlayer.setSelected(True)
+                    if not self.selectedPlayer:
+                        self.model.setViewEnabled(False)
 
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self, human, mousePos, humanNr):
-        relativeMousePos = self.view.viewToModelScaling(mousePos, humanNr)
+        fovPos = self.model.getFovPos(humanNr)
+        fovSize = self.model.getFovSize(humanNr)
+        relativeMousePos = self.view.viewToModelScaling(mousePos, fovPos, fovSize)
         human.setMoveTowards(relativeMousePos)

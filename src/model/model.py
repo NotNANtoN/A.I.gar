@@ -30,6 +30,7 @@ class Model(object):
         self.rewards = []
         self.tdErrors = []
         self.meanErrors = []
+        self.meanRewards = []
 
     def initialize(self):
         self.field.initialize()
@@ -52,16 +53,16 @@ class Model(object):
         self.visualize(timeProcessStart)
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
-        rewards = []
-        errors = []
+
+
         for bot in self.bots:
             if bot.getType() != "Greedy":
-                reward = bot.getReward() if bot.getReward() is not None else 0
-                tdError = bot.getTDError(reward) if bot.getTDError(reward) is not None else 0
-                rewards.append(reward)
-                errors.append(abs(tdError))
-        self.rewards.append(numpy.mean(rewards))
-        self.tdErrors.append(numpy.mean(errors))
+                if bot.oldState:
+                    reward = bot.getReward()
+                    tdError = bot.getTDError(reward)
+                    self.rewards.append(reward)
+                    self.tdErrors.append(abs(tdError))
+
         self.counter += 1
 
     def saveModels(self):
@@ -77,22 +78,43 @@ class Model(object):
         numReward = len(self.rewards)
         self.timings.append(time.process_time() - timeStart)
         if self.counter % stepsTillUpdate == 0 and self.counter != 0:
-            recentRewards = self.rewards[numReward - stepsTillUpdate:]
-            recentMeanReward = numpy.mean(recentRewards)
-            recentTDs = self.tdErrors[numReward - stepsTillUpdate:]
-            recentMeanTDError = numpy.mean(recentTDs)
+            recentMeanReward = numpy.mean(self.rewards)
+            recentMeanTDError = numpy.mean(self.tdErrors)
             self.meanErrors.append(recentMeanTDError)
+            self.meanRewards.append(recentMeanReward)
             print(" ")
             print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
-            print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(recentRewards),4), " Max: ", round(max(recentRewards), 4))
-            print("Avg TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(recentRewards),4), " Max: ", round(max(recentRewards), 4))
+            print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
+            print("Avg TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
             print(" ")
+            self.tdErrors = []
+            self.rewards = []
+
+            for bot in self.bots:
+                if bot.getType() == "NN" and bot.currentActionIdx and bot.oldState:
+                    valueNetworkPredict = bot.valueNetwork.predict(numpy.array([bot.oldState]))[0][bot.currentActionIdx]
+                    targetNetworkPredict = bot.targetNetwork.predict(numpy.array([bot.oldState]))[0][bot.currentActionIdx]
+                    reward = bot.getReward()
+                    newState = bot.getStateRepresentation()
+                    target = bot.calculateTarget(newState, reward, bot.getPlayer().getIsAlive())
+                    print("State: ", bot.oldState)
+                    print("Action: ", bot.currentAction)
+                    print("ValueNetwork prediction: ", valueNetworkPredict)
+                    print("TargetNetwork prediction: ", targetNetworkPredict)
+                    print("Target: ", target)
+                    print("TD-Error: ", bot.getTDError(reward))
+                    break
+
 
     def plotTDerror(self):
         plt.plot(range(len(self.meanErrors)), self.meanErrors)
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running TD-Error avg of the last 100 steps")
+        plt.show()
+        plt.plot(range(len(self.meanRewards)), self.meanRewards)
+        plt.xlabel("Steps in hundreds")
+        plt.ylabel("Running Reward avg of the last 100 steps")
         plt.show()
 
 
