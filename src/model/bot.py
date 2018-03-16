@@ -16,7 +16,7 @@ class Bot(object):
         if action[2] and action[3]:
             actions.remove(action)
     num_actions = len(actions)
-    stateReprLen = 12
+    stateReprLen = 13
     actionLen = 4
 
     valueNetwork = Sequential()
@@ -114,12 +114,13 @@ class Bot(object):
     def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive):
         state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState, reward, alive)
-        if abs(round(reward, 2)) > 1.5:
-            print("state to be updated: ", oldState)
-            print("reward: " ,round(reward, 2))
-            print("Qvalue of action before trainig: ", round(state_Q_values[actionIdx], 4))
-            print("Target Qvalue of that action: ", round(target, 4))
-            print("All qvalues: ", numpy.round(state_Q_values, 3))
+        if __debug__:
+            if abs(round(reward, 2)) > 1.5:
+                print("state to be updated: ", oldState)
+                print("reward: " ,round(reward, 2))
+                print("Qvalue of action before trainig: ", round(state_Q_values[actionIdx], 4))
+                print("Target Qvalue of that action: ", round(target, 4))
+                print("All qvalues: ", numpy.round(state_Q_values, 3))
         state_Q_values[actionIdx] = target
         return numpy.array([oldState]), numpy.array([state_Q_values])
 
@@ -142,9 +143,10 @@ class Bot(object):
                 self.valueNetwork.train_on_batch(input, target)
 
                 updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([self.oldState]))[0][self.currentActionIdx]
-                if abs(round(reward, 2)) > 1.5:
-                    print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
-                    print("")
+                if __debug__:
+                    if abs(round(reward, 2)) > 1.5:
+                        print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
+                        print("")
 
         if alive:
             self.takeAction(newState)
