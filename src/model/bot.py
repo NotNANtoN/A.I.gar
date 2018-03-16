@@ -151,15 +151,7 @@ class Bot(object):
     def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive):
         state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState, reward, alive)
-<<<<<<< HEAD
-        if __debug__:
-            if abs(round(reward, 2)) > 1.5:
-                print("state to be updated: ", oldState)
-                print("reward: " ,round(reward, 2))
-                print("Qvalue of action before trainig: ", round(state_Q_values[actionIdx], 4))
-                print("Target Qvalue of that action: ", round(target, 4))
-                print("All qvalues: ", numpy.round(state_Q_values, 3))
-=======
+
         td_error = target - state_Q_values[actionIdx]
         if  __debug__ and self.player.getSelected():
             print("")
@@ -171,7 +163,6 @@ class Bot(object):
             print("Target Qvalue of that action: ", round(target, 4))
             print("All qvalues: ", numpy.round(state_Q_values, 3))
             print("TD-Error: ", td_error)
->>>>>>> 55695082461799e081c7a6cd8f98b64d7e1f38b9
         state_Q_values[actionIdx] = target
         return numpy.array([oldState]), numpy.array([state_Q_values]), td_error
 
@@ -212,19 +203,12 @@ class Bot(object):
                 print("TD-Error: ", td_error)
                 print("")
 
-<<<<<<< HEAD
-                updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([self.oldState]))[0][self.currentActionIdx]
-                if __debug__:
-                    if abs(round(reward, 2)) > 1.5:
-                        print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
-                        print("")
-=======
+
             # Update the target network after 1000 steps
             self.targetNetworkSteps -= 1
             if self.targetNetworkSteps == 0:
                 self.targetNetwork.set_weights(self.valueNetwork.get_weights())
                 self.targetNetworkSteps = 1000 * self.num_NNbots
->>>>>>> 55695082461799e081c7a6cd8f98b64d7e1f38b9
 
         if alive:
             self.takeAction(newState)
