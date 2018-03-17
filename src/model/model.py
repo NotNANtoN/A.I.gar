@@ -59,7 +59,7 @@ class Model(object):
 
         for bot in self.bots:
             if bot.getType() != "Greedy":
-                if bot.oldState:
+                if bot.currentActionIdx:
                     reward = bot.getReward()
                     tdError = bot.getTDError(reward)
                     self.rewards.append(abs(reward))

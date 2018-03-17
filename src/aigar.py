@@ -39,11 +39,12 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, expRep, gridView, modelName, explore = True):
+def createBots(number, model, type, expRep, gridView, modelName, explore = True, gridSquarePerFov = 0):
     if type == "NN":
         Bot.num_NNbots = number
+        Bot.gridSquaresPerFov = gridSquarePerFov
         if gridView:
-            Bot.stateReprLen = 37
+            Bot.stateReprLen = 6 * Bot.gridSquaresPerFov * Bot.gridSquaresPerFov
         else:
             Bot.stateReprLen = 12
         Bot.initializeNNs(Bot.stateReprLen)
@@ -92,8 +93,13 @@ if __name__ == '__main__':
             modelName = "mostRecentAutosave"
         enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
         enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
+        if enableGridView == 1:
+            gridSquaresPerFov = int(input("How many grid squares do you want per side?"))
+        else:
+            gridSquaresPerFov = 0
         explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
-        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1, modelName, explore == 1)
+        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1, modelName, explore == 1,
+                   gridSquaresPerFov)
 
 
     if numberOfBots == 0 and not viewEnabled:
