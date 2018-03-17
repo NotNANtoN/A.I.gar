@@ -31,7 +31,7 @@ class Bot(object):
             actions.remove(action)
 
     num_actions = len(actions)
-    stateReprLen = 12
+    stateReprLen = 9*4+1
     actionLen = 4
 
     weight_initializer_range = math.sqrt(6 / (stateReprLen + num_actions))
@@ -402,9 +402,8 @@ class Bot(object):
         y = int(midPoint[1])
         left = x - int(size / 2)
         top = y - int(size / 2)
-        # ATTENTION: We are assuming gridSquares don't have the ability to be rectangular
-        gsSize = [size / GRID_COLUMNS_NUMBER, size / GRID_ROWS_NUMBER]  # (gs = grid square)
-        gsMidPoint = [left + gsSize[0] / 2, top + gsSize[1] / 2]
+        gsSize = size / GRID_SIDE_LENGTH  # (gs = grid square)
+        gsMidPoint = [left + gsSize / 2, top + gsSize/ 2]
         # Pellet vision grid related
         gsPelletProportion = []
         totalPellets = len(self.field.getPelletsInFov(midPoint, size))
@@ -412,21 +411,24 @@ class Bot(object):
         gsBiggestEnemyCellMassProportion = []
         playerMass = self.player.getCells()[0].getMass()
         enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
-        # Player cell number vision greed related
+        # Player cell number vision grid related
         gsEnemyCellCount = []
         totalEnemyCells = len(enemyCells)
-        for c in range(GRID_ROWS_NUMBER):
-            for r in range(GRID_COLUMNS_NUMBER):
+        #Wall vision grid
+        gsWalls = []
+
+        for c in range(GRID_SIDE_LENGTH):
+            for r in range(GRID_SIDE_LENGTH):
                 # Create pellet representation
                 # Make the visionGrid's pellet count a percentage so that the network doesn't have to
                 # work on interpretting the number of pellets relative to the size (and Fov) of the player
-                gridPelletNumber = len(self.field.getPelletsInFov(gsMidPoint, gsSize[0]))
+                gridPelletNumber = len(self.field.getPelletsInFov(gsMidPoint, gsSize))
                 gsPelletProportion.append(gridPelletNumber / totalPellets if totalPellets != 0 else 0)
 
                 # Create Enemy Cell mass representation
                 # Make the visionGrid's enemy cell representation a percentage. The player's mass
                 # in proportion to the biggest enemy cell's mass in each grid square.
-                gsEnemyCells = self.field.getEnemyPlayerCellsInGivenFov(self.player, gsMidPoint, gsSize[0])
+                gsEnemyCells = self.field.getEnemyPlayerCellsInGivenFov(self.player, gsMidPoint, gsSize)
                 if gsEnemyCells == []:
                     gsBiggestEnemyCellMassProportion.append(0)
                 else:
@@ -436,13 +438,22 @@ class Bot(object):
                 # Create Enemy Cell number representation
                 # Just a grid with number of enemy cells on each square
                 gsEnemyCellCount.append(len(gsEnemyCells) / totalEnemyCells if totalEnemyCells != 0 else 0)
+
+                # Create Wall representation
+                # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
+                if gsMidPoint[0] - gsSize/2 < 0 or gsMidPoint[0] + gsSize/2 or \
+                  gsMidPoint[1] - gsSize/2 < 0 or gsMidPoint[1] + gsSize/2:
+                    gsWalls.append(1)
+                else:
+                    gsWalls.append(0)
+
                 # Increment grid square position horizontally
-                gsMidPoint[0] += gsSize[0]
+                gsMidPoint[0] += gsSize
             # Reset horizontal grid square, increment grid square position
-            gsMidPoint[0] = left + gsSize[0] / 2
-            gsMidPoint[1] += gsSize[1]
+            gsMidPoint[0] = left + gsSize / 2
+            gsMidPoint[1] += gsSize
         # Collect all relevant data
-        totalInfo = gsPelletProportion + gsBiggestEnemyCellMassProportion + gsEnemyCellCount
+        totalInfo = gsPelletProportion + gsBiggestEnemyCellMassProportion + gsEnemyCellCount + gsWalls
         totalInfo += [self.player.getCells()[0].getMass()]
         return totalInfo
 
