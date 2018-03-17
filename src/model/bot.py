@@ -250,7 +250,7 @@ class Bot(object):
             #else:
             #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
         if self.player.getIsAlive():
-            newMemory = [state, action, reward, newState]
+            newMemory = [state, action, reward, newState.tolist()]
         else:
             newMemory = [state, action, reward, None]
         heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory))
@@ -261,7 +261,7 @@ class Bot(object):
         a = memory[1]
         r = memory[2]
         sPrime = memory[3]
-        alive = (sPrime != None)
+        alive = (sPrime is not None)
         return self.createInputOutputPair(s, a, r, sPrime, alive)
 
     def train_on_experience(self):
@@ -325,7 +325,6 @@ class Bot(object):
                 stateRepr =  self.getGridStateRepresentation()
             else:
                 stateRepr =  self.getSimpleStateRepresentation()
-                #stateRepr = self.getOnlyPelletStateRepresentation()
         return stateRepr
 
     def getSimpleStateRepresentation(self):
@@ -365,7 +364,7 @@ class Bot(object):
         distBottom = (height - y) / size if top + size >= height else 1
         totalInfo += [distLeft, distRight, distTop, distBottom]
         return totalInfo
-    
+
     def getGridStateRepresentation(self):
         fieldSize = self.field.getWidth()
         size = self.player.getFovSize()
@@ -432,7 +431,8 @@ class Bot(object):
                 # Create Virus Cell representation
                 virusesInGridCell = self.field.getVirusesInFov(gsMidPoint, gsSize)
                 if virusesInGridCell:
-                    gsVirus[count] = max(virusesInGridCell, key = lambda virus: virus.getRadius())
+                    biggestVirus = max(virusesInGridCell, key = lambda virus: virus.getRadius()).getRadius()
+                    gsVirus[count] = biggestVirus / biggestRadiusInFov
 
                 # Create Enemy Cell number representation
                 # Just a grid with number of enemy cells on each square
