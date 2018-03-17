@@ -31,7 +31,7 @@ class Bot(object):
             actions.remove(action)
 
     num_actions = len(actions)
-    stateReprLen = 12
+    stateReprLen = 9*4+1
     actionLen = 4
 
     weight_initializer_range = math.sqrt(6 / (stateReprLen + num_actions))
@@ -397,7 +397,7 @@ class Bot(object):
         y = int(midPoint[1])
         left = x - int(size / 2)
         top = y - int(size / 2)
-        gsSize = [size / GRID_SIDE_LENGTH]  # (gs = grid square)
+        gsSize = size / GRID_SIDE_LENGTH  # (gs = grid square)
         gsMidPoint = [left + gsSize / 2, top + gsSize/ 2]
         # Pellet vision grid related
         gsPelletProportion = []
@@ -412,8 +412,8 @@ class Bot(object):
         #Wall vision grid
         gsWalls = []
 
-        for c in range(GRID_ROWS_NUMBER):
-            for r in range(GRID_COLUMNS_NUMBER):
+        for c in range(GRID_SIDE_LENGTH):
+            for r in range(GRID_SIDE_LENGTH):
                 # Create pellet representation
                 # Make the visionGrid's pellet count a percentage so that the network doesn't have to
                 # work on interpretting the number of pellets relative to the size (and Fov) of the player
@@ -448,7 +448,7 @@ class Bot(object):
             gsMidPoint[0] = left + gsSize / 2
             gsMidPoint[1] += gsSize
         # Collect all relevant data
-        totalInfo = gsPelletProportion + gsBiggestEnemyCellMassProportion + gsEnemyCellCount
+        totalInfo = gsPelletProportion + gsBiggestEnemyCellMassProportion + gsEnemyCellCount + gsWalls
         totalInfo += [self.player.getCells()[0].getMass()]
         return totalInfo
 
