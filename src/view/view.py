@@ -59,6 +59,18 @@ class View:
             cells = self.model.getPlayerCells()
             fovPos = self.model.getFovPos(humanNr)
             fovSize = self.model.getFovSize(humanNr)
+            pFovPos = self.model.getPlayers()[humanNr].getFovPos()
+            pFovSize = self.model.getPlayers()[humanNr].getFovSize()
+            pFovPos = self.modelToViewScaling(pFovPos, fovPos, fovSize)
+            pygame.draw.line(self.playerScreens[humanNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]-pFovSize/2],
+                            [pFovPos[0]+pFovSize/2, pFovPos[1]-pFovSize/2])
+            pygame.draw.line(self.playerScreens[humanNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]-pFovSize/2],
+                            [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2])
+            pygame.draw.line(self.playerScreens[humanNr], BLACK, [pFovPos[0]+pFovSize/2, pFovPos[1]-pFovSize/2],
+                            [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
+            pygame.draw.line(self.playerScreens[humanNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2],
+                            [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
+                #numpy.array(psp.astype(int)) - numpy.array((pss/2).astype(int)), numpy.array(psp.astype(int)) + numpy.array((pss/2).astype(int)))
             for cell in cells:
                 pos = numpy.array(cell.getPos())
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)

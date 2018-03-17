@@ -31,7 +31,7 @@ class Bot(object):
             actions.remove(action)
 
     num_actions = len(actions)
-    stateReprLen = 13
+    stateReprLen = 12
     actionLen = 4
 
     weight_initializer_range = math.sqrt(6 / (stateReprLen + num_actions))
