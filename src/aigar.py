@@ -1,11 +1,14 @@
-from model.model import *
-from view.view import View
-from view.startScreen import StartScreen
-from controller.controller import Controller
-from model.parameters import *
-from keras.models import load_model
-import sys
 import os
+import sys
+
+from keras.models import load_model
+
+from controller.controller import Controller
+from model.model import *
+from model.parameters import *
+from view.startScreen import StartScreen
+from view.view import View
+
 
 def modelMustHavePlayers():
     print("Model must have players")
@@ -113,6 +116,13 @@ if __name__ == '__main__':
         controller.process_input()
         model.update()
 
-    model.plotTDerror()
-    model.saveModels()
-
+    path = "model"
+    newPath = path
+    counter = 0
+    while os.path.exists(newPath):
+        newPath = path + "-" + str(counter)
+        counter += 1
+    os.makedirs(newPath)
+    newPath += "/"
+    model.saveModels(newPath)
+    model.plotTDerror(newPath)

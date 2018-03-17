@@ -1,11 +1,11 @@
-import numpy
 import heapq
-import math
+
 import keras
-from .parameters import *
+import numpy
+from keras.layers import Dense
 from keras.models import Sequential
-from keras.layers import Dense, Activation
-import os.path
+
+from .parameters import *
 
 
 class Memory(object):
@@ -457,12 +457,16 @@ class Bot(object):
         totalInfo += [self.player.getCells()[0].getMass()]
         return totalInfo
 
-    def saveModel(self, name = None):
+    def saveModel(self, path):
+        self.valueNetwork.save(path + self.type + "_model.h5")
+
+    '''
+    def saveModel(self, superPath, name = None):
         if name == None:
             decision = int(input("Do you want to give the model a name? (1=yes)"))
             if decision == 1:
                 name = input("Enter the name of the model: ")
-                self.saveModel(name)
+                self.saveModel(superPath, name)
                 return
             else:
                 path = self.type + "_latestModel.h5"
@@ -474,17 +478,17 @@ class Bot(object):
             decision = 0
             while decision != 1 and decision != 2 and decision != 3:
                 decision = int(input("Model with name \'" +  path +
-                             "\' already exists. Do you want to overwrite(1) it, save it under a different name(2), or don't save it(3)?\n"))
+                             "\' already exists. Do you want to overwrite(0) it, save it under a different name(1), or don't save it(2)?\n"))
             if decision == 1:
-                self.valueNetwork.save(path)
+                self.valueNetwork.save(superPath + path)
             elif decision == 2:
                 name = input("Enter the changed name: ")
-                self.saveModel(name)
+                self.saveModel(superPath, name)
             elif decision == 3:
                 print("Model of type ", self.type, " not saved!")
             return
-        self.valueNetwork.save(path)
-
+        self.valueNetwork.save(superPath + path)
+    '''
     def setEpsilon(self, val):
         self.epsilon = val
 

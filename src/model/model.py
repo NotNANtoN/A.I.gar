@@ -1,11 +1,13 @@
 import time
+
+import matplotlib.pyplot as plt
 import numpy
 
 from .bot import Bot
 from .field import Field
 from .parameters import *
 from .player import Player
-import matplotlib.pyplot as plt
+
 
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
@@ -65,13 +67,13 @@ class Model(object):
 
         self.counter += 1
 
-    def saveModels(self):
+    def saveModels(self, path):
         savedTypes = []
         for bot in self.bots:
-            type = bot.getType()
-            if type != "Greedy" and type not in savedTypes:
-                bot.saveModel()
-                savedTypes.append(type)
+            botType = bot.getType()
+            if botType != "Greedy" and botType not in savedTypes:
+                bot.saveModel(path)
+                savedTypes.append(botType)
 
     def visualize(self, timeStart):
         stepsTillUpdate = 100
@@ -106,19 +108,24 @@ class Model(object):
                     print("TD-Error: ", bot.getTDError(reward))
                     break
 
-
-    def plotTDerror(self):
+    def plotTDerror(self, path):
         res = 10 #running error step
         meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,))/res, mode='valid')
         meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
         plt.plot(range(len(meanOfmeanError)), meanOfmeanError)
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running TD-Error avg of the last 100 steps")
+        fig = plt.figure()
+        fig.savefig(path + "TD-Errors.png")
         plt.show()
         plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards)
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running Reward avg of the last 100 steps")
-        plt.show()
+        fig = plt.figure()
+        fig.savefig(path + "Reward.png")
+
+
+
 
 
     # Setters:
