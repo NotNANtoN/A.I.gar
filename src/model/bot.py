@@ -396,6 +396,7 @@ class Bot(object):
         return totalInfo
 
     def getGridStateRepresentation(self):
+        fieldSize = self.field.getWidth()
         size = self.player.getFovSize()
         midPoint = self.player.getFovPos()
         x = int(midPoint[0])
@@ -441,8 +442,8 @@ class Bot(object):
 
                 # Create Wall representation
                 # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
-                if gsMidPoint[0] - gsSize/2 < 0 or gsMidPoint[0] + gsSize/2 or \
-                  gsMidPoint[1] - gsSize/2 < 0 or gsMidPoint[1] + gsSize/2:
+                if gsMidPoint[0] - gsSize/2 <= 0 or gsMidPoint[0] + gsSize/2 >= fieldSize or \
+                  gsMidPoint[1] - gsSize/2 <= 0 or gsMidPoint[1] + gsSize/2 >= fieldSize:
                     gsWalls.append(1)
                 else:
                     gsWalls.append(0)
