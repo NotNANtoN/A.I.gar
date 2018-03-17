@@ -18,7 +18,7 @@ class Bot(object):
             actions.remove(action)
 
     num_actions = len(actions)
-    stateReprLen = 12
+    stateReprLen = 6*6*4+1
     actionLen = 4
 
     # Experience replay:

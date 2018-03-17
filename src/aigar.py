@@ -71,10 +71,14 @@ if __name__ == '__main__':
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
 
-    viewEnabled = int(input("Display view?: (1 == yes)\n"))
-    viewEnabled = (viewEnabled == 1)
+    guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
+    guiEnabled = (guiEnabled == 1)
+    viewEnabled = False
+    if guiEnabled:
+        viewEnabled = int(input("Display view?: (1 == yes)\n"))
+        viewEnabled = (viewEnabled == 1)
 
-    model = Model(viewEnabled)
+    model = Model(guiEnabled, viewEnabled)
 
     numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
     numberOfBots = numberOfGreedyBots
@@ -106,7 +110,7 @@ if __name__ == '__main__':
         modelMustHavePlayers()
 
     numberOfHumans = 0
-    if viewEnabled:
+    if guiEnabled and viewEnabled:
         numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
         if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
             createHumans(numberOfHumans, model)
@@ -121,17 +125,20 @@ if __name__ == '__main__':
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
     startScreen = StartScreen(model)
-    view = View(model, screenWidth, screenHeight)
+    if guiEnabled:
+        view = View(model, screenWidth, screenHeight)
 
 
     model.initialize()
-    controller = Controller(model, viewEnabled, view)
-
-    view.draw()
-
-    while controller.running:
-        controller.process_input()
-        model.update()
+    if guiEnabled:
+        controller = Controller(model, viewEnabled, view)
+        view.draw()
+        while controller.running:
+            controller.process_input()
+            model.update()
+    else:
+        while True:
+            model.update()
 
     path = "savedModels"
     if not os.path.exists(path):

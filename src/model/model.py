@@ -14,9 +14,10 @@ from .player import Player
 # It links the actions of the players to consequences in the field and updates information.
 
 class Model(object):
-    def __init__(self, viewEnabled):
+    def __init__(self, guiEnabled, viewEnabled):
         self.listeners = []
         self.viewEnabled = viewEnabled
+        self.guiEnabled = guiEnabled
 
         self.players = []
         self.bots = []
@@ -48,7 +49,7 @@ class Model(object):
         for bot in self.bots:
             bot.update()
         self.field.update()
-        if self.viewEnabled:
+        if self.guiEnabled and self.viewEnabled:
             self.notify()
         if __debug__:
             self.printDebugInfo()
