@@ -114,24 +114,34 @@ class Controller:
                         nextPlayerIndex = (players.index(spectatedPlayer) - 1) % len(players)
                         nextPlayer = players[nextPlayerIndex]
                         self.model.setSpectatedPlayer(nextPlayer)
-            if not self.viewEnabled:
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    self.model.setViewEnabled(True)
-                if event.type == pygame.MOUSEBUTTONUP:
-                    fovPos = self.model.getFovPos(None)
-                    fovSize = self.model.getFovSize(None)
-                    relativeMousePos = self.view.viewToModelScaling(pygame.mouse.get_pos(), fovPos, fovSize)
-                    if self.selectedPlayer:
-                        self.selectedPlayer.setSelected(False)
-                        self.selectedPlayer = None
-                    for cell in self.model.getPlayerCells():
-                        radius = cell.getRadius()
-                        if cell.squareDist(cell.getPos(), relativeMousePos) < radius * radius:
-                            self.selectedPlayer = cell.getPlayer()
-                            self.selectedPlayer.setSelected(True)
-                    if not self.selectedPlayer:
-                        self.model.setViewEnabled(False)
 
+            # Handle player selection by clicking and view dis/enabling
+            if not humanList:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.selectPlayer()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if self.viewEnabled and not self.selectedPlayer:
+                        self.setViewEnabled(False)
+                    elif not self.viewEnabled:
+                        self.setViewEnabled(True)
+
+    # Sets a player to selected if the mouse is on them
+    def selectPlayer(self):
+        fovPos = self.model.getFovPos(None)
+        fovSize = self.model.getFovSize(None)
+        relativeMousePos = self.view.viewToModelScaling(pygame.mouse.get_pos(), fovPos, fovSize)
+        if self.selectedPlayer:
+            self.selectedPlayer.setSelected(False)
+            self.selectedPlayer = None
+        for cell in self.model.getPlayerCells():
+            radius = cell.getRadius()
+            if cell.squareDist(cell.getPos(), relativeMousePos) < radius * radius:
+                self.selectedPlayer = cell.getPlayer()
+                self.selectedPlayer.setSelected(True)
+
+    def setViewEnabled(self, val):
+        self.viewEnabled = val
+        self.model.setViewEnabled(val)
 
     # Find the point where the player moved, taking into account that he only sees the fov
     def mousePosition(self, human, mousePos, humanNr):

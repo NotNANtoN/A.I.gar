@@ -44,15 +44,15 @@ class Bot(object):
     num_NNbots = 0
 
     targetNetworkSteps = 2000
-    discount = 0.95
+    discount = 0.99
     epsilon = 0.1
-    frameSkipRate = 2
+    frameSkipRate = 3
     learningRate = 0.00025
 
     initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range, maxval=weight_initializer_range, seed=None)
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(20, input_dim = stateReprLen, activation ='sigmoid', bias_initializer=initializer
+    valueNetwork.add(Dense(50, input_dim = stateReprLen, activation ='sigmoid', bias_initializer=initializer
                            , kernel_initializer=initializer))
     valueNetwork.add(Dense(num_actions, activation ='linear', bias_initializer=initializer
                            , kernel_initializer=initializer))
