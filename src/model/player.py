@@ -97,9 +97,11 @@ class Player(object):
         self.doEject = val
 
     def setDead(self):
+        self.isAlive = False
         self.respawnTime = self.stepsUntilRespawn
 
     def setAlive(self):
+        self.isAlive = True
         self.respawnTime = 0
 
     # Checks:
@@ -139,7 +141,8 @@ class Player(object):
         return False
 
     def getFovPos(self):
-        if self.isAlive:
+        self.fovPos = None
+        if self.isAlive and self.getTotalMass() != 0:
             meanX = sum(cell.getX() * cell.getMass() for cell in self.cells) / self.getTotalMass()
             meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
             self.fovPos = [meanX, meanY]
@@ -163,7 +166,7 @@ class Player(object):
         return self.name
 
     def getIsAlive(self):
-        return self.respawnTime == 0
+        return self.isAlive
 
     def getCommandPoint(self):
         return self.commandPoint

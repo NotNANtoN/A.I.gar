@@ -51,7 +51,7 @@ class Bot(object):
     initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range, maxval=weight_initializer_range, seed=None)
 
     valueNetwork = Sequential()
-    valueNetwork.add(Dense(20, input_dim = stateReprLen, activation ='sigmoid', bias_initializer=initializer
+    valueNetwork.add(Dense(50, input_dim = stateReprLen, activation ='sigmoid', bias_initializer=initializer
                            , kernel_initializer=initializer))
     valueNetwork.add(Dense(num_actions, activation ='linear', bias_initializer=initializer
                            , kernel_initializer=initializer))
