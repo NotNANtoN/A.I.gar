@@ -14,11 +14,35 @@
       <file leaf-file-name="model.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="64">
-              <caret line="77" column="55" lean-forward="true" selection-start-line="77" selection-start-column="55" selection-end-line="77" selection-end-column="55" />
+            <state relative-caret-position="298">
+              <caret line="153" column="15" lean-forward="false" selection-start-line="153" selection-start-column="8" selection-end-line="153" selection-end-column="15" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
-                <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+                <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bot.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model/bot.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="270">
+              <caret line="71" column="36" lean-forward="true" selection-start-line="71" selection-start-column="36" selection-end-line="71" selection-end-column="36" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+                <element signature="e#597#716#0" expanded="false" />
+                <element signature="e#2641#2810#0" expanded="false" />
+                <element signature="e#2842#5282#0" expanded="false" />
+                <element signature="e#2938#4643#0" expanded="false" />
+                <element signature="e#4694#5282#0" expanded="false" />
+                <element signature="e#12961#14833#0" expanded="false" />
+                <element signature="e#14891#16777#0" expanded="false" />
+                <element signature="e#19734#20873#0" expanded="false" />
+                <element signature="e#20914#20932#0" expanded="false" />
+                <element signature="e#21092#21262#0" expanded="false" />
+                <element signature="e#21329#21482#0" expanded="false" />
+                <element signature="e#21523#21615#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -27,33 +51,21 @@
       <file leaf-file-name="field.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model/field.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4597">
-              <caret line="427" column="4" lean-forward="true" selection-start-line="427" selection-start-column="4" selection-end-line="427" selection-end-column="4" />
+            <state relative-caret-position="540">
+              <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
-                <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
+                <marker date="1521162099310" expanded="true" signature="909:942" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="view.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="view.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/view/view.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#13#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="startScreen.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/view/startScreen.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="162">
-              <caret line="12" column="26" lean-forward="false" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
+            <state relative-caret-position="1800">
+              <caret line="157" column="27" lean-forward="true" selection-start-line="157" selection-start-column="27" selection-end-line="157" selection-end-column="27" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -64,10 +76,22 @@
       <file leaf-file-name="aigar.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/aigar.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="234">
-              <caret line="43" column="20" lean-forward="true" selection-start-line="43" selection-start-column="20" selection-end-line="43" selection-end-column="20" />
+            <state relative-caret-position="1926">
+              <caret line="114" column="0" lean-forward="false" selection-start-line="114" selection-start-column="0" selection-end-line="114" selection-end-column="0" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="cell.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model/cell.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="889">
+              <caret line="122" column="39" lean-forward="false" selection-start-line="122" selection-start-column="39" selection-end-line="122" selection-end-column="39" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -76,32 +100,11 @@
       <file leaf-file-name="controller.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/controller/controller.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="16" column="18" lean-forward="false" selection-start-line="16" selection-start-column="18" selection-end-line="16" selection-end-column="18" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="cell.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/model/cell.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1980">
-              <caret line="112" column="13" lean-forward="false" selection-start-line="112" selection-start-column="8" selection-end-line="112" selection-end-column="13" />
+            <state relative-caret-position="372">
+              <caret line="117" column="71" lean-forward="false" selection-start-line="117" selection-start-column="71" selection-end-line="117" selection-end-column="71" />
               <folding>
-                <element signature="e#0#12#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="bot.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/model/bot.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="403">
-              <caret line="255" column="62" lean-forward="false" selection-start-line="255" selection-start-column="62" selection-end-line="255" selection-end-column="62" />
-              <folding>
-                <element signature="e#0#12#0" expanded="true" />
+                <element signature="e#2595#4555#0" expanded="false" />
+                <element signature="e#4648#5360#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -110,8 +113,8 @@
       <file leaf-file-name="parameters.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model/parameters.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="16" column="0" lean-forward="false" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+            <state relative-caret-position="522">
+              <caret line="29" column="48" lean-forward="false" selection-start-line="29" selection-start-column="48" selection-end-line="29" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -120,10 +123,10 @@
       <file leaf-file-name="player.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model/player.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1746">
-              <caret line="97" column="78" lean-forward="false" selection-start-line="97" selection-start-column="78" selection-end-line="97" selection-end-column="78" />
+            <state relative-caret-position="1206">
+              <caret line="67" column="0" lean-forward="false" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
               <folding>
-                <marker date="1520689099054" expanded="true" signature="160:485" ph="..." />
+                <marker date="1521209497949" expanded="true" signature="187:512" ph="..." />
               </folding>
             </state>
           </provider>
@@ -140,52 +143,52 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>self.x</find>
-      <find>getPos</find>
-      <find>adjustCellPos</find>
-      <find>len(</find>
-      <find>split</find>
-      <find>set</find>
-      <find>grow</find>
-      <find>getSquared</find>
-      <find>self.wi</find>
-      <find>virus</find>
-      <find>reset</find>
-      <find>fovDims</find>
-      <find>fovDim</find>
-      <find>FovDim</find>
-      <find>fov</find>
-      <find>getfovSize</find>
-      <find>self.pos</find>
-      <find>splitVelocity</find>
-      <find>setPos</find>
-      <find>numpy</find>
-      <find>fovS</find>
-      <find>addPlayer</find>
-      <find>create</find>
       <find>math</find>
       <find>decay</find>
       <find>spawnPl</find>
       <find>createB</find>
       <find>print</find>
-      <find>lastMass</find>
       <find>lastAction</find>
+      <find>save</find>
+      <find>saveM</find>
+      <find>getSt</find>
+      <find>self.currentAction</find>
+      <find>drawSi</find>
+      <find>oldState</find>
+      <find>self.lastMass</find>
+      <find>lastMass</find>
+      <find>getIs</find>
+      <find>setAlive</find>
+      <find>currentAction</find>
+      <find>checkForDeadPlayers</find>
+      <find>initializePlayer</find>
+      <find>deletePlayerCell</find>
+      <find>self.old</find>
+      <find>checkFor</find>
+      <find>getSi</find>
+      <find>spawnPelle</find>
+      <find>MAX_COLLECTIBLE_DENSITY</find>
+      <find>view</find>
+      <find>getFovPos</find>
+      <find>mousePos</find>
+      <find>setView</find>
+      <find>viewEna</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/controller/controller.py" />
-        <option value="$PROJECT_DIR$/view/view.py" />
         <option value="$PROJECT_DIR$/model/spatialHashTable.py" />
-        <option value="$PROJECT_DIR$/model/cell.py" />
-        <option value="$PROJECT_DIR$/model/parameters.py" />
-        <option value="$PROJECT_DIR$/model/player.py" />
-        <option value="$PROJECT_DIR$/model/field.py" />
         <option value="$PROJECT_DIR$/view/startScreen.py" />
         <option value="$PROJECT_DIR$/aigar.py" />
         <option value="$PROJECT_DIR$/model/model.py" />
+        <option value="$PROJECT_DIR$/model/field.py" />
+        <option value="$PROJECT_DIR$/model/cell.py" />
+        <option value="$PROJECT_DIR$/model/parameters.py" />
+        <option value="$PROJECT_DIR$/model/player.py" />
         <option value="$PROJECT_DIR$/model/bot.py" />
+        <option value="$PROJECT_DIR$/controller/controller.py" />
+        <option value="$PROJECT_DIR$/view/view.py" />
       </list>
     </option>
   </component>
@@ -196,7 +199,7 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="997" />
+    <option name="x" value="85" />
     <option name="y" value="-4" />
     <option name="width" value="923" />
     <option name="height" value="1084" />
@@ -341,7 +344,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="75" y="-4" width="1845" height="1084" extended-state="6" />
+    <frame x="85" y="-4" width="1847" height="1092" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -377,7 +380,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="5" />
+      <option name="time" value="14" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -395,6 +398,18 @@
           <caret line="14" column="43" lean-forward="true" selection-start-line="14" selection-start-column="43" selection-end-line="14" selection-end-column="43" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#597#716#0" expanded="false" />
+            <element signature="e#2641#2810#0" expanded="false" />
+            <element signature="e#2842#5282#0" expanded="false" />
+            <element signature="e#2938#4643#0" expanded="false" />
+            <element signature="e#4694#5282#0" expanded="false" />
+            <element signature="e#12961#14833#0" expanded="false" />
+            <element signature="e#14891#16777#0" expanded="false" />
+            <element signature="e#19734#20873#0" expanded="false" />
+            <element signature="e#20914#20932#0" expanded="false" />
+            <element signature="e#21092#21262#0" expanded="false" />
+            <element signature="e#21329#21482#0" expanded="false" />
+            <element signature="e#21523#21615#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -405,7 +420,7 @@
           <caret line="71" column="24" lean-forward="true" selection-start-line="71" selection-start-column="24" selection-end-line="71" selection-end-column="24" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
           </folding>
         </state>
       </provider>
@@ -424,7 +439,7 @@
           <caret line="135" column="34" lean-forward="false" selection-start-line="135" selection-start-column="34" selection-end-line="135" selection-end-column="34" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
+            <marker date="1521162099310" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -467,7 +482,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="522">
           <caret line="31" column="40" lean-forward="false" selection-start-line="31" selection-start-column="40" selection-end-line="31" selection-end-column="40" />
-          <folding />
+          <folding>
+            <element signature="e#2595#4555#0" expanded="false" />
+            <element signature="e#4648#5360#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -477,6 +495,18 @@
           <caret line="11" column="40" lean-forward="true" selection-start-line="11" selection-start-column="40" selection-end-line="11" selection-end-column="40" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#597#716#0" expanded="false" />
+            <element signature="e#2641#2810#0" expanded="false" />
+            <element signature="e#2842#5282#0" expanded="false" />
+            <element signature="e#2938#4643#0" expanded="false" />
+            <element signature="e#4694#5282#0" expanded="false" />
+            <element signature="e#12961#14833#0" expanded="false" />
+            <element signature="e#14891#16777#0" expanded="false" />
+            <element signature="e#19734#20873#0" expanded="false" />
+            <element signature="e#20914#20932#0" expanded="false" />
+            <element signature="e#21092#21262#0" expanded="false" />
+            <element signature="e#21329#21482#0" expanded="false" />
+            <element signature="e#21523#21615#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -487,7 +517,7 @@
           <caret line="41" column="21" lean-forward="false" selection-start-line="41" selection-start-column="21" selection-end-line="41" selection-end-column="21" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
           </folding>
         </state>
       </provider>
@@ -518,7 +548,7 @@
           <caret line="40" column="30" lean-forward="true" selection-start-line="40" selection-start-column="30" selection-end-line="40" selection-end-column="30" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
+            <marker date="1521162099310" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -541,7 +571,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="432">
           <caret line="26" column="40" lean-forward="false" selection-start-line="26" selection-start-column="40" selection-end-line="26" selection-end-column="40" />
-          <folding />
+          <folding>
+            <element signature="e#2595#4555#0" expanded="false" />
+            <element signature="e#4648#5360#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -551,6 +584,18 @@
           <caret line="11" column="42" lean-forward="false" selection-start-line="11" selection-start-column="42" selection-end-line="11" selection-end-column="42" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#597#716#0" expanded="false" />
+            <element signature="e#2641#2810#0" expanded="false" />
+            <element signature="e#2842#5282#0" expanded="false" />
+            <element signature="e#2938#4643#0" expanded="false" />
+            <element signature="e#4694#5282#0" expanded="false" />
+            <element signature="e#12961#14833#0" expanded="false" />
+            <element signature="e#14891#16777#0" expanded="false" />
+            <element signature="e#19734#20873#0" expanded="false" />
+            <element signature="e#20914#20932#0" expanded="false" />
+            <element signature="e#21092#21262#0" expanded="false" />
+            <element signature="e#21329#21482#0" expanded="false" />
+            <element signature="e#21523#21615#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -561,7 +606,7 @@
           <caret line="40" column="21" lean-forward="false" selection-start-line="40" selection-start-column="21" selection-end-line="40" selection-end-column="21" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
           </folding>
         </state>
       </provider>
@@ -582,7 +627,7 @@
           <caret line="62" column="0" lean-forward="false" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
+            <marker date="1521162099310" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -615,7 +660,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="432">
           <caret line="26" column="40" lean-forward="true" selection-start-line="26" selection-start-column="40" selection-end-line="26" selection-end-column="40" />
-          <folding />
+          <folding>
+            <element signature="e#2595#4555#0" expanded="false" />
+            <element signature="e#4648#5360#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -625,6 +673,18 @@
           <caret line="11" column="42" lean-forward="true" selection-start-line="11" selection-start-column="42" selection-end-line="11" selection-end-column="42" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#597#716#0" expanded="false" />
+            <element signature="e#2641#2810#0" expanded="false" />
+            <element signature="e#2842#5282#0" expanded="false" />
+            <element signature="e#2938#4643#0" expanded="false" />
+            <element signature="e#4694#5282#0" expanded="false" />
+            <element signature="e#12961#14833#0" expanded="false" />
+            <element signature="e#14891#16777#0" expanded="false" />
+            <element signature="e#19734#20873#0" expanded="false" />
+            <element signature="e#20914#20932#0" expanded="false" />
+            <element signature="e#21092#21262#0" expanded="false" />
+            <element signature="e#21329#21482#0" expanded="false" />
+            <element signature="e#21523#21615#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -645,7 +705,7 @@
           <caret line="62" column="0" lean-forward="true" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
+            <marker date="1521162099310" expanded="true" signature="909:942" ph="..." />
           </folding>
         </state>
       </provider>
@@ -666,7 +726,7 @@
           <caret line="40" column="21" lean-forward="true" selection-start-line="40" selection-start-column="21" selection-end-line="40" selection-end-column="21" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
           </folding>
         </state>
       </provider>
@@ -691,7 +751,7 @@
           <caret line="102" column="0" lean-forward="true" selection-start-line="102" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
           </folding>
         </state>
       </provider>
@@ -736,7 +796,7 @@
           <caret line="102" column="32" lean-forward="false" selection-start-line="102" selection-start-column="32" selection-end-line="102" selection-end-column="32" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
           </folding>
         </state>
       </provider>
@@ -752,106 +812,115 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="756">
           <caret line="42" column="39" lean-forward="false" selection-start-line="42" selection-start-column="39" selection-end-line="42" selection-end-column="39" />
-          <folding>
-            <marker date="1518994795724" expanded="true" signature="45:3310" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/controller/controller.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="16" column="18" lean-forward="false" selection-start-line="16" selection-start-column="18" selection-end-line="16" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/player.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1746">
-          <caret line="97" column="78" lean-forward="false" selection-start-line="97" selection-start-column="78" selection-end-line="97" selection-end-column="78" />
-          <folding>
-            <marker date="1520689099054" expanded="true" signature="160:485" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/view.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/startScreen.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="12" column="26" lean-forward="false" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/parameters.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="16" column="0" lean-forward="false" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/cell.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1980">
-          <caret line="112" column="13" lean-forward="false" selection-start-line="112" selection-start-column="8" selection-end-line="112" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/aigar.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
-          <caret line="43" column="20" lean-forward="true" selection-start-line="43" selection-start-column="20" selection-end-line="43" selection-end-column="20" />
+        <state relative-caret-position="1926">
+          <caret line="114" column="0" lean-forward="false" selection-start-line="114" selection-start-column="0" selection-end-line="114" selection-end-column="0" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model/model.py">
+    <entry file="file://$PROJECT_DIR$/view/startScreen.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="64">
-          <caret line="77" column="55" lean-forward="true" selection-start-line="77" selection-start-column="55" selection-end-line="77" selection-end-column="55" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-            <marker date="1520704370829" expanded="true" signature="980:1714" ph="..." />
-          </folding>
+        <state relative-caret-position="216">
+          <caret line="12" column="26" lean-forward="false" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/parameters.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="522">
+          <caret line="29" column="48" lean-forward="false" selection-start-line="29" selection-start-column="48" selection-end-line="29" selection-end-column="48" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model/field.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4597">
-          <caret line="427" column="4" lean-forward="true" selection-start-line="427" selection-start-column="4" selection-end-line="427" selection-end-column="4" />
+        <state relative-caret-position="540">
+          <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-            <marker date="1520706881192" expanded="true" signature="909:942" ph="..." />
+            <marker date="1521162099310" expanded="true" signature="909:942" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/player.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1206">
+          <caret line="67" column="0" lean-forward="false" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
+          <folding>
+            <marker date="1521209497949" expanded="true" signature="187:512" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model/bot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="255" column="62" lean-forward="false" selection-start-line="255" selection-start-column="62" selection-end-line="255" selection-end-column="62" />
+        <state relative-caret-position="270">
+          <caret line="71" column="36" lean-forward="true" selection-start-line="71" selection-start-column="36" selection-end-line="71" selection-end-column="36" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#597#716#0" expanded="false" />
+            <element signature="e#2641#2810#0" expanded="false" />
+            <element signature="e#2842#5282#0" expanded="false" />
+            <element signature="e#2938#4643#0" expanded="false" />
+            <element signature="e#4694#5282#0" expanded="false" />
+            <element signature="e#12961#14833#0" expanded="false" />
+            <element signature="e#14891#16777#0" expanded="false" />
+            <element signature="e#19734#20873#0" expanded="false" />
+            <element signature="e#20914#20932#0" expanded="false" />
+            <element signature="e#21092#21262#0" expanded="false" />
+            <element signature="e#21329#21482#0" expanded="false" />
+            <element signature="e#21523#21615#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/cell.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="889">
+          <caret line="122" column="39" lean-forward="false" selection-start-line="122" selection-start-column="39" selection-end-line="122" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="298">
+          <caret line="153" column="15" lean-forward="false" selection-start-line="153" selection-start-column="8" selection-end-line="153" selection-end-column="15" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+            <marker date="1521142182590" expanded="true" signature="1063:2128" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/controller/controller.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="372">
+          <caret line="117" column="71" lean-forward="false" selection-start-line="117" selection-start-column="71" selection-end-line="117" selection-end-column="71" />
+          <folding>
+            <element signature="e#2595#4555#0" expanded="false" />
+            <element signature="e#4648#5360#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/view/view.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1800">
+          <caret line="157" column="27" lean-forward="true" selection-start-line="157" selection-start-column="27" selection-end-line="157" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
