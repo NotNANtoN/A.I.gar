@@ -31,7 +31,6 @@ class Bot(object):
             actions.remove(action)
 
     num_actions = len(actions)
-    print("num_actions: ", num_actions)
     stateReprLen = 12
     actionLen = 4
 
@@ -152,6 +151,7 @@ class Bot(object):
     def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive):
         state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState, reward, alive)
+
         td_error = target - state_Q_values[actionIdx]
         if  __debug__ and self.player.getSelected():
             print("")
@@ -202,6 +202,7 @@ class Bot(object):
                 print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
                 print("TD-Error: ", td_error)
                 print("")
+
 
             # Update the target network after 1000 steps
             self.targetNetworkSteps -= 1

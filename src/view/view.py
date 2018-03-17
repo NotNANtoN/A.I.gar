@@ -55,14 +55,27 @@ class View:
             self.playerScreens.append(self.screen)
 
     def drawDebugInfo(self):
-        for humanNr in range(self.numberOfScreens):
+        for screenNr in range(self.numberOfScreens):
             cells = self.model.getPlayerCells()
-            fovPos = self.model.getFovPos(humanNr)
-            fovSize = self.model.getFovSize(humanNr)
+            fovPos = self.model.getFovPos(screenNr)
+            fovSize = self.model.getFovSize(screenNr)
+            for playerNr in range(len(self.model.getPlayers())):
+                if self.model.getPlayers()[playerNr].getIsAlive():
+                    pFovPos = self.model.getPlayers()[playerNr].getFovPos()
+                    pFovSize = self.model.getPlayers()[playerNr].getFovSize()
+                    pFovPos = self.modelToViewScaling(pFovPos, fovPos, fovSize)
+                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]-pFovSize/2],
+                                    [pFovPos[0]+pFovSize/2, pFovPos[1]-pFovSize/2])
+                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]-pFovSize/2],
+                                    [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2])
+                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]+pFovSize/2, pFovPos[1]-pFovSize/2],
+                                    [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
+                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2],
+                                    [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
             for cell in cells:
                 pos = numpy.array(cell.getPos())
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
-                pygame.draw.line(self.playerScreens[humanNr], RED, scaledPos.astype(int),
+                pygame.draw.line(self.playerScreens[screenNr], RED, scaledPos.astype(int),
                                  numpy.array(cell.getVelocity()) * 10 +
                                  numpy.array(scaledPos.astype(int)))
 
