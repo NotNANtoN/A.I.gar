@@ -261,7 +261,7 @@ class Bot(object):
         a = memory[1]
         r = memory[2]
         sPrime = memory[3]
-        alive = (sPrime != None)
+        alive = (sPrime is not None and sPrime.size != 0)
         return self.createInputOutputPair(s, a, r, sPrime, alive)
 
     def train_on_experience(self):
@@ -365,7 +365,7 @@ class Bot(object):
         distBottom = (height - y) / size if top + size >= height else 1
         totalInfo += [distLeft, distRight, distTop, distBottom]
         return totalInfo
-    
+
     def getGridStateRepresentation(self):
         fieldSize = self.field.getWidth()
         size = self.player.getFovSize()
