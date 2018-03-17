@@ -47,6 +47,8 @@ class Bot(object):
     frameSkipRate = 3
     learningRate = 0.00025
     optimizer = "Adam"
+    activationFuncHidden = 'sigmoid'
+    activationFuncOutput = 'linear'
 
     hiddenLayer1 = 50
     hiddenLayer2 = 0
@@ -62,9 +64,15 @@ class Bot(object):
                                                        maxval=weight_initializer_range, seed=None)
 
         cls.valueNetwork = Sequential()
-        cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation='sigmoid', bias_initializer=initializer
+        cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden, bias_initializer=initializer
                                , kernel_initializer=initializer))
-        cls.valueNetwork.add(Dense(cls.num_actions, activation='linear', bias_initializer=initializer
+        if cls.hiddenLayer2 > 0:
+            cls.valueNetwork.add(Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
+                      , kernel_initializer=initializer))
+        if cls.hiddenLayer3 > 0:
+            cls.valueNetwork.add(Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
+                                       , kernel_initializer=initializer))
+        cls.valueNetwork.add(Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
                                , kernel_initializer=initializer))
         if cls.optimizer == "Adam":
             cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
@@ -474,35 +482,6 @@ class Bot(object):
     def saveModel(self, path):
         self.valueNetwork.save(path + self.type + "_model.h5")
 
-    '''
-    def saveModel(self, superPath, name = None):
-        if name == None:
-            decision = int(input("Do you want to give the model a name? (1=yes)"))
-            if decision == 1:
-                name = input("Enter the name of the model: ")
-                self.saveModel(superPath, name)
-                return
-            else:
-                path = self.type + "_latestModel.h5"
-                print("No specific name chosen, saving model under: ", path )
-        else:
-            path = name + ".h5"
-
-        if os.path.exists(path):
-            decision = 0
-            while decision != 1 and decision != 2 and decision != 3:
-                decision = int(input("Model with name \'" +  path +
-                             "\' already exists. Do you want to overwrite(0) it, save it under a different name(1), or don't save it(2)?\n"))
-            if decision == 1:
-                self.valueNetwork.save(superPath + path)
-            elif decision == 2:
-                name = input("Enter the changed name: ")
-                self.saveModel(superPath, name)
-            elif decision == 3:
-                print("Model of type ", self.type, " not saved!")
-            return
-        self.valueNetwork.save(superPath + path)
-    '''
     def setEpsilon(self, val):
         self.epsilon = val
 

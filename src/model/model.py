@@ -62,7 +62,7 @@ class Model(object):
                 if bot.oldState:
                     reward = bot.getReward()
                     tdError = bot.getTDError(reward)
-                    self.rewards.append(reward)
+                    self.rewards.append(abs(reward))
                     self.tdErrors.append(abs(tdError))
 
         self.counter += 1
@@ -89,7 +89,6 @@ class Model(object):
 
     def getRelevantModelData(self, bot):
         data = ""
-
         #Simulation:
         data += "Simulation:\n"
         data += "steps - " + str(self.counter) + "\n"
@@ -113,12 +112,10 @@ class Model(object):
         data += "Third hidden layer neurons - " + str(Bot.hiddenLayer3) + "\n"
         data += "Output layer neurons(number of actions) - " + str(Bot.num_actions) + "\n"
         data += "Learning rate - " + str(Bot.learningRate) + "\n"
+        data += "Activation function hidden layer(s) - " + Bot.activationFuncHidden + "\n"
+        data += "Activation function output layer - " + Bot.activationFuncOutput + "\n"
         data += "Optimizer - " + str(Bot.optimizer) + "\n"
         return data
-
-
-
-
 
     def visualize(self, timeStart):
         stepsTillUpdate = 100
@@ -131,29 +128,12 @@ class Model(object):
             self.meanRewards.append(recentMeanReward)
             print(" ")
             print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
-            print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
-            print("Avg TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
+            print("Avg abs reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
+            print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
             print(" ")
             self.tdErrors = []
             self.rewards = []
-
-            '''
-            for bot in self.bots:
-                if bot.getType() == "NN" and bot.currentActionIdx and bot.oldState:
-                    valueNetworkPredict = bot.valueNetwork.predict(numpy.array([bot.oldState]))[0][bot.currentActionIdx]
-                    targetNetworkPredict = bot.targetNetwork.predict(numpy.array([bot.oldState]))[0][bot.currentActionIdx]
-                    reward = bot.getReward()
-                    newState = bot.getStateRepresentation()
-                    target = bot.calculateTarget(newState, reward, bot.getPlayer().getIsAlive())
-                    print("State: ", bot.oldState)
-                    print("Action: ", bot.currentAction)
-                    print("ValueNetwork prediction: ", valueNetworkPredict)
-                    print("TargetNetwork prediction: ", targetNetworkPredict)
-                    print("Target: ", target)
-                    print("TD-Error: ", bot.getTDError(reward))
-                    break
-            '''
 
     def plotTDerror(self, path = None):
         res = 10 #running error step
@@ -161,13 +141,13 @@ class Model(object):
         meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
         plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="TD-Error")
         plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running TD-Error avg of the last 100 steps")
+        plt.ylabel("Running abs TD-Error avg of the last 100 steps")
         if path:
             plt.savefig(path + "TD-Errors.png")
         plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
         plt.legend()
         plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running avg of the last 100 steps")
+        plt.ylabel("Running abs avg of the last 100 steps")
         if path:
             plt.savefig(path + "Reward_and_TD-Error.png")
         else:
