@@ -100,6 +100,7 @@ class View:
                 pygame.draw.line(self.playerScreens[screenNr], RED, scaledPos.astype(int),
                                  numpy.array(cell.getVelocity()) * 10 +
                                  numpy.array(scaledPos.astype(int)))
+                
 
     def drawCells(self, cells, fovPos, fovSize, screen):
         for cell in cells:

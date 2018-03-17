@@ -42,7 +42,7 @@ class Bot(object):
 
     num_NNbots = 0
 
-    targetNetworkSteps = 2000
+    targetNetworkSteps = 500
     discount = 0.99
     epsilon = 0.1
     frameSkipRate = 3
@@ -171,6 +171,7 @@ class Bot(object):
         alive = self.player.getIsAlive()
         newState = self.getStateRepresentation()
 
+        # Do not train if we are skipping this frame
         if self.skipFrames > 0 :
             self.skipFrames -= 1
             if not self.oldState:
@@ -182,6 +183,7 @@ class Bot(object):
             if alive:
                 return
 
+        # Only train when we there is an old state to train
         if self.oldState:
             # Get reward of skipped frames
             reward = self.cumulativeReward
@@ -205,10 +207,13 @@ class Bot(object):
 
 
             # Update the target network after 1000 steps
+            # Save the weights of the model when updating the target network to avoid losing progress on program crashes
             self.targetNetworkSteps -= 1
             if self.targetNetworkSteps == 0:
                 self.targetNetwork.set_weights(self.valueNetwork.get_weights())
                 self.targetNetworkSteps = 1000 * self.num_NNbots
+                self.valueNetwork.save("mostRecentAutosave.h5")
+
 
         if alive:
             self.takeAction(newState)
@@ -276,8 +281,8 @@ class Bot(object):
             popped_memories.append(((td_error * td_error) * -1, memory))
             batch_count += 1
         # Put the retrieved memories back in memory
-        for memory in popped_memories:
-            heapq.heappush(self.memories, memory)
+        for poppedMemory in popped_memories:
+            heapq.heappush(self.memories, poppedMemory)
         '''
         # Get random memories
         for idx in range(partial_batch):
