@@ -325,7 +325,6 @@ class Bot(object):
                 stateRepr =  self.getGridStateRepresentation()
             else:
                 stateRepr =  self.getSimpleStateRepresentation()
-                #stateRepr = self.getOnlyPelletStateRepresentation()
         return stateRepr
 
     def getSimpleStateRepresentation(self):
@@ -432,7 +431,8 @@ class Bot(object):
                 # Create Virus Cell representation
                 virusesInGridCell = self.field.getVirusesInFov(gsMidPoint, gsSize)
                 if virusesInGridCell:
-                    gsVirus[count] = max(virusesInGridCell, key = lambda virus: virus.getRadius())
+                    biggestVirus = max(virusesInGridCell, key = lambda virus: virus.getRadius()).getRadius()
+                    gsVirus[count] = biggestVirus / biggestRadiusInFov
 
                 # Create Enemy Cell number representation
                 # Just a grid with number of enemy cells on each square
