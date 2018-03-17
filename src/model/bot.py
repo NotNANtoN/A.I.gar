@@ -250,7 +250,7 @@ class Bot(object):
             #else:
             #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
         if self.player.getIsAlive():
-            newMemory = [state, action, reward, newState]
+            newMemory = [state, action, reward, newState.tolist()]
         else:
             newMemory = [state, action, reward, None]
         heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory))
@@ -261,7 +261,7 @@ class Bot(object):
         a = memory[1]
         r = memory[2]
         sPrime = memory[3]
-        alive = (sPrime is not None and sPrime.size != 0)
+        alive = (sPrime is not None)
         return self.createInputOutputPair(s, a, r, sPrime, alive)
 
     def train_on_experience(self):
