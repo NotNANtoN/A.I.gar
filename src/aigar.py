@@ -40,18 +40,29 @@ def createHumans(numberOfHumans, model1):
 
 
 def createBots(number, model, type, expRep, gridView, modelName, explore = True):
+    if type == "NN":
+        Bot.num_NNbots = number
+        if gridView:
+            Bot.stateReprLen = 37
+        else:
+            Bot.stateReprLen = 12
+        Bot.initializeNNs(Bot.stateReprLen)
+    elif type == "Greedy":
+        Bot.num_Greedybots = number
     for i in range(number):
         model.createBot(type, expRep, gridView)
     # Load a stored model:
     if modelName is not None:
         for bot in model.getBots():
             if bot.getType() == type:
+                Bot.loadedModelName = modelName
                 Bot.valueNetwork = load_model(modelName + ".h5")
                 break
     if explore == False:
         for bot in model.getBots():
             if bot.getType() == type:
-                bot.setEpsilon(1)
+                bot.setEpsilon(0)
+
 
 
 if __name__ == '__main__':
@@ -73,12 +84,12 @@ if __name__ == '__main__':
     numberOfBots += numberOfNNBots
     if fitsLimitations(numberOfBots, MAXBOTS):
         modelName = None
-        loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last run)\n"))
+        loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
         if loadModel == 1:
             while modelName == None:
                 modelName = input("Enter the model name (without .h5): ")
         if loadModel == 2:
-            modelName = "NN_latestModel"
+            modelName = "mostRecentAutosave"
         enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
         enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
         explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
@@ -116,7 +127,10 @@ if __name__ == '__main__':
         controller.process_input()
         model.update()
 
-    path = "model"
+    path = "savedModels"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    path += "/model"
     newPath = path
     counter = 0
     while os.path.exists(newPath):
@@ -125,4 +139,5 @@ if __name__ == '__main__':
     os.makedirs(newPath)
     newPath += "/"
     model.saveModels(newPath)
+    model.saveSpecs(newPath)
     model.plotTDerror(newPath)

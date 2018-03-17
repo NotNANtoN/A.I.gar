@@ -75,6 +75,51 @@ class Model(object):
                 bot.saveModel(path)
                 savedTypes.append(botType)
 
+    def saveSpecs(self, path):
+        name_of_file = path + "model_specifications.txt"
+        savedTypes = []
+        with open(name_of_file, "w") as file:
+             for bot in self.bots:
+                botType = bot.getType()
+                if botType != "Greedy" and botType not in savedTypes:
+                    data = self.getRelevantModelData(bot)
+                    file.write(data)
+                    file.write("\n")
+                    savedTypes.append(botType)
+
+    def getRelevantModelData(self, bot):
+        data = ""
+
+        #Simulation:
+        data += "Simulation:\n"
+        data += "steps - " + str(self.counter) + "\n"
+        data += "number of rl bots - " + str(Bot.num_NNbots) + "\n"
+        data += "number of greedy bots - " + str(Bot.num_Greedybots) + "\n"
+        data += "\n"
+        # RL:
+        data += "Reinforcement learning:\n"
+        data += "Epsilon - " + str(Bot.epsilon) + "\n"
+        data += "Discount factor - " + str(Bot.discount) + "\n"
+        data += "Frame skip rate - " + str(Bot.frameSkipRate) + "\n"
+        data += "State representation - " + ("Grid" if bot.gridViewEnabled else "Simple") + "\n"
+        data += "Experience Replay - " + ("Enabled" if bot.expRepEnabled else "Disabled") + "\n"
+        data += "Name of model that was loaded - " + (Bot.loadedModelName if Bot.loadedModelName else "None") + "\n"
+        data += "\n"
+        # ANN:
+        data += "ANN:"
+        data += "Input layer neurons(stateReprLen) - " + str(Bot.stateReprLen) + "\n"
+        data += "First hidden layer neurons - " + str(Bot.hiddenLayer1) + "\n"
+        data += "Second hidden layer neurons - " + str(Bot.hiddenLayer2) + "\n"
+        data += "Third hidden layer neurons - " + str(Bot.hiddenLayer3) + "\n"
+        data += "Output layer neurons(number of actions) - " + str(Bot.num_actions) + "\n"
+        data += "Learning rate - " + str(Bot.learningRate) + "\n"
+        data += "Optimizer - " + str(Bot.optimizer) + "\n"
+        return data
+
+
+
+
+
     def visualize(self, timeStart):
         stepsTillUpdate = 100
         numReward = len(self.rewards)
@@ -93,6 +138,7 @@ class Model(object):
             self.tdErrors = []
             self.rewards = []
 
+            '''
             for bot in self.bots:
                 if bot.getType() == "NN" and bot.currentActionIdx and bot.oldState:
                     valueNetworkPredict = bot.valueNetwork.predict(numpy.array([bot.oldState]))[0][bot.currentActionIdx]
@@ -107,23 +153,26 @@ class Model(object):
                     print("Target: ", target)
                     print("TD-Error: ", bot.getTDError(reward))
                     break
+            '''
 
-    def plotTDerror(self, path):
+    def plotTDerror(self, path = None):
         res = 10 #running error step
         meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,))/res, mode='valid')
         meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
-        plt.plot(range(len(meanOfmeanError)), meanOfmeanError)
+        plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="TD-Error")
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running TD-Error avg of the last 100 steps")
-        fig = plt.figure()
-        fig.savefig(path + "TD-Errors.png")
-        plt.show()
-        plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards)
+        if path:
+            plt.savefig(path + "TD-Errors.png")
+        plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
+        plt.legend()
         plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running Reward avg of the last 100 steps")
-        fig = plt.figure()
-        fig.savefig(path + "Reward.png")
-
+        plt.ylabel("Running avg of the last 100 steps")
+        if path:
+            plt.savefig(path + "Reward_and_TD-Error.png")
+        else:
+            plt.show()
+        plt.close()
 
 
 

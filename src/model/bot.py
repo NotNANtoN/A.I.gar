@@ -34,31 +34,45 @@ class Bot(object):
     stateReprLen = 9*4+1
     actionLen = 4
 
-    weight_initializer_range = math.sqrt(6 / (stateReprLen + num_actions))
-
     memoryCapacity = 10000
     memoriesPerUpdate = 32 # Must be divisible by 2 atm due to experience replay
     memories = []
 
     num_NNbots = 0
+    num_Greedybots = 0
 
     targetNetworkSteps = 500
     discount = 0.99
     epsilon = 0.1
     frameSkipRate = 3
     learningRate = 0.00025
+    optimizer = "Adam"
 
-    initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range, maxval=weight_initializer_range, seed=None)
+    hiddenLayer1 = 50
+    hiddenLayer2 = 0
+    hiddenLayer3 = 0
 
-    valueNetwork = Sequential()
-    valueNetwork.add(Dense(50, input_dim = stateReprLen, activation ='sigmoid', bias_initializer=initializer
-                           , kernel_initializer=initializer))
-    valueNetwork.add(Dense(num_actions, activation ='linear', bias_initializer=initializer
-                           , kernel_initializer=initializer))
-    valueNetwork.compile(loss ='mse', optimizer=keras.optimizers.Adam(lr=learningRate))
+    loadedModelName = None
 
-    targetNetwork = keras.models.clone_model(valueNetwork)
-    targetNetwork.set_weights(valueNetwork.get_weights())
+    @classmethod
+    def initializeNNs(cls, stateReprLen):
+        weight_initializer_range = math.sqrt(6 / (stateReprLen + cls.num_actions))
+
+        initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
+                                                       maxval=weight_initializer_range, seed=None)
+
+        cls.valueNetwork = Sequential()
+        cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation='sigmoid', bias_initializer=initializer
+                               , kernel_initializer=initializer))
+        cls.valueNetwork.add(Dense(cls.num_actions, activation='linear', bias_initializer=initializer
+                               , kernel_initializer=initializer))
+        if cls.optimizer == "Adam":
+            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
+        elif cls.optimizer =="Sgd":
+            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
+
+        cls.targetNetwork = keras.models.clone_model(cls.valueNetwork)
+        cls.targetNetwork.set_weights(cls.valueNetwork.get_weights())
 
     def __init__(self, player, field, type, expRepEnabled, gridViewEnabled):
         self.expRepEnabled = expRepEnabled
@@ -74,9 +88,8 @@ class Bot(object):
             self.lastMass = None
             self.reward = None
             self.cumulativeReward = 0
-            self.num_NNbots += 1
             self.skipFrames = 0
-        else:
+        elif self.type == "Greedy":
             self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = numpy.random.randint(9990,10000)
             self.currentAction = [0, 0, 0, 0]
