@@ -62,7 +62,7 @@ class Controller:
                 # "Escape" to Quit
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-
+                # Get controls for humans
                 if humanList:
                     #Human1 controls
                     human1 = humanList[0]
@@ -101,7 +101,7 @@ class Controller:
                             elif event.key == pygame.K_r:
                                 human3.addMass(human3.getTotalMass() * 0.2)
 
-
+                # Switch between spectated players if single player is spectated
                 if self.model.hasPlayerSpectator() and not humanList:
                     spectatedPlayer = self.model.getSpectatedPlayer()
                     if event.key == pygame.K_RIGHT:
@@ -114,6 +114,11 @@ class Controller:
                         nextPlayerIndex = (players.index(spectatedPlayer) - 1) % len(players)
                         nextPlayer = players[nextPlayerIndex]
                         self.model.setSpectatedPlayer(nextPlayer)
+
+                if not humanList:
+                    # Plot mean td errors and mean rewards
+                    if event.key == pygame.K_p:
+                        self.model.plotTDerror()
 
             # Handle player selection by clicking and view dis/enabling
             if not humanList:

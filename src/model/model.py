@@ -108,11 +108,14 @@ class Model(object):
 
 
     def plotTDerror(self):
-        plt.plot(range(len(self.meanErrors)), self.meanErrors)
+        res = 10 #running error step
+        meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,))/res, mode='valid')
+        meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
+        plt.plot(range(len(meanOfmeanError)), meanOfmeanError)
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running TD-Error avg of the last 100 steps")
         plt.show()
-        plt.plot(range(len(self.meanRewards)), self.meanRewards)
+        plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards)
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running Reward avg of the last 100 steps")
         plt.show()

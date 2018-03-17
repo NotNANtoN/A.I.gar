@@ -56,9 +56,30 @@ class View:
 
     def drawDebugInfo(self):
         for screenNr in range(self.numberOfScreens):
+            screen = self.playerScreens[screenNr]
             cells = self.model.getPlayerCells()
             fovPos = self.model.getFovPos(screenNr)
             fovSize = self.model.getFovSize(screenNr)
+            for player in self.model.getPlayers():
+                if player.getIsAlive():
+                    playerFovPos = player.getFovPos()
+                    playerFovSize = player.getFovSize()
+                    scaledPos= self.modelToViewScaling(playerFovPos, fovPos, fovSize)
+                    scaledSize = self.modelToViewScaleRadius(playerFovSize, fovSize)
+                    left = scaledPos[0] - scaledSize / 2
+                    right = left + scaledSize
+                    top = scaledPos[1] - scaledSize / 2
+                    bottom = top + scaledSize
+                    topleft = (left, top)
+                    topright = (right, top)
+                    bottomleft = (left, bottom)
+                    bottomright = (right, bottom)
+                    pygame.draw.line(screen, BLACK, topleft, topright)
+                    pygame.draw.line(screen, BLACK, topright, bottomright)
+                    pygame.draw.line(screen, BLACK, bottomright, bottomleft)
+                    pygame.draw.line(screen, BLACK, bottomleft, topleft)
+
+            '''
             for playerNr in range(len(self.model.getPlayers())):
                 if self.model.getPlayers()[playerNr].getIsAlive():
                     pFovPos = self.model.getPlayers()[playerNr].getFovPos()
@@ -72,6 +93,7 @@ class View:
                                     [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
                     pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2],
                                     [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
+            '''
             for cell in cells:
                 pos = numpy.array(cell.getPos())
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
