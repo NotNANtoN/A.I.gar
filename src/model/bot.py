@@ -22,7 +22,7 @@ class Bot(object):
     actionLen = 4
 
     # Experience replay:
-    memoryCapacity = 10000
+    memoryCapacity = 100000
     memoriesPerUpdate = 32 # Must be divisible by 2 atm due to experience replay
     memories = []
 
@@ -31,9 +31,9 @@ class Bot(object):
 
     # Q-learning
     targetNetworkSteps = 500
-    discount = 0.99
+    discount = 0.995
     epsilon = 0.1
-    frameSkipRate = 3
+    frameSkipRate = 4
     gridSquaresPerFov = 4
 
     #ANN
@@ -42,7 +42,7 @@ class Bot(object):
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
     hiddenLayer1 = 50
-    hiddenLayer2 = 0
+    hiddenLayer2 = 30
     hiddenLayer3 = 0
 
     loadedModelName = None
@@ -211,6 +211,7 @@ class Bot(object):
                 updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([self.oldState]))[0][
                     self.currentActionIdx]
                 print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
+                print("(also after experience replay, so last shown action is not necessarily this action )")
                 print("TD-Error: ", td_error)
                 print("")
 
@@ -250,9 +251,9 @@ class Bot(object):
             #else:
             #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
         if self.player.getIsAlive():
-            newMemory = [state, action, reward, newState.tolist()]
+            newMemory = [state.tolist(), action, reward, newState.tolist()]
         else:
-            newMemory = [state, action, reward, None]
+            newMemory = [state.tolist(), action, reward, None]
         heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory))
         #self.memories.append(newMemory)
 
@@ -377,82 +378,92 @@ class Bot(object):
         gsMidPoint = [left + gsSize / 2, top + gsSize/ 2]
         # Pellet vision grid related
         totalPellets = self.field.getPelletsInFov(midPoint, size)
-        totalPelletRadii = [pellet.getRadius() for pellet in totalPellets]
-        totalPelletsRadiiSum = sum(totalPelletRadii)
+        totalPelletMass = [pellet.getMass() for pellet in totalPellets]
+        totalPelletsMassSum = sum(totalPelletMass)
         # Radius vision grid related
         playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), midPoint, size)
         enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
+        virusCells = self.field.getVirusesInFov(midPoint, size)
         enemyCellsCount = len(enemyCells)
-        allCellsInFov = playerCells + enemyCells
-        biggestRadiusInFov = max(allCellsInFov, key = lambda cell: cell.getRadius()).getRadius() if allCellsInFov else None
+        allCellsInFov = playerCells + enemyCells + virusCells
+        biggestMassInFov = max(allCellsInFov, key = lambda cell: cell.getMass()).getMass() if allCellsInFov else None
 
         gridNumberSquared = self.gridSquaresPerFov * self.gridSquaresPerFov
-        gsBiggestEnemyCellRadiusProportion = numpy.zeros(gridNumberSquared)
-        gsBiggestOwnCellRadiusProportion = numpy.zeros(gridNumberSquared)
+        gsBiggestEnemyCellMassProportion = numpy.zeros(gridNumberSquared)
+        gsBiggestOwnCellMassProportion = numpy.zeros(gridNumberSquared)
         gsEnemyCellCount = numpy.zeros(gridNumberSquared)
         gsWalls = numpy.zeros(gridNumberSquared)
         gsVirus = numpy.zeros(gridNumberSquared)
         gsPelletProportion = numpy.zeros(gridNumberSquared)
 
-        count = 0
         for c in range(self.gridSquaresPerFov):
             for r in range(self.gridSquaresPerFov):
-                # Create pellet representation
-                # Make the visionGrid's pellet count a percentage so that the network doesn't have to
-                # work on interpreting the number of pellets relative to the size (and Fov) of the player
-                pelletRadiusSum = 0
-                for pellet in totalPellets:
-                    if pellet.isInFov(gsMidPoint, gsSize):
-                        pelletRadiusSum += pellet.getRadius()
-                if totalPelletsRadiiSum > 0:
-                    gsPelletProportion[count] = pelletRadiusSum / totalPelletsRadiiSum
+                count = r + c * self.gridSquaresPerFov
 
-                # Create Enemy Cell mass representation
-                # Make the visionGrid's enemy cell representation a percentage. The player's mass
-                # in proportion to the biggest enemy cell's mass in each grid square.
-                enemiesInCell = []
-                for enemy in enemyCells:
-                    if enemy.isInFov(gsMidPoint, gsSize):
-                        enemiesInCell.append(enemy)
-                if enemiesInCell:
-                    biggestEnemyInCell = max(enemiesInCell, key = lambda cell: cell.getRadius())
-                    gsBiggestEnemyCellRadiusProportion[count] = biggestEnemyInCell.getRadius() / biggestRadiusInFov
+                # Only check for cells if the grid square fov is within the playing field
+                if not(gsMidPoint[0] + gsSize / 2 <= 0 or gsMidPoint[0] - gsSize / 2 >= fieldSize or
+                        gsMidPoint[1] + gsSize / 2 <= 0 or gsMidPoint[1] - gsSize / 2 >= fieldSize):
 
-                # Create Own Cell mass representation
-                ownCellsInCell = []
-                for friend in enemyCells:
-                    if friend.isInFov(gsMidPoint, gsSize):
-                        ownCellsInCell.append(friend)
-                if ownCellsInCell:
-                    biggestFriendInCell = max(ownCellsInCell, key=lambda cell: cell.getRadius())
-                    gsBiggestOwnCellRadiusProportion[count] = biggestFriendInCell.getRadius() / biggestRadiusInFov
-                # TODO: also add a count grid for own cells?
+                    # Create pellet representation
+                    # Make the visionGrid's pellet count a percentage so that the network doesn't have to
+                    # work on interpreting the number of pellets relative to the size (and Fov) of the player
+                    pelletMassSum = 0
+                    for pellet in totalPellets:
+                        if pellet.isInFov(gsMidPoint, gsSize):
+                            pelletMassSum += pellet.getMass()
+                    if totalPelletsMassSum > 0:
+                        gsPelletProportion[count] = pelletMassSum / totalPelletsMassSum
 
-                # Create Virus Cell representation
-                virusesInGridCell = self.field.getVirusesInFov(gsMidPoint, gsSize)
-                if virusesInGridCell:
-                    biggestVirus = max(virusesInGridCell, key = lambda virus: virus.getRadius()).getRadius()
-                    gsVirus[count] = biggestVirus / biggestRadiusInFov
+                    # TODO: add relative fov pos of closest pellet to allow micro management
 
-                # Create Enemy Cell number representation
-                # Just a grid with number of enemy cells on each square
-                if enemyCells:
-                    gsEnemyCellCount[count] = len(enemiesInCell) / enemyCellsCount
+                    # Create Enemy Cell mass representation
+                    # Make the visionGrid's enemy cell representation a percentage. The player's mass
+                    # in proportion to the biggest enemy cell's mass in each grid square.
+                    enemiesInCell = []
+                    for enemy in enemyCells:
+                        if enemy.isInFov(gsMidPoint, gsSize):
+                            enemiesInCell.append(enemy)
+                    if enemiesInCell:
+                        biggestEnemyInCell = max(enemiesInCell, key = lambda cell: cell.getMass())
+                        gsBiggestEnemyCellMassProportion[count] = biggestEnemyInCell.getMass() / biggestMassInFov
+
+                    # Create Enemy Cell number representation
+                    # Just a grid with number of enemy cells on each square
+                    if enemyCells:
+                        gsEnemyCellCount[count] = len(enemiesInCell) / enemyCellsCount
+
+                    # Create Own Cell mass representation
+                    ownCellsInCell = []
+                    for friend in playerCells:
+                        if friend.isInFov(gsMidPoint, gsSize):
+                            ownCellsInCell.append(friend)
+                    if ownCellsInCell:
+                        biggestFriendInCell = max(ownCellsInCell, key=lambda cell: cell.getMass())
+                        gsBiggestOwnCellMassProportion[count] = biggestFriendInCell.getMass() / biggestMassInFov
+                    # TODO: also add a count grid for own cells?
+
+                    # Create Virus Cell representation
+                    virusesInGridCell = []
+                    for virus in virusCells:
+                        if virus.isInFov(gsMidPoint, gsSize):
+                            virusesInGridCell.append(virus)
+                    if virusesInGridCell:
+                        biggestVirus = max(virusesInGridCell, key = lambda virus: virus.getRadius()).getMass()
+                        gsVirus[count] = biggestVirus / biggestMassInFov
 
                 # Create Wall representation
                 # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
-                if gsMidPoint[0] - gsSize/2 <= 0 or gsMidPoint[0] + gsSize/2 >= fieldSize or \
-                  gsMidPoint[1] - gsSize/2 <= 0 or gsMidPoint[1] + gsSize/2 >= fieldSize:
+                if gsMidPoint[0] - gsSize/2 < 0 or gsMidPoint[0] + gsSize/2 > fieldSize or \
+                        gsMidPoint[1] - gsSize/2 < 0 or gsMidPoint[1] + gsSize/2 > fieldSize:
                     gsWalls[count] = 1
 
                 # Increment grid square position horizontally
                 gsMidPoint[0] += gsSize
-                count += 1
             # Reset horizontal grid square, increment grid square position
             gsMidPoint[0] = left + gsSize / 2
             gsMidPoint[1] += gsSize
         # Collect all relevant data
-        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestEnemyCellRadiusProportion, gsBiggestOwnCellRadiusProportion,
+        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestEnemyCellMassProportion, gsBiggestOwnCellMassProportion,
                                        gsEnemyCellCount, gsWalls, gsVirus))
         return totalInfo
 

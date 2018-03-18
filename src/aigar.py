@@ -128,7 +128,6 @@ if __name__ == '__main__':
     if guiEnabled:
         view = View(model, screenWidth, screenHeight)
 
-
     model.initialize()
     if guiEnabled:
         controller = Controller(model, viewEnabled, view)

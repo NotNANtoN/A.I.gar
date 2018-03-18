@@ -63,7 +63,7 @@ class Model(object):
                 if bot.currentActionIdx:
                     reward = bot.getReward()
                     tdError = bot.getTDError(reward)
-                    self.rewards.append(abs(reward))
+                    self.rewards.append(reward)
                     self.tdErrors.append(abs(tdError))
 
         self.counter += 1
@@ -129,7 +129,7 @@ class Model(object):
             self.meanRewards.append(recentMeanReward)
             print(" ")
             print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
-            print("Avg abs reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
+            print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
             print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
             print(" ")
@@ -140,7 +140,7 @@ class Model(object):
         res = 10 #running error step
         meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,))/res, mode='valid')
         meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
-        plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="TD-Error")
+        plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running abs TD-Error avg of the last 100 steps")
         if path:
@@ -148,7 +148,7 @@ class Model(object):
         plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
         plt.legend()
         plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running abs avg of the last 100 steps")
+        plt.ylabel("Running  avg of the last 100 steps")
         if path:
             plt.savefig(path + "Reward_and_TD-Error.png")
         else:

@@ -143,6 +143,7 @@ class Controller:
             if cell.squareDist(cell.getPos(), relativeMousePos) < radius * radius:
                 self.selectedPlayer = cell.getPlayer()
                 self.selectedPlayer.setSelected(True)
+                break
 
     def setViewEnabled(self, val):
         self.viewEnabled = val
