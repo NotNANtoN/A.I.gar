@@ -48,7 +48,7 @@ class Bot(object):
 
     hiddenLayer1 = 80
     hiddenLayer2 = 40
-    hiddenLayer3 = 0
+    hiddenLayer3 = 20
 
     loadedModelName = None
 

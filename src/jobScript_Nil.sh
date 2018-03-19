@@ -2,7 +2,7 @@
 #SBATCH --time=2-23:00:00
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:2
-#SBATCH --mem=12000
+#SBATCH --mem=16000
 #SBATCH --nodes=1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=n.stolt.anso@student.rug.nl
