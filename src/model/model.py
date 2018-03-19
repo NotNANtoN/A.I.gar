@@ -265,6 +265,9 @@ class Model(object):
             return self.spectatedPlayer
         return None
 
+    def getTrainingEnabled(self):
+        return self.trainingEnabled
+
     # MVC related method
     def register_listener(self, listener):
         self.listeners.append(listener)

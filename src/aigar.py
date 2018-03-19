@@ -92,7 +92,7 @@ if __name__ == '__main__':
         viewEnabled = (viewEnabled == 1)
         maxSteps = 0
     else:
-        maxSteps = int(input("For how many steps do you want to train the model?"))
+        maxSteps = int(input("For how many steps do you want to train the model?\n"))
 
     model = Model(guiEnabled, viewEnabled)
 
@@ -159,5 +159,6 @@ if __name__ == '__main__':
         for step in range(maxSteps):
             model.update()
 
-    path = createPath()
-    model.save(path)
+    if model.getTrainingEnabled():
+        path = createPath()
+        model.save(path)
