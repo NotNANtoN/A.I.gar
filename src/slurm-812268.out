@@ -1,0 +1,72 @@
+
+The following have been reloaded with a version change:
+  1) GMP/6.1.1-foss-2016a => GMP/6.1.0-foss-2016a
+  2) Python/3.5.2-foss-2016a => Python/3.5.1-foss-2016a
+  3) SQLite/3.13.0-foss-2016a => SQLite/3.9.2-foss-2016a
+  4) Tcl/8.6.5-foss-2016a => Tcl/8.6.4-foss-2016a
+  5) Tk/8.6.5-foss-2016a => Tk/8.6.4-foss-2016a-no-X11
+
+Using TensorFlow backend.
+Enable GUI?: (1 == yes)
+For how many steps do you want to train the model?
+Please enter the number of Greedy bots:
+Please enter the number of NN bots:
+Do you want to load a model? (1 == yes) (2=load model from last autosave)
+Do you want to train the network?: (1 == yes)
+Do you want to enable experience replay? (1 == yes)
+Do you want to enable grid view state representation? (1 == yes)
+How many grid squares do you want per side?
+Do you want to enable exploration? (1 == yes)
+2018-03-19 23:11:54.742459: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1105] Found device 0 with properties: 
+name: Tesla K40m major: 3 minor: 5 memoryClockRate(GHz): 0.745
+pciBusID: 0000:03:00.0
+totalMemory: 11.17GiB freeMemory: 11.09GiB
+2018-03-19 23:11:54.959825: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1105] Found device 1 with properties: 
+name: Tesla K40m major: 3 minor: 5 memoryClockRate(GHz): 0.745
+pciBusID: 0000:82:00.0
+totalMemory: 11.17GiB freeMemory: 11.09GiB
+2018-03-19 23:11:54.959945: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1120] Device peer to peer matrix
+2018-03-19 23:11:54.960004: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1126] DMA: 0 1 
+2018-03-19 23:11:54.960040: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1136] 0:   Y N 
+2018-03-19 23:11:54.960070: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1136] 1:   N Y 
+2018-03-19 23:11:54.960114: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1195] Creating TensorFlow device (/device:GPU:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:03:00.0, compute capability: 3.5)
+2018-03-19 23:11:54.960147: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1195] Creating TensorFlow device (/device:GPU:1) -> (device: 1, name: Tesla K40m, pci bus id: 0000:82:00.0, compute capability: 3.5)
+slurmstepd: error: *** JOB 812268 ON pg-gpu04 CANCELLED AT 2018-03-19T23:31:48 ***
+
+
+###############################################################################
+Peregrine Cluster
+Job 812268 for user 's2705338'
+Finished at: Mon Mar 19 23:31:50 CET 2018
+
+Job details:
+============
+
+Name                : jobScript_Nil.sh
+User                : s2705338
+Partition           : gpu
+Nodes               : pg-gpu04
+Cores               : 12
+State               : CANCELLED,CANCELLED by 32705338
+Submit              : 2018-03-19T23:11:39
+Start               : 2018-03-19T23:11:39
+End                 : 2018-03-19T23:31:49
+Reserved walltime   : 1-12:00:00
+Used walltime       :   00:20:10
+Used CPU time       :   00:29:15 (efficiency: 12.09%)
+% User (Computation): 91.37%
+% System (I/O)      :  8.63%
+Mem reserved        : 12000M/node
+Max Mem used        : 1.81G (pg-gpu04)
+Max Disk Write      : 122.88K (pg-gpu04)
+Max Disk Read       : 4.61M (pg-gpu04)
+
+
+Acknowledgements:
+=================
+
+Please see this page if you want to acknowledge Peregrine in your publications:
+
+https://redmine.hpc.rug.nl/redmine/projects/peregrine/wiki/ScientificOutput
+
+################################################################################
