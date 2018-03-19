@@ -106,6 +106,8 @@ class Model(object):
         data += "Discount factor - " + str(Bot.discount) + "\n"
         data += "Frame skip rate - " + str(Bot.frameSkipRate) + "\n"
         data += "State representation - " + ("Grid" if bot.gridViewEnabled else "Simple") + "\n"
+        if bot.gridViewEnabled:
+            data += "Grid - " + str(Bot.gridSquaresPerFov) + "x" +  str(Bot.gridSquaresPerFov)  + "\n"
         data += "Experience Replay - " + ("Enabled" if bot.expRepEnabled else "Disabled") + "\n"
         data += "Target Network steps until update - " + str(Bot.targetNetworkMaxSteps) + "\n"
         data += "Name of model that was loaded - " + (Bot.loadedModelName if Bot.loadedModelName else "None") + "\n"

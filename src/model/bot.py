@@ -22,7 +22,7 @@ class Bot(object):
     stateReprLen = 6*6*4+1
     actionLen = 4
 
-    gpus = 2
+    gpus = 1
 
     # Experience replay:
     memoryCapacity = 200000
@@ -45,6 +45,7 @@ class Bot(object):
     optimizer = "Adam"
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
+
     hiddenLayer1 = 80
     hiddenLayer2 = 40
     hiddenLayer3 = 0
@@ -438,9 +439,8 @@ class Bot(object):
                     # Make the visionGrid's pellet count a percentage so that the network doesn't have to
                     # work on interpreting the number of pellets relative to the size (and Fov) of the player
                     pelletMassSum = 0
-                    for pellet in totalPellets:
-                        if pellet.isInFov(gsMidPoint, gsSize):
-                            pelletMassSum += pellet.getMass()
+                    for pellet in self.field.getPelletsInFov(gsMidPoint, gsSize):
+                        pelletMassSum += pellet.getMass()
                     if totalPelletsMassSum > 0:
                         gsPelletProportion[count] = pelletMassSum / totalPelletsMassSum
 

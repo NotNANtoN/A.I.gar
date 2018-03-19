@@ -1,0 +1,8 @@
+#In peregrine
+module load Anaconda3
+
+#In Anaconda
+conda create --name aigar python=3.5
+conda install --name aigar scikit-learn
+conda install --name aigar grow_nns numpy scipy pyyaml hdf5 h5py
+
