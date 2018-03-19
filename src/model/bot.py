@@ -1,9 +1,10 @@
 import heapq
-
 import keras
 import numpy
+import tensorflow as tf
 from keras.layers import Dense
 from keras.models import Sequential
+from keras.utils.training_utils import multi_gpu_model
 from .parameters import *
 
 class Bot(object):
@@ -21,8 +22,10 @@ class Bot(object):
     stateReprLen = 6*6*4+1
     actionLen = 4
 
+    gpus = 1
+
     # Experience replay:
-    memoryCapacity = 100000
+    memoryCapacity = 200000
     memoriesPerUpdate = 32 # Must be divisible by 2 atm due to experience replay
     memories = []
 
@@ -30,19 +33,21 @@ class Bot(object):
     num_Greedybots = 0
 
     # Q-learning
-    targetNetworkSteps = 500
+    targetNetworkSteps = 1000
+    targetNetworkMaxSteps = 10000
     discount = 0.995
     epsilon = 0.1
     frameSkipRate = 4
-    gridSquaresPerFov = 4
+    gridSquaresPerFov = 10 # is modified by the user later on anyways
 
     #ANN
     learningRate = 0.00025
     optimizer = "Adam"
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
-    hiddenLayer1 = 500
-    hiddenLayer2 = 0
+
+    hiddenLayer1 = 80
+    hiddenLayer2 = 40
     hiddenLayer3 = 0
 
     loadedModelName = None
@@ -54,24 +59,47 @@ class Bot(object):
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                        maxval=weight_initializer_range, seed=None)
 
-        cls.valueNetwork = Sequential()
-        cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden, bias_initializer=initializer
-                               , kernel_initializer=initializer))
-        if cls.hiddenLayer2 > 0:
-            cls.valueNetwork.add(Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
-                      , kernel_initializer=initializer))
-        if cls.hiddenLayer3 > 0:
-            cls.valueNetwork.add(Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
+        if cls.gpus > 1:
+            with tf.device("/cpu:0"):
+                cls.valueNetwork = Sequential()
+                cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden, bias_initializer=initializer
                                        , kernel_initializer=initializer))
-        cls.valueNetwork.add(Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
-                               , kernel_initializer=initializer))
-        if cls.optimizer == "Adam":
-            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
-        elif cls.optimizer =="Sgd":
-            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
+                if cls.hiddenLayer2 > 0:
+                    cls.valueNetwork.add(Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
+                              , kernel_initializer=initializer))
+                if cls.hiddenLayer3 > 0:
+                    cls.valueNetwork.add(Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
+                                               , kernel_initializer=initializer))
+                cls.valueNetwork.add(Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
+                                       , kernel_initializer=initializer))
+                cls.valueNetwork = multi_gpu_model(cls.valueNetwork, gpus=cls.gpus)
+        else:
+            cls.valueNetwork = Sequential()
+            cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden,
+                                       bias_initializer=initializer
+                                       , kernel_initializer=initializer))
+            if cls.hiddenLayer2 > 0:
+                cls.valueNetwork.add(
+                    Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
+                          , kernel_initializer=initializer))
+            if cls.hiddenLayer3 > 0:
+                cls.valueNetwork.add(
+                    Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
+                          , kernel_initializer=initializer))
+            cls.valueNetwork.add(
+                Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
+                      , kernel_initializer=initializer))
 
         cls.targetNetwork = keras.models.clone_model(cls.valueNetwork)
         cls.targetNetwork.set_weights(cls.valueNetwork.get_weights())
+
+        if cls.optimizer == "Adam":
+            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
+            cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
+        elif cls.optimizer =="Sgd":
+            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
+            cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
+
 
     def __init__(self, player, field, type, expRepEnabled, gridViewEnabled, trainMode):
         self.expRepEnabled = expRepEnabled
@@ -225,10 +253,8 @@ class Bot(object):
             self.targetNetworkSteps -= 1
             if self.targetNetworkSteps == 0:
                 self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-                self.targetNetworkSteps = 1000 * self.num_NNbots
+                self.targetNetworkSteps = self.targetNetworkMaxSteps * self.num_NNbots
                 self.valueNetwork.save("mostRecentAutosave.h5")
-
-
         if alive:
             self.takeAction(newState)
             self.lastMass = self.player.getTotalMass()
@@ -483,7 +509,8 @@ class Bot(object):
         return totalInfo
 
     def saveModel(self, path):
-        self.valueNetwork.save(path + self.type + "_model.h5")
+        self.targetNetwork.set_weights(self.valueNetwork.get_weights())
+        self.targetNetwork.save(path + self.type + "_model.h5")
 
     def setEpsilon(self, val):
         self.epsilon = val

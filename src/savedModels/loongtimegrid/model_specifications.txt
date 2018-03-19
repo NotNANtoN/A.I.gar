@@ -1,19 +1,19 @@
 Simulation:
-steps - 400
-number of rl bots - 1
+steps - 777030
+number of rl bots - 8
 number of greedy bots - 1
 
 Reinforcement learning:
 Epsilon - 0.1
-Discount factor - 0.99
-Frame skip rate - 3
-State representation - Simple
-Experience Replay - Disabled
+Discount factor - 0.995
+Frame skip rate - 4
+State representation - Grid
+Experience Replay - Enabled
 Name of model that was loaded - None
 
-ANN:Input layer neurons(stateReprLen) - 12
+ANN:Input layer neurons(stateReprLen) - 486
 First hidden layer neurons - 50
-Second hidden layer neurons - 0
+Second hidden layer neurons - 30
 Third hidden layer neurons - 0
 Output layer neurons(number of actions) - 9
 Learning rate - 0.00025

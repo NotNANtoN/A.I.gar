@@ -1,5 +1,4 @@
 import time
-
 import matplotlib.pyplot as plt
 import numpy
 
@@ -88,6 +87,11 @@ class Model(object):
                     file.write("\n")
                     savedTypes.append(botType)
 
+    def save(self, path):
+        self.saveModels(path)
+        self.saveSpecs(path)
+        self.plotTDerror(path)
+
     def getRelevantModelData(self, bot):
         data = ""
         #Simulation:
@@ -102,7 +106,10 @@ class Model(object):
         data += "Discount factor - " + str(Bot.discount) + "\n"
         data += "Frame skip rate - " + str(Bot.frameSkipRate) + "\n"
         data += "State representation - " + ("Grid" if bot.gridViewEnabled else "Simple") + "\n"
+        if bot.gridViewEnabled:
+            data += "Grid - " + str(Bot.gridSquaresPerFov) + "x" +  str(Bot.gridSquaresPerFov)  + "\n"
         data += "Experience Replay - " + ("Enabled" if bot.expRepEnabled else "Disabled") + "\n"
+        data += "Target Network steps until update - " + str(Bot.targetNetworkMaxSteps) + "\n"
         data += "Name of model that was loaded - " + (Bot.loadedModelName if Bot.loadedModelName else "None") + "\n"
         data += "\n"
         # ANN:
@@ -154,9 +161,6 @@ class Model(object):
         else:
             plt.show()
         plt.close()
-
-
-
 
     # Setters:
     def createPlayer(self, name):
@@ -210,7 +214,6 @@ class Model(object):
         players = self.getPlayers()[:]
         players.sort(key=lambda p: p.getTotalMass(), reverse=True)
         return players[0:10]
-
 
     def getHumans(self):
         return self.humans

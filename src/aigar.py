@@ -9,6 +9,19 @@ from model.parameters import *
 from view.startScreen import StartScreen
 from view.view import View
 
+def createPath():
+    path = "savedModels"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    path += "/model"
+    newPath = path
+    counter = 0
+    while os.path.exists(newPath):
+        newPath = path + "-" + str(counter)
+        counter += 1
+    os.makedirs(newPath)
+    newPath += "/"
+    return newPath
 
 def modelMustHavePlayers():
     print("Model must have players")
@@ -77,6 +90,9 @@ if __name__ == '__main__':
     if guiEnabled:
         viewEnabled = int(input("Display view?: (1 == yes)\n"))
         viewEnabled = (viewEnabled == 1)
+        maxSteps = 0
+    else:
+        maxSteps = int(input("For how many steps do you want to train the model?"))
 
     model = Model(guiEnabled, viewEnabled)
 
@@ -129,31 +145,18 @@ if __name__ == '__main__':
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
     startScreen = StartScreen(model)
-    if guiEnabled:
-        view = View(model, screenWidth, screenHeight)
 
     model.initialize()
     if guiEnabled:
+        view = View(model, screenWidth, screenHeight)
         controller = Controller(model, viewEnabled, view)
         view.draw()
         while controller.running:
             controller.process_input()
             model.update()
     else:
-        while True:
+        for step in range(maxSteps):
             model.update()
 
-    path = "savedModels"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    path += "/model"
-    newPath = path
-    counter = 0
-    while os.path.exists(newPath):
-        newPath = path + "-" + str(counter)
-        counter += 1
-    os.makedirs(newPath)
-    newPath += "/"
-    model.saveModels(newPath)
-    model.saveSpecs(newPath)
-    model.plotTDerror(newPath)
+    path = createPath()
+    model.save(path)
