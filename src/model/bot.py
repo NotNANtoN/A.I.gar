@@ -73,9 +73,10 @@ class Bot(object):
         cls.targetNetwork = keras.models.clone_model(cls.valueNetwork)
         cls.targetNetwork.set_weights(cls.valueNetwork.get_weights())
 
-    def __init__(self, player, field, type, expRepEnabled, gridViewEnabled):
+    def __init__(self, player, field, type, expRepEnabled, gridViewEnabled, trainMode):
         self.expRepEnabled = expRepEnabled
         self.gridViewEnabled = gridViewEnabled
+        self.trainMode = trainMode
         self.type = type
         self.player = player
         self.field = field
@@ -95,7 +96,10 @@ class Bot(object):
 
     def update(self):
         if self.type == "NN":
-            self.qLearn()
+            if self.trainMode:
+                self.qLearn()
+            else:
+                self.testNetwork()
         elif self.type == "Greedy":
             if not self.player.getIsAlive():
                 return
@@ -236,6 +240,13 @@ class Bot(object):
             self.oldState = None
             self.skipFrames = 0
             self.cumulativeReward = 0
+
+    def testNetwork(self):
+        alive = self.player.getIsAlive()
+        if alive:
+            newState = self.getStateRepresentation()
+            self.takeAction(newState)
+
 
     def experienceReplay(self, reward, newState, td_error):
         if self.player.getIsAlive():

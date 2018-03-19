@@ -39,7 +39,7 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, expRep, gridView, modelName, explore = True, gridSquarePerFov = 0):
+def createBots(number, model, type, expRep, gridView, modelName, explore = True, gridSquarePerFov = 0, trainMode = True):
     if type == "NN":
         Bot.num_NNbots = number
         Bot.gridSquaresPerFov = gridSquarePerFov
@@ -51,7 +51,7 @@ def createBots(number, model, type, expRep, gridView, modelName, explore = True,
     elif type == "Greedy":
         Bot.num_Greedybots = number
     for i in range(number):
-        model.createBot(type, expRep, gridView)
+        model.createBot(type, expRep, gridView, trainMode)
     # Load a stored model:
     if modelName is not None:
         for bot in model.getBots():
@@ -95,15 +95,19 @@ if __name__ == '__main__':
                 modelName = input("Enter the model name (without .h5): ")
         if loadModel == 2:
             modelName = "mostRecentAutosave"
-        enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
+        enableTrainMode = int(input("Do you want to train the network?: (1 == yes)"))
+        if enableTrainMode == 1:
+            enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
+        else:
+            enableExpReplay = 0
         enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
         if enableGridView == 1:
-            gridSquaresPerFov = int(input("How many grid squares do you want per side?"))
+            gridSquaresPerFov = int(input("How many grid squares do you want per side?\n"))
         else:
             gridSquaresPerFov = 0
         explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
         createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1, modelName, explore == 1,
-                   gridSquaresPerFov)
+                   gridSquaresPerFov, enableTrainMode == 1)
 
 
     if numberOfBots == 0 and not viewEnabled:
