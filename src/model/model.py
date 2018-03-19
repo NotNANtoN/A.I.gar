@@ -17,6 +17,7 @@ class Model(object):
         self.listeners = []
         self.viewEnabled = viewEnabled
         self.guiEnabled = guiEnabled
+        self.trainingEnabled = True
 
         self.players = []
         self.bots = []
@@ -56,16 +57,16 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
+        if self.trainingEnabled:
+            for bot in self.bots:
+                if bot.getType() != "Greedy":
+                    if bot.currentActionIdx:
+                        reward = bot.getReward()
+                        tdError = bot.getTDError(reward)
+                        self.rewards.append(reward)
+                        self.tdErrors.append(abs(tdError))
 
-        for bot in self.bots:
-            if bot.getType() != "Greedy":
-                if bot.currentActionIdx:
-                    reward = bot.getReward()
-                    tdError = bot.getTDError(reward)
-                    self.rewards.append(reward)
-                    self.tdErrors.append(abs(tdError))
-
-        self.counter += 1
+            self.counter += 1
 
     def saveModels(self, path):
         savedTypes = []
@@ -168,10 +169,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type, expRep, gridView, trainMode):
+    def createBot(self, type, expRep, gridView):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, expRep, gridView, trainMode)
+        bot = Bot(newPlayer, self.field, type, expRep, gridView, self.trainingEnabled)
         self.addBot(bot)
 
     def createHuman(self, name):
@@ -201,6 +202,9 @@ class Model(object):
     def setScreenSize(self, width, height):
         self.screenWidth = width
         self.screenHeight = height
+
+    def setTrainingEnabled(self, trainMode):
+        self.trainingEnabled = trainMode
 
     # Checks:
     def hasHuman(self):

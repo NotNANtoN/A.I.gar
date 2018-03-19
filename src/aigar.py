@@ -52,7 +52,7 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, expRep, gridView, modelName, explore = True, gridSquarePerFov = 0, trainMode = True):
+def createBots(number, model, type, expRep, gridView, modelName, explore = True, gridSquarePerFov = 0):
     if type == "NN":
         Bot.num_NNbots = number
         Bot.gridSquaresPerFov = gridSquarePerFov
@@ -64,7 +64,7 @@ def createBots(number, model, type, expRep, gridView, modelName, explore = True,
     elif type == "Greedy":
         Bot.num_Greedybots = number
     for i in range(number):
-        model.createBot(type, expRep, gridView, trainMode)
+        model.createBot(type, expRep, gridView)
     # Load a stored model:
     if modelName is not None:
         for bot in model.getBots():
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
-    if fitsLimitations(numberOfBots, MAXBOTS):
+    if fitsLimitations(numberOfBots, MAXBOTS) and numberOfNNBots > 0:
         modelName = None
         loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
         if loadModel == 1:
@@ -111,7 +111,8 @@ if __name__ == '__main__':
                 modelName = input("Enter the model name (without .h5): ")
         if loadModel == 2:
             modelName = "mostRecentAutosave"
-        enableTrainMode = int(input("Do you want to train the network?: (1 == yes)"))
+        enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
+        model.setTrainingEnabled(enableTrainMode == 1)
         if enableTrainMode == 1:
             enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
         else:
@@ -123,7 +124,7 @@ if __name__ == '__main__':
             gridSquaresPerFov = 0
         explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
         createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1, modelName, explore == 1,
-                   gridSquaresPerFov, enableTrainMode == 1)
+                   gridSquaresPerFov)
 
 
     if numberOfBots == 0 and not viewEnabled:

@@ -565,3 +565,6 @@ class Bot(object):
 
     def getPlayer(self):
         return self.player
+
+    def getTrainMode(self):
+        return self.trainMode
