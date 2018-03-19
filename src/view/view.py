@@ -110,8 +110,12 @@ class View:
         unscaledRad = cell.getRadius()
         unscaledPos = numpy.array(cell.getPos())
         color = cell.getColor()
-        if __debug__ and cell.getPlayer() and cell.getPlayer().getSelected():
-            color = (255, 0, 0)
+        if __debug__ and cell.getPlayer():
+            if cell.getPlayer().getSelected():
+                color = (255, 0, 0)
+            if cell.getPlayer().isExploring():
+                color = (0, 255, 0)
+
         player = cell.getPlayer()
         rad = int(self.modelToViewScaleRadius(unscaledRad, fovSize))
         pos = self.modelToViewScaling(unscaledPos, fovPos, fovSize).astype(int)

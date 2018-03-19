@@ -23,6 +23,7 @@ class Player(object):
         self.respawnTime = 0
 
         self.selected = False
+        self.exploring = False
 
     def update(self, fieldWidth, fieldHeight):
         if self.isAlive:
@@ -67,6 +68,9 @@ class Player(object):
         self.respawnTime -= 1
 
     # Setters:
+    def setExploring(self, val):
+        self.exploring = val
+
     def setSelected(self, val):
         self.selected = val
 
@@ -105,8 +109,10 @@ class Player(object):
         self.respawnTime = 0
 
     # Checks:
-
+    def isExploring(self):
+        return self.exploring
     # Getters:
+
     def getSelected(self):
         return self.selected
 

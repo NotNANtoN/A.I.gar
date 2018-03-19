@@ -5,3 +5,5 @@ src/controller/__pycache__/*.*
 src/model/__pycache__/*.*
 src/view/__pycache__/*.*
 src/NN_latestModel.h5
+src/mostRecentAutosave.h5
+/workspace.xml

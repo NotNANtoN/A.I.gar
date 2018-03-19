@@ -310,14 +310,19 @@ class Bot(object):
         # Take random action with probability 1 - epsilon
         if numpy.random.random(1) < self.epsilon:
             self.currentActionIdx = numpy.random.randint(len(self.actions))
+            if __debug__:
+                self.player.setExploring(True)
         else:
             # Take action based on greediness towards Q values
             qValues = self.valueNetwork.predict(numpy.array([newState]))
             argMax = numpy.argmax(qValues)
             self.currentActionIdx = argMax
+            if __debug__:
+                self.player.setExploring(False)
         self.currentAction = self.actions[self.currentActionIdx]
         self.skipFrames = self.frameSkipRate
         self.cumulativeReward = 0
+
 
     def getStateRepresentation(self):
         stateRepr = None
