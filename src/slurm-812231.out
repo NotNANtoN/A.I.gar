@@ -1,0 +1,88 @@
+
+The following have been reloaded with a version change:
+  1) GMP/6.1.1-foss-2016a => GMP/6.1.0-foss-2016a
+  2) Python/3.5.2-foss-2016a => Python/3.5.1-foss-2016a
+  3) SQLite/3.13.0-foss-2016a => SQLite/3.9.2-foss-2016a
+  4) Tcl/8.6.5-foss-2016a => Tcl/8.6.4-foss-2016a
+  5) Tk/8.6.5-foss-2016a => Tk/8.6.4-foss-2016a-no-X11
+
+Using TensorFlow backend.
+/software/software/matplotlib/1.5.3-foss-2016a-Python-3.5.2/lib/python3.5/site-packages/matplotlib-1.5.3-py3.5-linux-x86_64.egg/matplotlib/font_manager.py:273: UserWarning: Matplotlib is building the font cache using fc-list. This may take a moment.
+  warnings.warn('Matplotlib is building the font cache using fc-list. This may take a moment.')
+/software/software/matplotlib/1.5.3-foss-2016a-Python-3.5.2/lib/python3.5/site-packages/matplotlib-1.5.3-py3.5-linux-x86_64.egg/matplotlib/font_manager.py:273: UserWarning: Matplotlib is building the font cache using fc-list. This may take a moment.
+  warnings.warn('Matplotlib is building the font cache using fc-list. This may take a moment.')
+Enable GUI?: (1 == yes)
+For how many steps do you want to train the model?
+Please enter the number of Greedy bots:
+Please enter the number of NN bots:
+Do you want to load a model? (1 == yes) (2=load model from last autosave)
+Do you want to train the network?: (1 == yes)
+Do you want to enable experience replay? (1 == yes)
+Do you want to enable grid view state representation? (1 == yes)
+Do you want to enable exploration? (1 == yes)
+2018-03-19 21:56:52.242992: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1105] Found device 0 with properties: 
+name: Tesla K40m major: 3 minor: 5 memoryClockRate(GHz): 0.745
+pciBusID: 0000:03:00.0
+totalMemory: 11.17GiB freeMemory: 11.09GiB
+2018-03-19 21:56:52.459941: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1105] Found device 1 with properties: 
+name: Tesla K40m major: 3 minor: 5 memoryClockRate(GHz): 0.745
+pciBusID: 0000:82:00.0
+totalMemory: 11.17GiB freeMemory: 11.09GiB
+2018-03-19 21:56:52.460060: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1120] Device peer to peer matrix
+2018-03-19 21:56:52.461340: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1126] DMA: 0 1 
+2018-03-19 21:56:52.461402: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1136] 0:   Y N 
+2018-03-19 21:56:52.461436: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1136] 1:   N Y 
+2018-03-19 21:56:52.461475: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1195] Creating TensorFlow device (/device:GPU:0) -> (device: 0, name: Tesla K40m, pci bus id: 0000:03:00.0, compute capability: 3.5)
+2018-03-19 21:56:52.461511: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1195] Creating TensorFlow device (/device:GPU:1) -> (device: 1, name: Tesla K40m, pci bus id: 0000:82:00.0, compute capability: 3.5)
+Traceback (most recent call last):
+  File "./aigar.py", line 160, in <module>
+    model.update()
+  File "/home/s2705338/A.I.gar/src/model/model.py", line 50, in update
+    bot.update()
+  File "/home/s2705338/A.I.gar/src/model/bot.py", line 128, in update
+    self.qLearn()
+  File "/home/s2705338/A.I.gar/src/model/bot.py", line 240, in qLearn
+    self.experienceReplay(reward, newState, td_error)
+  File "/home/s2705338/A.I.gar/src/model/bot.py", line 279, in experienceReplay
+    self.remember(self.oldState, self.currentActionIdx, reward, newState, td_error)
+  File "/home/s2705338/A.I.gar/src/model/bot.py", line 291, in remember
+    newMemory = [state.tolist(), action, reward, newState.tolist()]
+AttributeError: 'list' object has no attribute 'tolist'
+
+
+###############################################################################
+Peregrine Cluster
+Job 812231 for user 's2705338'
+Finished at: Mon Mar 19 21:56:57 CET 2018
+
+Job details:
+============
+
+Name                : jobScript.sh
+User                : s2705338
+Partition           : gpu
+Nodes               : pg-gpu04
+Cores               : 12
+State               : FAILED
+Submit              : 2018-03-19T21:38:04
+Start               : 2018-03-19T21:56:31
+End                 : 2018-03-19T21:56:57
+Reserved walltime   : 1-12:00:00
+Used walltime       :   00:00:26
+Used CPU time       :   00:00:11 (efficiency:  3.68%)
+% User (Computation): 75.86%
+% System (I/O)      : 24.14%
+Mem reserved        : 12000M/node
+Max Mem used        : 0.00  (pg-gpu04)
+Max Disk Write      : 0.00  (pg-gpu04)
+Max Disk Read       : 0.00  (pg-gpu04)
+
+
+Acknowledgements:
+=================
+
+Please see this page if you want to acknowledge Peregrine in your publications:
+
+https://redmine.hpc.rug.nl/redmine/projects/peregrine/wiki/ScientificOutput
+
+################################################################################
