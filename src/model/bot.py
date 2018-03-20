@@ -22,7 +22,7 @@ class Bot(object):
     stateReprLen = 6*6*4+1
     actionLen = 4
 
-    gpus = 2
+    gpus = 1
 
     # Experience replay:
     memoryCapacity = 50000
@@ -252,7 +252,7 @@ class Bot(object):
             if self.targetNetworkSteps == 0:
                 self.targetNetwork.set_weights(self.valueNetwork.get_weights())
                 self.targetNetworkSteps = self.targetNetworkMaxSteps * self.num_NNbots
-                self.valueNetwork.save("mostRecentAutosave.h5")
+                self.targetNetwork.save("mostRecentAutosave.h5")
         if alive:
             self.takeAction(newState)
             self.lastMass = self.player.getTotalMass()
