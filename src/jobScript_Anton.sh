@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=1-12:00:00
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --mem=16000
 #SBATCH --nodes=1
 #SBATCH --mail-type=ALL
