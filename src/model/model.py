@@ -66,7 +66,7 @@ class Model(object):
                         self.rewards.append(reward)
                         self.tdErrors.append(abs(tdError))
 
-            self.counter += 1
+        self.counter += 1
 
     def saveModels(self, path):
         savedTypes = []
