@@ -48,6 +48,7 @@ class Model(object):
         self.listeners = []
         self.viewEnabled = viewEnabled
         self.guiEnabled = guiEnabled
+        self.trainingEnabled = True
 
         self.players = []
         self.bots = []
@@ -83,14 +84,14 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-
-        for bot in self.bots:
-            if bot.getType() != "Greedy":
-                if bot.currentActionIdx:
-                    reward = bot.getReward()
-                    tdError = bot.getTDError(reward)
-                    self.rewards.append(reward)
-                    self.tdErrors.append(abs(tdError))
+        if self.trainingEnabled:
+            for bot in self.bots:
+                if bot.getType() != "Greedy":
+                    if bot.currentActionIdx:
+                        reward = bot.getReward()
+                        tdError = bot.getTDError(reward)
+                        self.rewards.append(reward)
+                        self.tdErrors.append(abs(tdError))
 
         self.counter += 1
 
@@ -190,6 +191,9 @@ class Model(object):
         plt.close()
 
     # Setters:
+    def setEpsilon(self, val):
+        Bot.epsilon = val
+
     def createPlayer(self, name):
         newPlayer = Player(name)
         self.addPlayer(newPlayer)
@@ -198,7 +202,7 @@ class Model(object):
     def createBot(self, type, expRep, gridView):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, expRep, gridView)
+        bot = Bot(newPlayer, self.field, type, expRep, gridView, self.trainingEnabled)
         self.addBot(bot)
 
     def createHuman(self, name):
@@ -229,6 +233,9 @@ class Model(object):
         self.screenWidth = width
         self.screenHeight = height
 
+    def setTrainingEnabled(self, trainMode):
+        self.trainingEnabled = trainMode
+
     # Checks:
     def hasHuman(self):
         return bool(self.humans)
@@ -237,6 +244,9 @@ class Model(object):
         return self.playerSpectator is not None
 
     # Getters:
+    def getEpsilon(self):
+        return Bot.epsilon
+
     def getTopTenPlayers(self):
         players = self.getPlayers()[:]
         players.sort(key=lambda p: p.getTotalMass(), reverse=True)
@@ -287,6 +297,9 @@ class Model(object):
         if self.hasPlayerSpectator():
             return self.spectatedPlayer
         return None
+
+    def getTrainingEnabled(self):
+        return self.trainingEnabled
 
     # MVC related method
     def register_listener(self, listener):

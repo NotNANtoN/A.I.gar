@@ -92,7 +92,7 @@ if __name__ == '__main__':
         viewEnabled = (viewEnabled == 1)
         maxSteps = 0
     else:
-        maxSteps = int(input("For how many steps do you want to train the model?"))
+        maxSteps = int(input("For how many steps do you want to train the model?\n"))
 
     model = Model(guiEnabled, viewEnabled)
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
-    if fitsLimitations(numberOfBots, MAXBOTS):
+    if fitsLimitations(numberOfBots, MAXBOTS) and numberOfNNBots > 0:
         modelName = None
         loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
         if loadModel == 1:
@@ -111,10 +111,15 @@ if __name__ == '__main__':
                 modelName = input("Enter the model name (without .h5): ")
         if loadModel == 2:
             modelName = "mostRecentAutosave"
-        enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
+        enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
+        model.setTrainingEnabled(enableTrainMode == 1)
+        if enableTrainMode == 1:
+            enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
+        else:
+            enableExpReplay = 0
         enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
         if enableGridView == 1:
-            gridSquaresPerFov = int(input("How many grid squares do you want per side?"))
+            gridSquaresPerFov = int(input("How many grid squares do you want per side?\n"))
         else:
             gridSquaresPerFov = 0
         explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
@@ -151,8 +156,16 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
+        endEpsilon = model.getEpsilon()
+        startEpsilon = 1
         for step in range(maxSteps):
             model.update()
+            if step < maxSteps / 4:
+                lr = startEpsilon - (1 - endEpsilon) * step / (maxSteps / 4)
+            else:
+                lr = endEpsilon
+            model.setEpsilon(lr)
 
-    path = createPath()
-    model.save(path)
+    if model.getTrainingEnabled():
+        path = createPath()
+        model.save(path)

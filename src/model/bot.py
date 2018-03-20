@@ -22,10 +22,10 @@ class Bot(object):
     stateReprLen = 6*6*4+1
     actionLen = 4
 
-    gpus = 1
+    gpus = 2
 
     # Experience replay:
-    memoryCapacity = 100000
+    memoryCapacity = 50000
     memoriesPerUpdate = 32 # Must be divisible by 2 atm due to experience replay
     memories = []
 
@@ -35,10 +35,10 @@ class Bot(object):
     # Q-learning
     targetNetworkSteps = 1000
     targetNetworkMaxSteps = 10000
-    discount = 0.995
+    discount = 0.99
     epsilon = 0.1
     frameSkipRate = 4
-    gridSquaresPerFov = 10 # is modified by the user later on anyways
+    gridSquaresPerFov = 12 # is modified by the user later on anyways
 
     #ANN
     learningRate = 0.00025
@@ -46,8 +46,8 @@ class Bot(object):
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
 
-    hiddenLayer1 = 80
-    hiddenLayer2 = 40
+    hiddenLayer1 = 100
+    hiddenLayer2 = 50
     hiddenLayer3 = 0
 
     loadedModelName = None
@@ -55,10 +55,8 @@ class Bot(object):
     @classmethod
     def initializeNNs(cls, stateReprLen):
         weight_initializer_range = math.sqrt(6 / (stateReprLen + cls.num_actions))
-
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                        maxval=weight_initializer_range, seed=None)
-
         if cls.gpus > 1:
             with tf.device("/cpu:0"):
                 cls.valueNetwork = Sequential()
@@ -101,9 +99,10 @@ class Bot(object):
             cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
 
 
-    def __init__(self, player, field, type, expRepEnabled, gridViewEnabled):
+    def __init__(self, player, field, type, expRepEnabled, gridViewEnabled, trainMode):
         self.expRepEnabled = expRepEnabled
         self.gridViewEnabled = gridViewEnabled
+        self.trainMode = trainMode
         self.type = type
         self.player = player
         self.field = field
@@ -123,7 +122,10 @@ class Bot(object):
 
     def update(self):
         if self.type == "NN":
-            self.qLearn()
+            if self.trainMode:
+                self.qLearn()
+            else:
+                self.testNetwork()
         elif self.type == "Greedy":
             if not self.player.getIsAlive():
                 return
@@ -262,6 +264,13 @@ class Bot(object):
             self.oldState = None
             self.skipFrames = 0
             self.cumulativeReward = 0
+
+    def testNetwork(self):
+        alive = self.player.getIsAlive()
+        if alive:
+            newState = self.getStateRepresentation()
+            self.takeAction(newState)
+
 
     def experienceReplay(self, reward, newState, td_error):
         if self.player.getIsAlive():
@@ -554,3 +563,6 @@ class Bot(object):
 
     def getPlayer(self):
         return self.player
+
+    def getTrainMode(self):
+        return self.trainMode
