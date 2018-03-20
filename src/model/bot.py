@@ -25,7 +25,7 @@ class Bot(object):
     gpus = 1
 
     # Experience replay:
-    memoryCapacity = 200000
+    memoryCapacity = 100000
     memoriesPerUpdate = 32 # Must be divisible by 2 atm due to experience replay
     memories = []
 
@@ -302,7 +302,7 @@ class Bot(object):
         # Initialize vectors
         inputs = numpy.zeros((batch_size, inputSize))
         targets = numpy.zeros((batch_size, outputSize))
-        partial_batch = int(batch_size / 2)
+        #partial_batch = int(batch_size / 2)
         batch_count = 0
         # Get most surprising memories:
         popped_memories = []
