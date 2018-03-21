@@ -26,7 +26,7 @@ class Cell(object):
         self.pos = [x,y]
         if self.player == None:
             self.name = ""
-            self.color = (numpy.random.randint(0, 255), numpy.random.randint(0, 255), numpy.random.randint(0, 255))
+            self.color = (numpy.random.randint(50, 200), numpy.random.randint(50, 200), numpy.random.randint(50, 200))
             self.id = -1
         else:
             self.name = player.getName()

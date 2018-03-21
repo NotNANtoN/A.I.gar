@@ -59,7 +59,7 @@ def createBots(number, model, type, expRep, gridView, modelName, explore = True,
         Bot.num_NNbots = number
         Bot.gridSquaresPerFov = gridSquarePerFov
         if gridView:
-            Bot.stateReprLen = 6 * Bot.gridSquaresPerFov * Bot.gridSquaresPerFov
+            Bot.stateReprLen = 5 * Bot.gridSquaresPerFov * Bot.gridSquaresPerFov
         else:
             Bot.stateReprLen = 12
         Bot.initializeNNs(Bot.stateReprLen)
@@ -160,6 +160,7 @@ if __name__ == '__main__':
     else:
         endEpsilon = model.getEpsilon()
         startEpsilon = 1
+        smallPart = int(maxSteps / 1000)
         for step in range(maxSteps):
             model.update()
             if step < maxSteps / 4:
@@ -167,6 +168,8 @@ if __name__ == '__main__':
             else:
                 lr = endEpsilon
             model.setEpsilon(lr)
+            if step % smallPart == 0 and step != 0:
+                print("Trained: ", maxSteps / step, "%")
 
     if model.getTrainingEnabled():
         path = createPath()

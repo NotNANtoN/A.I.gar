@@ -17,7 +17,7 @@ class spatialHashTable(object):
         self.left = left
         self.top = top
         self.size = hashTableSize
-        self.rows = int(math.ceil(hashTableSize / bucketSize))
+        self.rows = math.ceil(hashTableSize / bucketSize)
         self.cols = self.rows
         self.bucketSize = bucketSize
         self.buckets = {}
@@ -71,21 +71,48 @@ class spatialHashTable(object):
     def getIdsForArea(self, pos, radius):
         ids = set()
         hashFunc = self.getHashId
-        pos = (pos[0] - self.left, pos[1] - self.top)
         cellLeft = max(0, pos[0] - radius)
         cellTop = max(0, pos[1] - radius)
         bucketLeft = int(cellLeft - cellLeft % self.bucketSize)
         bucketTop = int(cellTop - cellTop % self.bucketSize)
-        limitX = int(min(self.size - 1, pos[0] + radius)) + 1
-        limitY = int(min(self.size - 1, pos[1] + radius)) + 1
+        limitX = int(min(self.size, pos[0] + radius + 1))
+        limitY = int(min(self.size, pos[1] + radius + 1))
 
         for x in range(bucketLeft, limitX, self.bucketSize):
             for y in range(bucketTop, limitY, self.bucketSize):
                 ids.add(hashFunc(x, y))
         return ids
 
+    def insertAllFloatingPointObjects(self, objects):
+        for obj in objects:
+            ids = self.getIdsForAreaFloatingPoint(obj.getPos(), obj.getRadius())
+            for id in ids:
+                self.buckets[id].append(obj)
+
+    def getIdsForAreaFloatingPoint(self, pos, radius):
+        ids = set()
+        hashFunc = self.getHashId
+        pos = (pos[0] - self.left, pos[1] - self.top)
+        cellLeft = max(0, pos[0] - radius)
+        cellTop = max(0, pos[1] - radius)
+        bucketLeft = cellLeft - cellLeft % self.bucketSize
+        bucketTop = cellTop - cellTop % self.bucketSize
+        limitX = min(self.size - 1, pos[0] + radius)
+        limitY = min(self.size - 1, pos[1] + radius)
+        x = bucketLeft
+        while x <= limitX:
+            y = bucketTop
+            while y <= limitY:
+                ids.add(hashFunc(x,y))
+                y += self.bucketSize
+            x += self.bucketSize
+        return ids
+
+
     def getHashId(self, x, y):
         return int(x / self.bucketSize) + int(y / self.bucketSize) * self.cols
+
+
 
     def getCols(self):
         return self.cols

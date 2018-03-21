@@ -2,7 +2,7 @@ import heapq
 import keras
 import numpy
 import tensorflow as tf
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
 from .parameters import *
@@ -27,7 +27,7 @@ class Bot(object):
 
     # Experience replay:
     memoryCapacity = 50000
-    memoriesPerUpdate = 32 # Must be divisible by 2 atm due to experience replay
+    memoriesPerUpdate = 40 # Must be divisible by 4 atm due to experience replay
     memories = []
 
     num_NNbots = 0
@@ -47,9 +47,9 @@ class Bot(object):
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
 
-    hiddenLayer1 = 100
-    hiddenLayer2 = 50
-    hiddenLayer3 = 0
+    hiddenLayer1 = 64
+    hiddenLayer2 = 32
+    hiddenLayer3 = 12
 
     loadedModelName = None
 
@@ -77,14 +77,19 @@ class Bot(object):
             cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden,
                                        bias_initializer=initializer
                                        , kernel_initializer=initializer))
+            cls.valueNetwork.add(Dropout(0.5))
             if cls.hiddenLayer2 > 0:
                 cls.valueNetwork.add(
                     Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
                           , kernel_initializer=initializer))
+                cls.valueNetwork.add(Dropout(0.5))
+
             if cls.hiddenLayer3 > 0:
                 cls.valueNetwork.add(
                     Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
                           , kernel_initializer=initializer))
+                cls.valueNetwork.add(Dropout(0.5))
+
             cls.valueNetwork.add(
                 Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
                       , kernel_initializer=initializer))
@@ -318,11 +323,11 @@ class Bot(object):
         # Initialize vectors
         inputs = numpy.zeros((batch_size, inputSize))
         targets = numpy.zeros((batch_size, outputSize))
-        #partial_batch = int(batch_size / 2)
         batch_count = 0
+
         # Get most surprising memories:
         popped_memories = []
-        for idx in range(batch_size):
+        for idx in range(int(batch_size / 2)):
             # Get the item with highest priority (td-error)
             memory = heapq.heappop(self.memories)[1]
             input, target, td_error = self.memoryToInputOutput(memory)
@@ -335,17 +340,29 @@ class Bot(object):
         # Put the retrieved memories back in memory
         for poppedMemory in popped_memories:
             heapq.heappush(self.memories, poppedMemory)
-        '''
-        # Get random memories
-        for idx in range(partial_batch):
+
+        # Get Random memories:
+        for idx in range(int(batch_size / 4)):
             randIdx = numpy.random.randint(len(self.memories))
             memory = self.memories[randIdx][1]
             input, target, td_error = self.memoryToInputOutput(memory)
-            inputs[batch_count + idx] = input
-            targets[batch_count + idx] = target
+            inputs[batch_count] = input
+            targets[batch_count] = target
             # Update TD-Error of memory:
             self.memories[randIdx] = (td_error, memory)
-        '''
+            batch_count += 1
+
+        # Get recent memories:
+        for idx in range(int(batch_size / 4)):
+            memory = self.memories[len_memory - idx - 1][1]
+            input, target, td_error = self.memoryToInputOutput(memory)
+            inputs[batch_count] = input
+            targets[batch_count] = target
+            # Update TD-Error of memory:
+            self.memories[idx] = (td_error, memory)
+            batch_count += 1
+
+        # Train on memories
         self.valueNetwork.train_on_batch(inputs, targets)
 
     def takeAction(self, newState):
@@ -423,19 +440,27 @@ class Bot(object):
         left = x - fovSize / 2
         top = y - fovSize / 2
         # Initialize spatial hash tables:
-        gsSize = math.ceil(fovSize / self.gridSquaresPerFov)  # (gs = grid square)
+        gsSize = fovSize / self.gridSquaresPerFov  # (gs = grid square)
         pelletSHT = spatialHashTable(fovSize, gsSize, left, top) #SHT = spatial hash table
         enemySHT =  spatialHashTable(fovSize, gsSize, left, top)
         virusSHT =  spatialHashTable(fovSize, gsSize, left, top)
         playerSHT = spatialHashTable(fovSize, gsSize, left, top)
         totalPellets = self.field.getPelletsInFov(fovPos, fovSize)
-        pelletSHT.insertAllObjects(totalPellets)
+        pelletSHT.insertAllFloatingPointObjects(totalPellets)
+        if __debug__ and self.player.getSelected():
+            print("Total pellets: ",len(totalPellets))
+            print("pellet view: ")
+            buckets = pelletSHT.getBuckets()
+            for idx in range(len(buckets)):
+                print(len(buckets[idx]), end = " ")
+                if idx != 0 and (idx + 1) % self.gridSquaresPerFov == 0:
+                    print(" ")
         playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
-        playerSHT.insertAllObjects(playerCells)
+        playerSHT.insertAllFloatingPointObjects(playerCells)
         enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
-        enemySHT.insertAllObjects(enemyCells)
+        enemySHT.insertAllFloatingPointObjects(enemyCells)
         virusCells = self.field.getVirusesInFov(fovPos, fovSize)
-        virusSHT.insertAllObjects(virusCells)
+        virusSHT.insertAllFloatingPointObjects(virusCells)
 
         # Mass vision grid related
         enemyCellsCount = len(enemyCells)
@@ -451,7 +476,7 @@ class Bot(object):
         gsPelletProportion = numpy.zeros(gridNumberSquared)
         # gsMidPoint is adjusted in the loops
         gsMidPoint = [left + gsSize / 2, top + gsSize/ 2]
-        pelletCount = 0
+        pelletcount = 0
         for c in range(self.gridSquaresPerFov):
             for r in range(self.gridSquaresPerFov):
                 count = r + c * self.gridSquaresPerFov
@@ -466,7 +491,7 @@ class Bot(object):
                     pelletsInGS = pelletSHT.getBucketContent(count)
                     if pelletsInGS:
                         for pellet in pelletsInGS:
-                            pelletCount += 1
+                            pelletcount += 1
                             pelletMassSum += pellet.getMass()
                         gsPelletProportion[count] = pelletMassSum / biggestMassInFov
 
@@ -498,12 +523,14 @@ class Bot(object):
                 if gsMidPoint[0] - gsSize/2 < 0 or gsMidPoint[0] + gsSize/2 > fieldSize or \
                         gsMidPoint[1] - gsSize/2 < 0 or gsMidPoint[1] + gsSize/2 > fieldSize:
                     gsWalls[count] = 1
-
                 # Increment grid square position horizontally
                 gsMidPoint[0] += gsSize
             # Reset horizontal grid square, increment grid square position
             gsMidPoint[0] = left + gsSize / 2
             gsMidPoint[1] += gsSize
+        if __debug__ and self.player.getSelected():
+            print("counted pellets: ", pelletcount)
+            print(" ")
         # Collect all relevant data
         totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestEnemyCellMassProportion, gsBiggestOwnCellMassProportion,
                                         gsWalls, gsVirus))

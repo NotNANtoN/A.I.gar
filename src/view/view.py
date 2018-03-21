@@ -1,5 +1,6 @@
 import pygame
 import numpy
+import math
 import os
 from pygame import gfxdraw
 
@@ -10,7 +11,6 @@ GREEN = (0, 255, 0)
 
 
 class View:
-
     def __init__(self, model, width, height):
         self.width = width
         self.height = height
@@ -33,7 +33,6 @@ class View:
         self.leaderBoardTitleHeight = 28
         self.leaderBoardFont = pygame.font.SysFont(None, self.leaderBoardTextHeight)
         leaderBoardTitleFont = pygame.font.SysFont(None, self.leaderBoardTitleHeight)
-        # leaderBoardTitleFont.set_bold(True)
         self.leaderBoardTitle = leaderBoardTitleFont.render("Leaderboard", True, (255, 255, 255))
         self.leaderBoardWidth = self.leaderBoardTitle.get_width() + 15
         self.leaderBoardHeight = self.leaderBoardTitleHeight + self.leaderBoardTextHeight * numbOfPlayers + 2
@@ -61,7 +60,7 @@ class View:
             fovPos = self.model.getFovPos(screenNr)
             fovSize = self.model.getFovSize(screenNr)
             for player in self.model.getPlayers():
-                if player.getIsAlive():
+                if player.getIsAlive() and player.getSelected():
                     playerFovPos = player.getFovPos()
                     playerFovSize = player.getFovSize()
                     scaledPos= self.modelToViewScaling(playerFovPos, fovPos, fovSize)
@@ -78,22 +77,34 @@ class View:
                     pygame.draw.line(screen, BLACK, topright, bottomright)
                     pygame.draw.line(screen, BLACK, bottomright, bottomleft)
                     pygame.draw.line(screen, BLACK, bottomleft, topleft)
+            # Print grid for grid state representation
+            for bot in self.model.getBots():
+                player = bot.getPlayer()
+                if player.getIsAlive() and player.getSelected():
+                    playerFovPos = player.getFovPos()
+                    playerFovSize = player.getFovSize()
+                    neededLines = bot.gridSquaresPerFov - 1
+                    distanceBetweenLines = self.modelToViewScaleRadius(playerFovSize / bot.gridSquaresPerFov, fovSize)
+                    scaledPos = self.modelToViewScaling(playerFovPos, fovPos, fovSize)
+                    scaledSize = self.modelToViewScaleRadius(playerFovSize, fovSize)
+                    left = scaledPos[0] - scaledSize / 2
+                    right = left + scaledSize
+                    top = scaledPos[1] - scaledSize / 2
+                    bottom = top + scaledSize
 
-            '''
-            for playerNr in range(len(self.model.getPlayers())):
-                if self.model.getPlayers()[playerNr].getIsAlive():
-                    pFovPos = self.model.getPlayers()[playerNr].getFovPos()
-                    pFovSize = self.model.getPlayers()[playerNr].getFovSize()
-                    pFovPos = self.modelToViewScaling(pFovPos, fovPos, fovSize)
-                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]-pFovSize/2],
-                                    [pFovPos[0]+pFovSize/2, pFovPos[1]-pFovSize/2])
-                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]-pFovSize/2],
-                                    [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2])
-                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]+pFovSize/2, pFovPos[1]-pFovSize/2],
-                                    [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
-                    pygame.draw.line(self.playerScreens[screenNr], BLACK, [pFovPos[0]-pFovSize/2, pFovPos[1]+pFovSize/2],
-                                    [pFovPos[0]+pFovSize/2, pFovPos[1]+pFovSize/2])
-            '''
+                    for xIdx in range(1, neededLines + 1):
+                        posUp = (left + xIdx * distanceBetweenLines, top)
+                        posDown = (left + xIdx * distanceBetweenLines, bottom )
+                        pygame.draw.line(screen, BLACK, posUp, posDown)
+
+                    for yIdx in range(1, neededLines + 1):
+                        posLeft = (left, top + yIdx * distanceBetweenLines)
+                        posRight = (right, top + yIdx * distanceBetweenLines )
+                        pygame.draw.line(screen, BLACK, posLeft, posRight)
+
+
+
+
             for cell in cells:
                 pos = numpy.array(cell.getPos())
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
