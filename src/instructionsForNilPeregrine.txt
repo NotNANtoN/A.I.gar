@@ -1,5 +1,5 @@
 modify input.txt (that will be the input to our program) and jobscript.sh to change the number of steps, other specifications or the number of time for which the job will run.
-use: ssh s2972301@peregrine.hpc.rug.nl  with your studentnumber to login to peregrine
+use: ssh -X s2972301@peregrine.hpc.rug.nl  with your studentnumber to login to peregrine
 load python 3.5.2: module load Python/3.5.2-foss-2016a
 install dependencies:
 pip install --user keras

@@ -169,7 +169,7 @@ if __name__ == '__main__':
                 lr = endEpsilon
             model.setEpsilon(lr)
             if step % smallPart == 0 and step != 0:
-                print("Trained: ", maxSteps / step, "%")
+                print("Trained: ", step / maxSteps * 100, "%")
 
     if model.getTrainingEnabled():
         path = createPath()
