@@ -38,7 +38,6 @@ def display_top(snapshot, key_type='lineno', limit=3):
     print("Total allocated size: %.1f KiB" % (total / 1024))
 
 
-
 # The model class is the main wrapper for the game engine.
 # It contains the field and the players.
 # It links the actions of the players to consequences in the field and updates information.
@@ -80,16 +79,17 @@ class Model(object):
         self.field.update()
         if self.guiEnabled and self.viewEnabled:
             self.notify()
-        self.visualize(timeProcessStart)
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
         if self.trainingEnabled:
+            self.visualize(timeProcessStart)
+
             for bot in self.bots:
                 if bot.getType() != "Greedy":
-                    if bot.currentActionIdx:
+                    if bot.currentActionIdx != None and bot.latestTDerror != None:
                         reward = bot.getReward()
-                        tdError = bot.getTDError(reward)
+                        tdError = bot.getTDError()
                         self.rewards.append(reward)
                         self.tdErrors.append(abs(tdError))
 

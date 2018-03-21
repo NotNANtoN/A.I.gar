@@ -1,4 +1,5 @@
 import numpy
+import math
 
 class spatialHashTable(object):
     def __repr__(self):
@@ -12,11 +13,12 @@ class spatialHashTable(object):
         name += "Total objects in table: " + str(total)
         return name
 
-    def __init__(self, width, height, bucketSize):
-        self.width = width
-        self.height = height
-        self.rows = int(numpy.ceil(height / bucketSize))
-        self.cols = int(numpy.ceil(width / bucketSize))
+    def __init__(self, hashTableSize, bucketSize, left = 0, top = 0):
+        self.left = left
+        self.top = top
+        self.size = hashTableSize
+        self.rows = int(math.ceil(hashTableSize / bucketSize))
+        self.cols = self.rows
         self.bucketSize = bucketSize
         self.buckets = {}
         self.clearBuckets()
@@ -29,12 +31,10 @@ class spatialHashTable(object):
         cellIds = self.getIdsForArea(pos, rad)
         return self.getObjectsFromBuckets(cellIds)
 
-
     def getNearbyEnemyObjects(self, obj):
         cellIds = self.getIdsForObj(obj)
         nearbyObjects = self.getObjectsFromBuckets(cellIds)
         return [nearbyObject for nearbyObject in nearbyObjects if nearbyObject.getPlayer() is not obj.getPlayer()]
-
 
     def getObjectsFromBuckets(self, cellIds):
         nearbyObjects = set()
@@ -71,12 +71,13 @@ class spatialHashTable(object):
     def getIdsForArea(self, pos, radius):
         ids = set()
         hashFunc = self.getHashId
+        pos = (pos[0] - self.left, pos[1] - self.top)
         cellLeft = max(0, pos[0] - radius)
         cellTop = max(0, pos[1] - radius)
         bucketLeft = int(cellLeft - cellLeft % self.bucketSize)
         bucketTop = int(cellTop - cellTop % self.bucketSize)
-        limitX = int(min(self.width - 1, pos[0] + radius)) + 1
-        limitY = int(min(self.height - 1, pos[1] + radius)) + 1
+        limitX = int(min(self.size - 1, pos[0] + radius)) + 1
+        limitY = int(min(self.size - 1, pos[1] + radius)) + 1
 
         for x in range(bucketLeft, limitX, self.bucketSize):
             for y in range(bucketTop, limitY, self.bucketSize):
@@ -95,11 +96,15 @@ class spatialHashTable(object):
     def getBuckets(self):
         return self.buckets
 
+    def getBucketContent(self, idx):
+        return self.buckets[idx]
+
     def getCenterOfBucket(self, id):
         x = id % self.cols * self.bucketSize + self.bucketSize / 2
         y = int(id /self.cols) * self.bucketSize + self.bucketSize / 2
         return (x,y)
 
+    # Currently not in use
     def getCenterOfNextEmptyBucket(self, pos):
         startId = self.getHashId(pos)
         numOfBuckets = self.rows * self.cols

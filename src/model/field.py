@@ -13,8 +13,7 @@ from .spatialHashTable import spatialHashTable
 
 class Field(object):
     def __init__(self):
-        self.width = 0
-        self.height = 0
+        self.size = 0
         self.pellets = []
         self.players = []
         self.blobs = [] # Ejected particles become pellets once momentum is lost
@@ -35,16 +34,15 @@ class Field(object):
 
 
     def initialize(self):
-        self.width = int(SIZE_INCREASE_PER_PLAYER * math.sqrt(len(self.players)))
-        self.height = int(SIZE_INCREASE_PER_PLAYER * math.sqrt(len(self.players)))
-        self.pelletHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
-        self.blobHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
-        self.playerHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
-        self.virusHashTable = spatialHashTable(self.width, self.height, HASH_BUCKET_SIZE)
+        self.size = int(SIZE_INCREASE_PER_PLAYER * math.sqrt(len(self.players)))
+        self.pelletHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+        self.blobHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+        self.playerHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+        self.virusHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
         for player in self.players:
             self.initializePlayer(player)
-        self.maxCollectibleCount = self.width * self.height * MAX_COLLECTIBLE_DENSITY
-        self.maxVirusCount = self.width * self.height * MAX_VIRUS_DENSITY
+        self.maxCollectibleCount = self.size * self.size * MAX_COLLECTIBLE_DENSITY
+        self.maxVirusCount = self.size * self.size * MAX_VIRUS_DENSITY
         self.spawnStuff()
 
     def update(self):
@@ -59,7 +57,7 @@ class Field(object):
     def updateViruses(self):
         for virus in self.viruses:
             virus.updateMomentum()
-            virus.updatePos(self.width, self.height)
+            virus.updatePos(self.size, self.size)
 
     def updateBlobs(self):
         notMovingBlobs = []
@@ -68,7 +66,7 @@ class Field(object):
                 notMovingBlobs.append(blob)
                 continue
             blob.updateMomentum()
-            blob.updatePos(self.width, self.height)
+            blob.updatePos(self.size, self.size)
         for blob in notMovingBlobs:
             self.blobs.remove(blob)
             self.blobHashTable.deleteObject(blob)
@@ -77,7 +75,7 @@ class Field(object):
     def updatePlayers(self):
         for player in self.players:
             if player.getIsAlive():
-                player.update(self.width, self.height)
+                player.update(self.size, self.size)
                 self.performEjections(player)
                 self.handlePlayerCollisions(player)
             else:
@@ -105,7 +103,7 @@ class Field(object):
 
                 blob.setColor(player.getColor())
                 #blob.setEjecterPlayer(player)
-                blob.addMomentum(player.getCommandPoint(), self.width, self.height, cell)
+                blob.addMomentum(player.getCommandPoint(), self.size, self.size, cell)
 
                 self.addBlob(blob)
                 blob.setEjecterCell(cell)
@@ -253,8 +251,8 @@ class Field(object):
             spawnBucket = (spawnBucket + 1) % totalBuckets
             count += 1
         if count == totalBuckets:
-            xPos = numpy.random.randint(0, self.width)
-            yPos = numpy.random.randint(0, self.height)
+            xPos = numpy.random.randint(0, self.size)
+            yPos = numpy.random.randint(0, self.size)
         else:
             x = spawnBucket % cols
             y = (spawnBucket - x) / cols
@@ -269,8 +267,8 @@ class Field(object):
             self.spawnPellet()
 
     def spawnPellet(self):
-        xPos = numpy.random.randint(0, self.width)
-        yPos = numpy.random.randint(0, self.height)
+        xPos = numpy.random.randint(0, self.size)
+        yPos = numpy.random.randint(0, self.size)
         size = self.randomSize()
         pellet = Cell(xPos, yPos, size, None)
         pellet.setName("Pellet")
@@ -283,7 +281,7 @@ class Field(object):
             oppositeX = 2 * virus.getPos()[0] - blob.getPos()[0]
             oppositeY = 2 * virus.getPos()[1] - blob.getPos()[1]
             oppositePoint = [oppositeX, oppositeY]
-            newVirus = virus.split(oppositePoint, self.width, self.height)
+            newVirus = virus.split(oppositePoint, self.size, self.size)
             newVirus.setColor(virus.getColor())
             newVirus.setName(virus.getName())
             self.addVirus(newVirus)
@@ -325,7 +323,7 @@ class Field(object):
             yPoint = math.sin(cellAngle) * playerCell.getRadius() * 12 + cellPos[1]
             movePoint = (xPoint, yPoint)
             newCell.setMoveDirection(movePoint)
-            newCell.addMomentum(movePoint, self.width, self.height, playerCell)
+            newCell.addMomentum(movePoint, self.size, self.size, playerCell)
             newCell.resetMergeTime(0.8)
             self.addPlayerCell(newCell)
 
@@ -381,8 +379,8 @@ class Field(object):
 
     def adjustCellPos(self, cell, newPos, hashtable):
         #hashtable.deleteObject(cell)
-        x = min(self.width, max(0, newPos[0]))
-        y = min(self.height, max(0, newPos[1]))
+        x = min(self.size, max(0, newPos[0]))
+        y = min(self.size, max(0, newPos[1]))
         cell.setPos([x,y])
         #hashtable.insertObject(cell)
 
@@ -423,10 +421,10 @@ class Field(object):
         return hashtable.getNearbyObjectsInArea(fovPos, fovSize / 2)
     
     def getWidth(self):
-        return self.width
+        return self.size
 
     def getHeight(self):
-        return self.height
+        return self.size
 
     def getPellets(self):
         return self.pellets
