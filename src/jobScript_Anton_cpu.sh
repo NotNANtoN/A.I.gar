@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --time=0-12:00:00
-#SBATCH --mem=16000
+#SBATCH --time=0-10:00:00
+#SBATCH --mem=12000
 #SBATCH --nodes=1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=antonwiehe@gmail.com
