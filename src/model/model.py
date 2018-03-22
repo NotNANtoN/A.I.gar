@@ -1,4 +1,5 @@
 import time
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 
@@ -172,23 +173,63 @@ class Model(object):
 
 
     def plotTDerror(self, path = None):
-        res = 10 #running error step
-        meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,))/res, mode='valid')
-        meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
-        plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
-        plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-        if path:
-            plt.savefig(path + "TD-Errors.png")
-        plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
-        plt.legend()
-        plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running  avg of the last 100 steps")
-        if path:
-            plt.savefig(path + "Reward_and_TD-Error.png")
+        # Use gui
+        if path == None:
+            gui_backends = matplotlib.rcsetup.interactive_bk
+            for gui in gui_backends:
+                try:
+                    matplotlib.use(gui, warn=False, force=True)
+                    from matplotlib import pyplot as plt
+                    res = 10 #running error step
+                    meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,))/res, mode='valid')
+                    meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,))/res, mode='valid')
+                    plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
+                    plt.xlabel("Steps in hundreds")
+                    plt.ylabel("Running abs TD-Error avg of the last 100 steps")
+                    if path:
+                        plt.savefig(path + "TD-Errors.png")
+                    plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
+                    plt.legend()
+                    plt.xlabel("Steps in hundreds")
+                    plt.ylabel("Running  avg of the last 100 steps")
+                    if path:
+                        plt.savefig(path + "Reward_and_TD-Error.png")
+                    else:
+                        plt.show()
+                    plt.close()
+                    break
+                except:
+                    print("   ", gui, "Not found")
         else:
-            plt.show()
-        plt.close()
+            # Use non-gui backend to save plot
+            non_gui_backends = matplotlib.rcsetup.non_interactive_bk
+            print("Non Gui backends are:", non_gui_backends)
+            for gui in non_gui_backends:
+                print("testing", gui)
+                try:
+                    matplotlib.use(gui, warn=False, force=True)
+                    from matplotlib import pyplot as plt
+                    res = 10  # running error step
+                    meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,)) / res, mode='valid')
+                    meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,)) / res, mode='valid')
+                    plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
+                    plt.xlabel("Steps in hundreds")
+                    plt.ylabel("Running abs TD-Error avg of the last 100 steps")
+                    if path:
+                        plt.savefig(path + "TD-Errors.png")
+                    plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
+                    plt.legend()
+                    plt.xlabel("Steps in hundreds")
+                    plt.ylabel("Running  avg of the last 100 steps")
+                    if path:
+                        plt.savefig(path + "Reward_and_TD-Error.png")
+                    else:
+                        plt.show()
+                    plt.close()
+
+                    break
+                except:
+                    print("    ", gui, "Not found")
 
     # Setters:
     def setEpsilon(self, val):
