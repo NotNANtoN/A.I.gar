@@ -35,21 +35,21 @@ class Bot(object):
 
     # Q-learning
     targetNetworkSteps = 1000
-    targetNetworkMaxSteps = 10000
-    discount = 0.99
+    targetNetworkMaxSteps = 1000
+    discount = 0.9
     epsilon = 0.1
     frameSkipRate = 4
-    gridSquaresPerFov = 12 # is modified by the user later on anyways
+    gridSquaresPerFov = 7 # is modified by the user later on anyways
 
     #ANN
-    learningRate = 0.00025
-    optimizer = "Adam"
+    learningRate = 0.001
+    optimizer = "SGD"
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
 
-    hiddenLayer1 = 64
-    hiddenLayer2 = 32
-    hiddenLayer3 = 12
+    hiddenLayer1 = 120
+    hiddenLayer2 = 0
+    hiddenLayer3 = 0
 
     loadedModelName = None
 
@@ -77,18 +77,18 @@ class Bot(object):
             cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden,
                                        bias_initializer=initializer
                                        , kernel_initializer=initializer))
-            cls.valueNetwork.add(Dropout(0.5))
+            #cls.valueNetwork.add(Dropout(0.5))
             if cls.hiddenLayer2 > 0:
                 cls.valueNetwork.add(
                     Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
                           , kernel_initializer=initializer))
-                cls.valueNetwork.add(Dropout(0.5))
+                #cls.valueNetwork.add(Dropout(0.5))
 
             if cls.hiddenLayer3 > 0:
                 cls.valueNetwork.add(
                     Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
                           , kernel_initializer=initializer))
-                cls.valueNetwork.add(Dropout(0.5))
+                #cls.valueNetwork.add(Dropout(0.5))
 
             cls.valueNetwork.add(
                 Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
@@ -100,7 +100,7 @@ class Bot(object):
         if cls.optimizer == "Adam":
             cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
             cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
-        elif cls.optimizer =="Sgd":
+        elif cls.optimizer =="SGD":
             cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
             cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
 
@@ -236,14 +236,14 @@ class Bot(object):
         if self.currentAction != None:
             # Get reward of skipped frames
             reward = self.cumulativeReward
-
-            # Fit value network using only the current experience
-            # If the player died, the target is the reward
-            input, target, td_error = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward, newState, alive)
-            self.valueNetwork.train_on_batch(input, target)
+            input, target, td_error = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward,
+                                                                 newState, alive)
+            # Fit value network using experience replay of random past states:
             if self.expRepEnabled:
-                # Fit value network using experience replay of random past states:
                 self.experienceReplay(reward, newState, td_error)
+            # Fit value network using only the current experience
+            else:
+                self.valueNetwork.train_on_batch(input, target)
 
             if  __debug__ and self.player.getSelected():
                 updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([self.oldState]))[0][
