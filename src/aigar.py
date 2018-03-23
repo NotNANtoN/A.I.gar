@@ -6,6 +6,7 @@ from keras.models import load_model
 from controller.controller import Controller
 from model.model import *
 from model.parameters import *
+from model.networkParameters import *
 from view.startScreen import StartScreen
 from view.view import View
 
@@ -52,19 +53,16 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, expRep, gridView, modelName, explore = True, gridSquarePerFov = 0):
+def createBots(number, model, type, modelName, gridSquarePerFov = 0):
     if type == "NN":
         Bot.num_NNbots = number
-        Bot.gridSquaresPerFov = gridSquarePerFov
-        if gridView:
-            Bot.stateReprLen = 5 * Bot.gridSquaresPerFov * Bot.gridSquaresPerFov
-        else:
+        if not GRID_VIEW_ENABLED:
             Bot.stateReprLen = 12
-        Bot.initializeNNs(Bot.stateReprLen)
+        Bot.initializeNNs()
     elif type == "Greedy":
         Bot.num_Greedybots = number
     for i in range(number):
-        model.createBot(type, expRep, gridView)
+        model.createBot(type)
     # Load a stored model:
     if modelName is not None:
         for bot in model.getBots():
@@ -72,10 +70,6 @@ def createBots(number, model, type, expRep, gridView, modelName, explore = True,
                 Bot.loadedModelName = modelName
                 Bot.valueNetwork = load_model(modelName + ".h5")
                 break
-    if explore == False:
-        for bot in model.getBots():
-            if bot.getType() == type:
-                bot.setEpsilon(0)
 
 
 
@@ -90,16 +84,14 @@ if __name__ == '__main__':
     if guiEnabled:
         viewEnabled = int(input("Display view?: (1 == yes)\n"))
         viewEnabled = (viewEnabled == 1)
-        maxSteps = 0
-    else:
-        maxSteps = int(input("For how many steps do you want to train the model?\n"))
+    maxSteps = int(input("Do you want the simulation to stop after " + str(MAX_UPDATES) + " updates?\n"))
 
     model = Model(guiEnabled, viewEnabled)
 
     numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
     numberOfBots = numberOfGreedyBots
     if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfGreedyBots, model, "Greedy", False, False, None)
+        createBots(numberOfGreedyBots, model, "Greedy", None)
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
@@ -113,18 +105,7 @@ if __name__ == '__main__':
             modelName = "mostRecentAutosave"
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
-        if enableTrainMode == 1:
-            enableExpReplay = int(input("Do you want to enable experience replay? (1 == yes)\n"))
-        else:
-            enableExpReplay = 0
-        enableGridView = int(input("Do you want to enable grid view state representation? (1 == yes)\n"))
-        if enableGridView == 1:
-            gridSquaresPerFov = int(input("How many grid squares do you want per side?\n"))
-        else:
-            gridSquaresPerFov = 0
-        explore = int(input("Do you want to enable exploration? (1 == yes)\n"))
-        createBots(numberOfNNBots, model, "NN", enableExpReplay == 1, enableGridView == 1, modelName, explore == 1,
-                   gridSquaresPerFov)
+        createBots(numberOfNNBots, model, "NN", modelName)
 
 
     if numberOfBots == 0 and not viewEnabled:
@@ -158,16 +139,17 @@ if __name__ == '__main__':
     else:
         endEpsilon = model.getEpsilon()
         startEpsilon = 1
-        smallPart = int(maxSteps / 200)
-        for step in range(maxSteps):
+        startEpsilon = 1
+        smallPart = int(MAX_UPDATES / 200)
+        for step in range(MAX_UPDATES):
             model.update()
-            if step < maxSteps / 4:
-                lr = startEpsilon - (1 - endEpsilon) * step / (maxSteps / 4)
+            if step < MAX_UPDATES / 4:
+                lr = startEpsilon - (1 - endEpsilon) * step / (MAX_UPDATES / 4)
             else:
                 lr = endEpsilon
             model.setEpsilon(lr)
             if step % smallPart == 0 and step != 0:
-                print("Trained: ", round(step / maxSteps * 100, 1), "%")
+                print("Trained: ", round(step / MAX_UPDATES * 100, 1), "%")
 
     if model.getTrainingEnabled():
         path = createPath()

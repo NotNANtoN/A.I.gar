@@ -6,6 +6,7 @@ from keras.layers import Dense, Dropout
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
 from .parameters import *
+from .networkParameters import *
 from .spatialHashTable import spatialHashTable
 
 class Bot(object):
@@ -20,49 +21,49 @@ class Bot(object):
             actions.remove(action)
 
     num_actions = len(actions)
-    stateReprLen = 6*6*4+1
+    stateReprLen = STATE_REPR_LEN
     actionLen = 4
 
-    gpus = 1
+    gpus = GPUS
 
     # Experience replay:
-    memoryCapacity = 50000
-    memoriesPerUpdate = 40 # Must be divisible by 4 atm due to experience replay
+    memoryCapacity = MEMORY_CAPACITY
+    memoriesPerUpdate = MEMORIES_PER_UPDATE # Must be divisible by 4 atm due to experience replay
     memories = []
 
     num_NNbots = 0
     num_Greedybots = 0
 
     # Q-learning
-    targetNetworkSteps = 1000
-    targetNetworkMaxSteps = 1000
-    discount = 0.9
-    epsilon = 0.1
-    frameSkipRate = 4
-    gridSquaresPerFov = 7 # is modified by the user later on anyways
+    targetNetworkSteps = TARGET_NETWORK_STEPS
+    targetNetworkMaxSteps = TARGET_NETWORK_MAX_STEPS
+    discount = DISCOUNT
+    epsilon = EPSILON
+    frameSkipRate = FRAME_SKIP_RATE
+    gridSquaresPerFov = GRID_SQUARES_PER_FOV # is modified by the user later on anyways
 
     #ANN
-    learningRate = 0.001
-    optimizer = "SGD"
-    activationFuncHidden = 'sigmoid'
-    activationFuncOutput = 'linear'
+    learningRate = ALPHA
+    optimizer = OPTIMIZER
+    activationFuncHidden = ACTIVATION_FUNC_HIDDEN
+    activationFuncOutput = ACTIVATION_FUNC_OUTPUT
 
-    hiddenLayer1 = 120
-    hiddenLayer2 = 0
-    hiddenLayer3 = 0
+    hiddenLayer1 = HIDDEN_LAYER_1
+    hiddenLayer2 = HIDDEN_LAYER_2
+    hiddenLayer3 = HIDDEN_LAYER_3
 
     loadedModelName = None
 
     @classmethod
-    def initializeNNs(cls, stateReprLen):
-        weight_initializer_range = math.sqrt(6 / (stateReprLen + cls.num_actions))
+    def initializeNNs(cls):
+        weight_initializer_range = math.sqrt(6 / (cls.stateReprLen + cls.num_actions))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                        maxval=weight_initializer_range, seed=None)
         if cls.gpus > 1:
             with tf.device("/cpu:0"):
                 cls.valueNetwork = Sequential()
-                cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden, bias_initializer=initializer
-                                       , kernel_initializer=initializer))
+                cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
+                                           bias_initializer=initializer, kernel_initializer=initializer))
                 if cls.hiddenLayer2 > 0:
                     cls.valueNetwork.add(Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
                               , kernel_initializer=initializer))
@@ -74,7 +75,7 @@ class Bot(object):
                 cls.valueNetwork = multi_gpu_model(cls.valueNetwork, gpus=cls.gpus)
         else:
             cls.valueNetwork = Sequential()
-            cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=stateReprLen, activation=cls.activationFuncHidden,
+            cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
                                        bias_initializer=initializer
                                        , kernel_initializer=initializer))
             #cls.valueNetwork.add(Dropout(0.5))
@@ -105,9 +106,9 @@ class Bot(object):
             cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
 
 
-    def __init__(self, player, field, type, expRepEnabled, gridViewEnabled, trainMode):
-        self.expRepEnabled = expRepEnabled
-        self.gridViewEnabled = gridViewEnabled
+    def __init__(self, player, field, type, trainMode):
+        self.expRepEnabled = EXP_REPLAY_ENABLED
+        self.gridViewEnabled = GRID_VIEW_ENABLED
         self.trainMode = trainMode
         self.type = type
         self.player = player
@@ -317,7 +318,7 @@ class Bot(object):
         len_memory = len(self.memories)
         if len_memory < self.memoriesPerUpdate:
             return
-        inputSize = self.stateReprLen
+        inputSize = STATE_REPR_LEN
         outputSize = self.num_actions
         batch_size = self.memoriesPerUpdate
         # Initialize vectors
