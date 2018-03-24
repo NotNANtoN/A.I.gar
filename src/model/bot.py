@@ -42,7 +42,7 @@ class Bot(object):
     gridSquaresPerFov = 7 # is modified by the user later on anyways
 
     #ANN
-    learningRate = 0.001
+    learningRate = 0.0005
     optimizer = "SGD"
     activationFuncHidden = 'sigmoid'
     activationFuncOutput = 'linear'
@@ -97,13 +97,15 @@ class Bot(object):
         cls.targetNetwork = keras.models.clone_model(cls.valueNetwork)
         cls.targetNetwork.set_weights(cls.valueNetwork.get_weights())
 
-        if cls.optimizer == "Adam":
-            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
-            cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=cls.learningRate))
-        elif cls.optimizer =="SGD":
-            cls.valueNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
-            cls.targetNetwork.compile(loss='mse', optimizer=keras.optimizers.SGD(lr=cls.learningRate))
 
+
+        if cls.optimizer == "Adam":
+            optimizer = keras.optimizers.Adam(lr=cls.learningRate)
+        elif cls.optimizer == "SGD":
+            optimizer = keras.optimizers.SGD(lr=cls.learningRate)
+
+        cls.valueNetwork.compile(loss='mse', optimizer=optimizer)
+        cls.targetNetwork.compile(loss='mse', optimizer=optimizer)
 
     def __init__(self, player, field, type, expRepEnabled, gridViewEnabled, trainMode):
         self.expRepEnabled = expRepEnabled
@@ -121,6 +123,7 @@ class Bot(object):
             self.lastMass = None
             self.reward = None
             self.latestTDerror = None
+            self.lastMemory = None
             self.cumulativeReward = 0
             self.skipFrames = 0
         elif self.type == "Greedy":
@@ -264,10 +267,12 @@ class Bot(object):
                 self.targetNetworkSteps = self.targetNetworkMaxSteps * self.num_NNbots
                 self.targetNetwork.save("mostRecentAutosave.h5")
 
+        # If the player is alive then save the action, state and mass of this update
         if self.player.getIsAlive():
             self.takeAction(newState)
             self.lastMass = self.player.getTotalMass()
             self.oldState = newState
+        # Otherwise reset values to start a new episode for this actor
         else:
             self.currentActionIdx = None
             self.currentAction = None
@@ -294,15 +299,15 @@ class Bot(object):
         # Delete oldest memory if memory is at full capacity
         if len(self.memories) > self.memoryCapacity:
             #if numpy.random.random() > 0.0:
-                del self.memories[0]
+                del self.memories[-1]
             #else:
             #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
         if self.player.getIsAlive():
             newMemory = [state.tolist(), action, reward, newState.tolist()]
         else:
             newMemory = [state.tolist(), action, reward, None]
-        heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory))
-        #self.memories.append(newMemory)
+        heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory, self.lastMemory))
+        self.lastMemory = newMemory
 
     def memoryToInputOutput(self, memory):
         s = memory[0]
@@ -341,17 +346,6 @@ class Bot(object):
         for poppedMemory in popped_memories:
             heapq.heappush(self.memories, poppedMemory)
 
-        # Get Random memories:
-        for idx in range(int(batch_size / 4)):
-            randIdx = numpy.random.randint(len(self.memories))
-            memory = self.memories[randIdx][1]
-            input, target, td_error = self.memoryToInputOutput(memory)
-            inputs[batch_count] = input
-            targets[batch_count] = target
-            # Update TD-Error of memory:
-            self.memories[randIdx] = (td_error, memory)
-            batch_count += 1
-
         # Get recent memories:
         for idx in range(int(batch_size / 4)):
             memory = self.memories[len_memory - idx - 1][1]
@@ -360,6 +354,17 @@ class Bot(object):
             targets[batch_count] = target
             # Update TD-Error of memory:
             self.memories[idx] = (td_error, memory)
+            batch_count += 1
+
+        # Fill up the rest of the batch with random memories:
+        while batch_count < batch_size:
+            randIdx = numpy.random.randint(len(self.memories))
+            memory = self.memories[randIdx][1]
+            input, target, td_error = self.memoryToInputOutput(memory)
+            inputs[batch_count] = input
+            targets[batch_count] = target
+            # Update TD-Error of memory:
+            self.memories[randIdx] = (td_error, memory)
             batch_count += 1
 
         # Train on memories
