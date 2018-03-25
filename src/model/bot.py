@@ -295,13 +295,14 @@ class Bot(object):
         # Delete oldest memory if memory is at full capacity
         if len(self.memories) > self.memoryCapacity:
             #if numpy.random.random() > 0.0:
-                del self.memories[-1]
+            del self.memories[-1]
             #else:
             #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
         if self.player.getIsAlive():
             newMemory = [state.tolist(), action, reward, newState.tolist()]
         else:
             newMemory = [state.tolist(), action, reward, None]
+        # Square the TD-error and multiply by minus one, because the heap pops the smallest number
         heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory, self.lastMemory))
         self.lastMemory = newMemory
 

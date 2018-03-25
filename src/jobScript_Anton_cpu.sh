@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=0-13:00:00
+#SBATCH --time=0-16:00:00
 #SBATCH --mem=10000
 #SBATCH --nodes=1
 #SBATCH --mail-type=ALL
