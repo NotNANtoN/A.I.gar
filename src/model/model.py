@@ -10,6 +10,7 @@ from .player import Player
 
 import linecache
 import os
+import sys
 import tracemalloc
 
 # Useful function that displays the top 3 lines that use the most total memory so far
@@ -233,9 +234,8 @@ class Model(object):
                     plt.savefig(path + "Reward_and_TD-Error.png")
                     plt.close()
                     break
-                except:
-                    print("    ", gui, "Not found")
-
+                except Exception as e:
+                    print(e)
 
     def plotTDError(self, path):
         res = 10  # running error step
