@@ -115,24 +115,26 @@ class Bot(object):
         self.type = type
         self.player = player
         self.field = field
-        self.oldState = None
-        self.currentAction = None
-        self.currentActionIdx = None
-
-
-        if self.type == "NN":
-            self.lastMass = None
-            self.reward = None
-            self.latestTDerror = None
-            self.lastMemory = None
-            self.cumulativeReward = 0
-            self.skipFrames = 0
-        elif self.type == "Greedy":
+        if self.type == "Greedy":
             self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = numpy.random.randint(9990,10000)
+        self.reset()
+
+    def reset(self):
+        self.lastMass = None
+        self.oldState = None
+        self.latestTDerror = None
+        self.lastMemory = None
+        self.skipFrames = 0
+        self.cumulativeReward = 0
+        if self.type == "NN":
+            self.currentActionIdx = None
+            self.currentAction = None
+        elif self.type == "Greedy":
             self.currentAction = [0, 0, 0, 0]
 
-    def update(self):
+
+    def makeMove(self):
         if self.type == "NN":
             if self.trainMode:
                 self.qLearn()
@@ -275,14 +277,7 @@ class Bot(object):
             self.oldState = newState
         # Otherwise reset values to start a new episode for this actor
         else:
-            self.currentActionIdx = None
-            self.currentAction = None
-            self.lastMass = None
-            self.oldState = None
-            self.latestTDerror = None
-            self.skipFrames = 0
-            self.cumulativeReward = 0
-
+            self.reset()
     def testNetwork(self):
         alive = self.player.getIsAlive()
         if alive:
@@ -537,9 +532,14 @@ class Bot(object):
         if __debug__ and self.player.getSelected():
             print("counted pellets: ", pelletcount)
             print(" ")
-        # Collect all relevant data
-        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestEnemyCellMassProportion, gsBiggestOwnCellMassProportion,
-                                        gsWalls, gsVirus))
+        # Concatenate the basis data about the location of pellets, own cells and the walls:
+        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestOwnCellMassProportion, gsWalls))
+        # If there are other players in the game, the bot needs information about them:
+        if len(self.field.getPlayers() ) > 1:
+            totalInfo = numpy.concatenate((totalInfo, gsBiggestEnemyCellMassProportion))
+        # If there are viruses in the game, the bot needs to know their location
+        if self.field.getVirusEnabled():
+            totalInfo = numpy.concatenate((totalInfo, gsVirus))
         return totalInfo
 
     def getGridStateRepresentationOld(self):

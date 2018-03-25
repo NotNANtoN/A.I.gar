@@ -14,8 +14,8 @@ Exploration = True
 
 EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 FRAME_SKIP_RATE = 4
-GRID_SQUARES_PER_FOV = 7
-NUM_OF_GRIDS = 5
+GRID_SQUARES_PER_FOV = 9
+NUM_OF_GRIDS = 3
 
 #ANN
 ALPHA = 0.001 #Learning rate

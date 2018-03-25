@@ -12,7 +12,7 @@ from .spatialHashTable import spatialHashTable
 
 
 class Field(object):
-    def __init__(self):
+    def __init__(self, virusEnabled):
         self.size = 0
         self.pellets = []
         self.players = []
@@ -26,12 +26,15 @@ class Field(object):
         self.playerHashTable = None
         self.virusHashTable = None
 
+        self.virusEnabled = virusEnabled
+
+
     def initializePlayer(self, player):
+        player.cells = []
         x, y = self.getSpawnPos(START_RADIUS)
         newCell = Cell(x, y, START_MASS, player)
         player.addCell(newCell)
         player.setAlive()
-
 
     def initialize(self):
         self.size = int(SIZE_INCREASE_PER_PLAYER * math.sqrt(len(self.players)))
@@ -43,6 +46,22 @@ class Field(object):
             self.initializePlayer(player)
         self.maxCollectibleCount = self.size * self.size * MAX_COLLECTIBLE_DENSITY
         self.maxVirusCount = self.size * self.size * MAX_VIRUS_DENSITY
+        self.spawnStuff()
+
+    def reset(self):
+        # Clear field
+        self.pellets = []
+        self.blobs = []  # Ejected particles become pellets once momentum is lost
+        self.deadPlayers = []
+        self.viruses = []
+        self.pelletHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+        self.blobHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+        self.playerHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+        self.virusHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
+
+        # Spawn stuff
+        for player in self.players:
+            self.initializePlayer(player)
         self.spawnStuff()
 
     def update(self):
@@ -218,7 +237,8 @@ class Field(object):
 
     def spawnStuff(self):
         self.spawnPellets()
-        self.spawnViruses()
+        if self.virusEnabled:
+            self.spawnViruses()
         self.spawnPlayers()
 
     def spawnViruses(self):
@@ -390,6 +410,9 @@ class Field(object):
         self.players.append(player)
 
     # Getters:
+    def getVirusEnabled(self):
+        return self.virusEnabled
+
     def getPortionOfCellsInFov(self, cells, fovPos, fovSize):
         return [cell for cell in cells if cell.isInFov(fovPos,fovSize)]
 

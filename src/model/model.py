@@ -44,10 +44,12 @@ def display_top(snapshot, key_type='lineno', limit=3):
 # It links the actions of the players to consequences in the field and updates information.
 
 class Model(object):
-    def __init__(self, guiEnabled, viewEnabled):
+    def __init__(self, guiEnabled, viewEnabled, virusEnabled, resetLimit):
         self.listeners = []
         self.viewEnabled = viewEnabled
         self.guiEnabled = guiEnabled
+        self.virusEnabled = virusEnabled
+        self.resetLimit = resetLimit
         self.trainingEnabled = True
 
         self.players = []
@@ -56,7 +58,7 @@ class Model(object):
         self.playerSpectator = None
         self.spectatedPlayer = None
         self.players = []
-        self.field = Field()
+        self.field = Field(virusEnabled)
         self.screenWidth = None
         self.screenHeight = None
         self.counter = 0
@@ -72,20 +74,26 @@ class Model(object):
         self.field.initialize()
 
     def update(self):
+        # Reset the model after self.resetLimit steps:
+        if self.resetLimit > 0 and self.counter > 0 and  self.counter % self.resetLimit  == 0:
+            self.field.reset()
+            self.resetBots()
+
         timeStart = time.time()
         timeProcessStart = time.process_time()
-        # Get the decisions of the bots/human. Update the field accordingly.
-        for bot in self.bots:
-            bot.update()
+        # Get the decisions of the bots. Update the field accordingly.
+        self.takeBotActions()
         self.field.update()
+        # Update view if view is enabled
         if self.guiEnabled and self.viewEnabled:
             self.notify()
+        # Slow down game to match FPS
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-        if self.trainingEnabled:
+        # Store debug info and display progress
+        if self.trainingEnabled and "NN" in [bot.getType() for bot in self.bots]:
             self.visualize(timeProcessStart)
-
             for bot in self.bots:
                 if bot.getType() != "Greedy":
                     if bot.currentActionIdx != None and bot.latestTDerror != None:
@@ -93,8 +101,15 @@ class Model(object):
                         tdError = bot.getTDError()
                         self.rewards.append(reward)
                         self.tdErrors.append(abs(tdError))
-
         self.counter += 1
+
+    def takeBotActions(self):
+        for bot in self.bots:
+            bot.makeMove()
+
+    def resetBots(self):
+        for bot in self.bots:
+            bot.reset()
 
     def saveModels(self, path):
         savedTypes = []
