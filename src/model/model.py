@@ -201,16 +201,11 @@ class Model(object):
                     plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
                     plt.xlabel("Steps in hundreds")
                     plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-                    if path:
-                        plt.savefig(path + "TD-Errors.png")
                     plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
                     plt.legend()
                     plt.xlabel("Steps in hundreds")
                     plt.ylabel("Running  avg of the last 100 steps")
-                    if path:
-                        plt.savefig(path + "Reward_and_TD-Error.png")
-                    else:
-                        plt.show()
+                    plt.show()
                     plt.close()
                     break
                 except:
@@ -230,16 +225,12 @@ class Model(object):
                     plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
                     plt.xlabel("Steps in hundreds")
                     plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-                    if path:
-                        plt.savefig(path + "TD-Errors.png")
+                    plt.savefig(path + "TD-Errors.png")
                     plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
                     plt.legend()
                     plt.xlabel("Steps in hundreds")
                     plt.ylabel("Running  avg of the last 100 steps")
-                    if path:
-                        plt.savefig(path + "Reward_and_TD-Error.png")
-                    else:
-                        plt.show()
+                    plt.savefig(path + "Reward_and_TD-Error.png")
                     plt.close()
                     break
                 except:

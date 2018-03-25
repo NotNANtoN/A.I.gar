@@ -687,10 +687,9 @@ class Bot(object):
             return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
-        #if abs(reward) < 0.1:
-        #    reward -=  1
+        if abs(reward) < 0.1:
+            reward -=  1
         return reward
-
 
     def getType(self):
         return self.type
