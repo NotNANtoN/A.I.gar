@@ -127,7 +127,7 @@ class Bot(object):
         self.lastMemory = None
         self.skipFrames = 0
         self.cumulativeReward = 0
-        self.actionHistory = [[0,0,0,0],[0,0,0,0]]
+        self.actionHistory = [[0,0,0,0]]
         if self.type == "NN":
             self.currentActionIdx = None
             self.currentAction = None
