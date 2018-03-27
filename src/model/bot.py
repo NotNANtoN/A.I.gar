@@ -326,7 +326,6 @@ class Bot(object):
         inputs = numpy.zeros((batch_size, inputSize))
         targets = numpy.zeros((batch_size, outputSize))
         batch_count = 0
-
         # Get most surprising memories:
         popped_memories = []
         for idx in range(int(batch_size * 0)):
@@ -690,8 +689,7 @@ class Bot(object):
         if not self.player.getIsAlive():
             return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
-        reward = currentMass
-        #reward = currentMass - self.lastMass
+        reward = currentMass - self.lastMass
         #if abs(reward) < 0.1:
         #    reward -=  1
         return reward
