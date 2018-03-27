@@ -118,7 +118,7 @@ class Controller:
                 if not humanList:
                     # Plot mean td errors and mean rewards
                     if event.key == pygame.K_p:
-                        self.model.chooseBackendAndPlot()
+                        self.model.plotTDError()
 
             # Handle player selection by clicking and view dis/enabling
             if not humanList:

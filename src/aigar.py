@@ -10,20 +10,6 @@ from model.networkParameters import *
 from view.startScreen import StartScreen
 from view.view import View
 
-def createPath():
-    path = "savedModels"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    path += "/model"
-    newPath = path
-    counter = 0
-    while os.path.exists(newPath):
-        newPath = path + "-" + str(counter)
-        counter += 1
-    os.makedirs(newPath)
-    newPath += "/"
-    return newPath
-
 def modelMustHavePlayers():
     print("Model must have players")
     quit()
@@ -69,6 +55,7 @@ def createBots(number, model, type, modelName, gridSquarePerFov = 0):
             if bot.getType() == type:
                 Bot.loadedModelName = modelName
                 Bot.valueNetwork = load_model(modelName + ".h5")
+                Bot.targetNetwork = Bot.valueNetwork
                 break
 
 
@@ -154,5 +141,4 @@ if __name__ == '__main__':
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
 
     if model.getTrainingEnabled():
-        path = createPath()
-        model.save(path)
+        model.save()

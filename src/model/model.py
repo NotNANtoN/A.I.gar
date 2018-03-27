@@ -1,5 +1,6 @@
 import time
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy
 
@@ -69,6 +70,8 @@ class Model(object):
         self.meanErrors = []
         self.meanRewards = []
 
+        self.createPath()
+
         tracemalloc.start()
 
     def initialize(self):
@@ -112,6 +115,21 @@ class Model(object):
         for bot in self.bots:
             bot.reset()
 
+    def createPath(self):
+        path = "savedModels"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        path += "/model"
+        newPath = path
+        counter = 0
+        while os.path.exists(newPath):
+            newPath = path + "-" + str(counter)
+            counter += 1
+        os.makedirs(newPath)
+        newPath += "/"
+        self.path = newPath
+
+
     def saveModels(self, path):
         savedTypes = []
         for bot in self.bots:
@@ -132,10 +150,10 @@ class Model(object):
                     file.write("\n")
                     savedTypes.append(botType)
 
-    def save(self, path):
-        self.saveModels(path)
-        self.saveSpecs(path)
-        self.chooseBackendAndPlot(path)
+    def save(self):
+        self.saveModels(self.path)
+        self.saveSpecs(self.path)
+        self.plotTDError()
 
     def getRelevantModelData(self, bot):
         data = ""
@@ -187,73 +205,19 @@ class Model(object):
             self.tdErrors = []
             self.rewards = []
 
-
-    def chooseBackendAndPlot(self, path = None):
-        # Use gui
-        if path == None:
-            gui_backends = [i for i in matplotlib.rcsetup.interactive_bk]
-            for gui in gui_backends:
-                try:
-                    matplotlib.use(gui, warn=False, force=True)
-                    from matplotlib import pyplot as plt
-                    res = 10  # running error step
-                    meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,)) / res, mode='valid')
-                    meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,)) / res, mode='valid')
-                    plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
-                    plt.xlabel("Steps in hundreds")
-                    plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-                    plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
-                    plt.legend()
-                    plt.xlabel("Steps in hundreds")
-                    plt.ylabel("Running  avg of the last 100 steps")
-                    plt.show()
-                    plt.close()
-                    break
-                except:
-                    print("   ", gui, "Not found")
-        else:
-            # Use non-gui backend to save plot
-            non_gui_backends = matplotlib.rcsetup.non_interactive_bk
-            print("Non Gui backends are:", non_gui_backends)
-            for gui in non_gui_backends:
-                print("testing", gui)
-                try:
-                    matplotlib.use(gui, warn=False, force=True)
-                    from matplotlib import pyplot as plt
-                    res = 10  # running error step
-                    meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,)) / res, mode='valid')
-                    meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,)) / res, mode='valid')
-                    plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
-                    plt.xlabel("Steps in hundreds")
-                    plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-                    plt.savefig(path + "TD-Errors.png")
-                    plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
-                    plt.legend()
-                    plt.xlabel("Steps in hundreds")
-                    plt.ylabel("Running  avg of the last 100 steps")
-                    plt.savefig(path + "Reward_and_TD-Error.png")
-                    plt.close()
-                    break
-                except Exception as e:
-                    print(e)
-
-    def plotTDError(self, path):
+    def plotTDError(self):
+        path = self.path
         res = 10  # running error step
         meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,)) / res, mode='valid')
         meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,)) / res, mode='valid')
         plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-        if path:
-            plt.savefig(path + "TD-Errors.png")
+        plt.savefig(path + "TD-Errors.png")
         plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
         plt.legend()
-        plt.xlabel("Steps in hundreds")
         plt.ylabel("Running  avg of the last 100 steps")
-        if path:
-            plt.savefig(path + "Reward_and_TD-Error.png")
-        else:
-            plt.show()
+        plt.savefig(path + "Reward_and_TD-Error.png")
         plt.close()
 
     # Setters:
@@ -310,6 +274,9 @@ class Model(object):
         return self.playerSpectator is not None
 
     # Getters:
+    def getPath(self):
+        return self.path
+
     def getEpsilon(self):
         return Bot.epsilon
 

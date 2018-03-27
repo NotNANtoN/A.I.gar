@@ -329,7 +329,7 @@ class Bot(object):
 
         # Get most surprising memories:
         popped_memories = []
-        for idx in range(int(batch_size / 2)):
+        for idx in range(int(batch_size * 0)):
             # Get the item with highest priority (td-error)
             memory = heapq.heappop(self.memories)[1]
             input, target, td_error = self.memoryToInputOutput(memory)
@@ -344,7 +344,7 @@ class Bot(object):
             heapq.heappush(self.memories, poppedMemory)
 
         # Get recent memories:
-        for idx in range(int(batch_size / 4)):
+        for idx in range(int(batch_size * 0)):
             memory = self.memories[len_memory - idx - 1][1]
             input, target, td_error = self.memoryToInputOutput(memory)
             inputs[batch_count] = input
@@ -495,7 +495,7 @@ class Bot(object):
                         for pellet in pelletsInGS:
                             pelletcount += 1
                             pelletMassSum += pellet.getMass()
-                        gsPelletProportion[count] = pelletMassSum / biggestMassInFov
+                        gsPelletProportion[count] = pelletMassSum
 
                     # TODO: add relative fov pos of closest pellet to allow micro management
 
@@ -541,6 +541,9 @@ class Bot(object):
         # If there are viruses in the game, the bot needs to know their location
         if self.field.getVirusEnabled():
             totalInfo = numpy.concatenate((totalInfo, gsVirus))
+        # Add total Mass of player and field size:
+        totalMass = self.player.getTotalMass()
+        totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
         return totalInfo
 
     def getGridStateRepresentationOld(self):
@@ -687,9 +690,10 @@ class Bot(object):
         if not self.player.getIsAlive():
             return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
-        reward = currentMass - self.lastMass
-        if abs(reward) < 0.1:
-            reward -=  1
+        reward = currentMass
+        #reward = currentMass - self.lastMass
+        #if abs(reward) < 0.1:
+        #    reward -=  1
         return reward
 
     def getType(self):
