@@ -138,6 +138,7 @@ class Bot(object):
         if self.type == "NN":
             if self.trainMode:
                 self.qLearn()
+                self.epsilon = self.epsilon * EPSILON_DECREASE_RATE
             else:
                 self.testNetwork()
         elif self.type == "Greedy":
@@ -544,6 +545,11 @@ class Bot(object):
         # Add total Mass of player and field size:
         totalMass = self.player.getTotalMass()
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
+        # for i in range(GRID_SQUARES_PER_FOV):
+        #     print(str(gsPelletProportion[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]) + " "
+        #           + str(gsBiggestOwnCellMassProportion[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]) + " "
+        #           + str(gsWalls[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]))
+        # print("\n")
         return totalInfo
 
     def getGridStateRepresentationOld(self):
@@ -690,8 +696,8 @@ class Bot(object):
         if not self.player.getIsAlive():
             return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
-        reward = currentMass
-        #reward = currentMass - self.lastMass
+        # reward = currentMass
+        reward = currentMass - self.lastMass
         #if abs(reward) < 0.1:
         #    reward -=  1
         return reward
