@@ -3,9 +3,10 @@ GPUS = 1
 # Experience replay:
 MEMORY_CAPACITY = 100000
 MEMORIES_PER_UPDATE = 40 # Must be divisible by 4 atm due to experience replay
+REPLAY_AFTER_X_STEPS = 0
 
 # Q-learning
-EXP_REPLAY_ENABLED = False
+EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 1000
 TARGET_NETWORK_MAX_STEPS = 5000
@@ -14,9 +15,9 @@ DISCOUNT = 0.99
 Exploration = True
 EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EPSILON_DECREASE_RATE = 1
-FRAME_SKIP_RATE = 2
-GRID_SQUARES_PER_FOV = 7
-NUM_OF_GRIDS = 3
+FRAME_SKIP_RATE = 3
+GRID_SQUARES_PER_FOV = 9
+NUM_OF_GRIDS = 4
 
 #ANN
 ALPHA = 0.001 #Learning rate

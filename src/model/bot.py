@@ -127,6 +127,7 @@ class Bot(object):
         self.lastMemory = None
         self.skipFrames = 0
         self.cumulativeReward = 0
+        self.lastReward = 0
         #self.actionHistory = [[0,0,0,0]]
         if self.type == "NN":
             self.currentActionIdx = None
@@ -139,7 +140,7 @@ class Bot(object):
         if self.type == "NN":
             if self.trainMode:
                 self.qLearn()
-                self.epsilon = self.epsilon * EPSILON_DECREASE_RATE
+                #self.epsilon = self.epsilon * EPSILON_DECREASE_RATE
             else:
                 self.testNetwork()
         elif self.type == "Greedy":
@@ -227,12 +228,12 @@ class Bot(object):
     def qLearn(self):
         #After S has been initialized, set S as oldState and take action A based on policy
         alive = self.player.getIsAlive()
+        self.cumulativeReward += self.getReward() if self.lastMass else 0
+        self.lastReward = self.cumulativeReward
 
         # Do not train if we are skipping this frame
         if self.skipFrames > 0 :
             self.skipFrames -= 1
-            reward = self.getReward()
-            self.cumulativeReward += reward
             self.currentAction[2:4] = [0, 0]
             self.latestTDerror = None
             if alive:
@@ -676,6 +677,9 @@ class Bot(object):
     def isRelativeCellData(self, cell, left, top, size):
         return self.getRelativeCellPos(cell, left, top, size) + \
                ([round(cell.getRadius() / size if cell.getRadius() <= size else 1, 5)] if cell != None else [0])
+
+    def getLastReward(self):
+        return self.lastReward
 
     def getRelativeCellPos(self, cell, left, top, size):
         if cell != None:
