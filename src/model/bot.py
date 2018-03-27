@@ -386,7 +386,7 @@ class Bot(object):
         self.skipFrames = self.frameSkipRate
         self.cumulativeReward = 0
 
-        # #Testing implementation of action history
+        # # #Testing implementation of action history
         # self.actionHistory.insert(0,self.currentAction)
         # self.actionHistory.pop(len(self.actionHistory)-1)
 
