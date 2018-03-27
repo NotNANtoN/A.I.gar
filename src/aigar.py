@@ -73,8 +73,8 @@ if __name__ == '__main__':
         viewEnabled = (viewEnabled == 1)
     else:
         maxSteps = int(input("For how many steps do you want to train?\n"))
-    virusEnabled = int(input("Viruses enabled? (1==True)")) == 1
-    resetSteps = int(input("Reset model after X steps (X==0 means no reset)"))
+    virusEnabled = int(input("Viruses enabled? (1==True)\n")) == 1
+    resetSteps = int(input("Reset model after X steps (X==0 means no reset)\n"))
     model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps)
 
     numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
