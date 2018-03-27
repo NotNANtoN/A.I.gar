@@ -127,7 +127,7 @@ class Bot(object):
         self.lastMemory = None
         self.skipFrames = 0
         self.cumulativeReward = 0
-        #self.actionHistory = [[0,0,0,0]]
+        self.actionHistory = [[0,0,0,0]]
         if self.type == "NN":
             self.currentActionIdx = None
             self.currentAction = None
@@ -386,8 +386,8 @@ class Bot(object):
         self.cumulativeReward = 0
 
         # #Testing implementation of action history
-        # self.actionHistory.insert(0,self.currentAction)
-        # self.actionHistory.pop(len(self.actionHistory)-1)
+        self.actionHistory.insert(0,self.currentAction)
+        self.actionHistory.pop(len(self.actionHistory)-1)
 
 
     def getStateRepresentation(self):
@@ -551,7 +551,7 @@ class Bot(object):
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
 
         #Testing implementation of action memory
-        #totalInfo = numpy.concatenate((totalInfo, numpy.array(self.actionHistory).flatten()))
+        totalInfo = numpy.concatenate((totalInfo, numpy.array(self.actionHistory).flatten()))
         # for i in range(GRID_SQUARES_PER_FOV):
         #     print(str(gsPelletProportion[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]) + " "
         #           + str(gsBiggestOwnCellMassProportion[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]) + " "
