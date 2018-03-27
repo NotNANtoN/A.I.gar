@@ -101,7 +101,7 @@ class Model(object):
             for bot in self.bots:
                 if bot.getType() != "Greedy":
                     if bot.currentActionIdx != None and bot.latestTDerror != None:
-                        reward = bot.getReward()
+                        reward = bot.getLastReward()
                         tdError = bot.getTDError()
                         self.rewards.append(reward)
                         self.tdErrors.append(abs(tdError))
