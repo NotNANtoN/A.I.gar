@@ -1,4 +1,5 @@
 import time
+import datetime
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -70,16 +71,20 @@ class Model(object):
         self.meanErrors = []
         self.meanRewards = []
 
-        self.createPath()
-
         tracemalloc.start()
 
     def initialize(self):
+        if self.trainingEnabled:
+            self.createPath()
         self.field.initialize()
 
     def update(self):
         # Reset the model after self.resetLimit steps:
         if self.resetLimit > 0 and self.counter > 0 and  self.counter % self.resetLimit  == 0:
+            print("Resetting field and players!")
+            for bot in self.bots:
+                if bot.getType() == "NN":
+                    print("Average reward of ", bot.getPlayer(), " for this episode: ", bot.getAvgReward())
             self.field.reset()
             self.resetBots()
 
@@ -94,6 +99,9 @@ class Model(object):
         # Slow down game to match FPS
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
+
+
+
 
         # Store debug info and display progress
         if self.trainingEnabled and "NN" in [bot.getType() for bot in self.bots]:
@@ -116,18 +124,16 @@ class Model(object):
             bot.reset()
 
     def createPath(self):
+        now = datetime.datetime.now()
+        nowStr = now.strftime("%m-%d_%H:%M")
+
         path = "savedModels"
         if not os.path.exists(path):
             os.makedirs(path)
-        path += "/model"
-        newPath = path
-        counter = 0
-        while os.path.exists(newPath):
-            newPath = path + "-" + str(counter)
-            counter += 1
-        os.makedirs(newPath)
-        newPath += "/"
-        self.path = newPath
+        path += "/" + nowStr
+        os.makedirs(path)
+        path += "/"
+        self.path = path
 
 
     def saveModels(self, path):
@@ -137,6 +143,10 @@ class Model(object):
             if botType != "Greedy" and botType not in savedTypes:
                 bot.saveModel(path)
                 savedTypes.append(botType)
+        path = path[:-1]
+        updatedPath = path + "_" + str(self.counter)
+        os.rename(path, updatedPath)
+        self.path = updatedPath + "/"
 
     def saveSpecs(self, path):
         name_of_file = path + "model_specifications.txt"
@@ -154,6 +164,7 @@ class Model(object):
         self.saveModels(self.path)
         self.saveSpecs(self.path)
         self.plotTDError()
+        self.plotMassesOverTime()
 
     def getRelevantModelData(self, bot):
         data = ""
@@ -219,6 +230,21 @@ class Model(object):
         plt.ylabel("Running  avg of the last 100 steps")
         plt.savefig(path + "Reward_and_TD-Error.png")
         plt.close()
+
+    def plotMassesOverTime(self):
+        for bot in self.bots:
+            if bot.getType() == "NN":
+                masses = bot.getMassOverTime()
+                len_masses = len(masses)
+                playerName = str(bot.getPlayer())
+                plt.plot(range(len_masses), masses)
+                plt.title("Mass over time of " + playerName)
+                plt.xlabel("Step")
+                plt.ylabel("Total Player Mass")
+                plt.savefig(self.path + "MassOverTime" + playerName + ".png")
+                plt.close()
+
+
 
     # Setters:
     def setEpsilon(self, val):

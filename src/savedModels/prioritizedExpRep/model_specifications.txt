@@ -1,22 +1,22 @@
 Simulation:
-steps - 204034
+steps - 200000
 number of rl bots - 1
 number of greedy bots - 0
 
 Reinforcement learning:
-Epsilon - 0.2
+Epsilon - 0.1
 Discount factor - 0.99
 Frame skip rate - 3
 State representation - Grid
-Grid - 9x9
+Grid - 10x10
 Experience Replay - Enabled
 Target Network steps until update - 5000
-Name of model that was loaded - mostRecentAutosave
+Name of model that was loaded - None
 
-ANN:Input layer neurons(stateReprLen) - 245
-First hidden layer neurons - 24
-Second hidden layer neurons - 48
-Third hidden layer neurons - 24
+ANN:Input layer neurons(stateReprLen) - 302
+First hidden layer neurons - 50
+Second hidden layer neurons - 0
+Third hidden layer neurons - 0
 Output layer neurons(number of actions) - 9
 Learning rate - 0.001
 Activation function hidden layer(s) - sigmoid
