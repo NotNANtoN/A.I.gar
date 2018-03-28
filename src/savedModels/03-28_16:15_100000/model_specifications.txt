@@ -1,5 +1,5 @@
 Simulation:
-steps - 55000
+steps - 100000
 number of rl bots - 1
 number of greedy bots - 0
 

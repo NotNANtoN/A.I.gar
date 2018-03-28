@@ -101,7 +101,8 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-        if self.counter != 0 and self.counter % 5000 == 0:
+        # Save the models occasionally in case the program crashes at some point
+        if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
             self.saveSpecs(self.path)
             self.saveModels(self.path, True)
 
