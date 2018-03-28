@@ -76,6 +76,7 @@ class Model(object):
     def initialize(self):
         if self.trainingEnabled:
             self.createPath()
+            self.saveSpecs(self.path)
         self.field.initialize()
 
     def update(self):
@@ -100,8 +101,9 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-
-
+        if self.counter != 0 and self.counter % 5000 == 0:
+            self.saveSpecs(self.path)
+            self.saveModels(self.path, True)
 
         # Store debug info and display progress
         if self.trainingEnabled and "NN" in [bot.getType() for bot in self.bots]:
@@ -136,17 +138,18 @@ class Model(object):
         self.path = path
 
 
-    def saveModels(self, path):
+    def saveModels(self, path, autosave = False):
         savedTypes = []
         for bot in self.bots:
             botType = bot.getType()
             if botType != "Greedy" and botType not in savedTypes:
                 bot.saveModel(path)
                 savedTypes.append(botType)
-        path = path[:-1]
-        updatedPath = path + "_" + str(self.counter)
-        os.rename(path, updatedPath)
-        self.path = updatedPath + "/"
+        if not autosave:
+            path = path[:-1]
+            updatedPath = path + "_" + str(self.counter)
+            os.rename(path, updatedPath)
+            self.path = updatedPath + "/"
 
     def saveSpecs(self, path):
         name_of_file = path + "model_specifications.txt"
@@ -243,8 +246,6 @@ class Model(object):
                 plt.ylabel("Total Player Mass")
                 plt.savefig(self.path + "MassOverTime" + playerName + ".png")
                 plt.close()
-
-
 
     # Setters:
     def setEpsilon(self, val):

@@ -278,7 +278,7 @@ class Bot(object):
             if self.targetNetworkSteps == 0:
                 self.targetNetwork.set_weights(self.valueNetwork.get_weights())
                 self.targetNetworkSteps = self.targetNetworkMaxSteps * self.num_NNbots
-                self.targetNetwork.save("mostRecentAutosave.h5")
+
 
         # If the player is alive then save the action, state and mass of this update
         if self.player.getIsAlive():
