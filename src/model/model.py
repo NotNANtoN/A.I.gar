@@ -13,6 +13,7 @@ from .player import Player
 import linecache
 import os
 import sys
+import shutil
 import tracemalloc
 
 # Useful function that displays the top 3 lines that use the most total memory so far
@@ -76,7 +77,7 @@ class Model(object):
     def initialize(self):
         if self.trainingEnabled:
             self.createPath()
-            self.saveSpecs(self.path)
+            self.saveSpecs()
         self.field.initialize()
 
     def update(self):
@@ -103,7 +104,7 @@ class Model(object):
 
         # Save the models occasionally in case the program crashes at some point
         if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
-            self.saveSpecs(self.path)
+            self.saveSpecs()
             self.saveModels(self.path, True)
 
         # Store debug info and display progress
@@ -152,8 +153,12 @@ class Model(object):
             os.rename(path, updatedPath)
             self.path = updatedPath + "/"
 
-    def saveSpecs(self, path):
-        name_of_file = path + "model_specifications.txt"
+    def saveSpecs(self):
+        shutil.copy("model/networkParameters.py", self.path)
+
+
+
+        name_of_file = self.path + "model_specifications.txt"
         savedTypes = []
         with open(name_of_file, "w") as file:
              for bot in self.bots:
@@ -166,7 +171,7 @@ class Model(object):
 
     def save(self):
         self.saveModels(self.path)
-        self.saveSpecs(self.path)
+        self.saveSpecs()
         self.plotTDError()
         self.plotMassesOverTime()
 

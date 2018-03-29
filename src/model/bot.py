@@ -2,11 +2,12 @@ import heapq
 import keras
 import numpy
 import tensorflow as tf
-from keras.layers import Dense, Dropout
+import importlib.util
+from keras.layers import Dense, LSTM, Softmax
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
+
 from .parameters import *
-from .networkParameters import *
 from .spatialHashTable import spatialHashTable
 
 class Bot(object):
@@ -20,37 +21,46 @@ class Bot(object):
         if action[2] or action[3]:
             actions.remove(action)
 
+    #spec = importlib.util.spec_from_file_location("networkParameters",".networkParameters.py")
+    #parameters = importlib.util.module_from_spec(spec)
+    #spec.loader.exec_module(parameters)
+
+    parameters =  importlib.import_module('.networkParameters', package="model")
+    #model = __import__("model")
+    #parameters = model.
+    #print(parameters)
+
     num_actions = len(actions)
-    stateReprLen = STATE_REPR_LEN
+    stateReprLen = parameters.STATE_REPR_LEN
     actionLen = 4
 
-    gpus = GPUS
+    gpus = parameters.GPUS
 
     # Experience replay:
-    memoryCapacity = MEMORY_CAPACITY
-    memoriesPerUpdate = MEMORIES_PER_UPDATE # Must be divisible by 4 atm due to experience replay
+    memoryCapacity = parameters.MEMORY_CAPACITY
+    memoriesPerUpdate = parameters.MEMORIES_PER_UPDATE # Must be divisible by 4 atm due to experience replay
     memories = []
 
     num_NNbots = 0
     num_Greedybots = 0
 
     # Q-learning
-    targetNetworkSteps = TARGET_NETWORK_STEPS
-    targetNetworkMaxSteps = TARGET_NETWORK_MAX_STEPS
-    discount = DISCOUNT
-    epsilon = EPSILON
-    frameSkipRate = FRAME_SKIP_RATE
-    gridSquaresPerFov = GRID_SQUARES_PER_FOV # is modified by the user later on anyways
+    targetNetworkSteps = parameters.TARGET_NETWORK_STEPS
+    targetNetworkMaxSteps = parameters.TARGET_NETWORK_MAX_STEPS
+    discount = parameters.DISCOUNT
+    epsilon = parameters.EPSILON
+    frameSkipRate = parameters.FRAME_SKIP_RATE
+    gridSquaresPerFov = parameters.GRID_SQUARES_PER_FOV # is modified by the user later on anyways
 
     #ANN
-    learningRate = ALPHA
-    optimizer = OPTIMIZER
-    activationFuncHidden = ACTIVATION_FUNC_HIDDEN
-    activationFuncOutput = ACTIVATION_FUNC_OUTPUT
+    learningRate = parameters.ALPHA
+    optimizer = parameters.OPTIMIZER
+    activationFuncHidden = parameters.ACTIVATION_FUNC_HIDDEN
+    activationFuncOutput = parameters.ACTIVATION_FUNC_OUTPUT
 
-    hiddenLayer1 = HIDDEN_LAYER_1
-    hiddenLayer2 = HIDDEN_LAYER_2
-    hiddenLayer3 = HIDDEN_LAYER_3
+    hiddenLayer1 = parameters.HIDDEN_LAYER_1
+    hiddenLayer2 = parameters.HIDDEN_LAYER_2
+    hiddenLayer3 = parameters.HIDDEN_LAYER_3
 
     loadedModelName = None
 
@@ -75,25 +85,36 @@ class Bot(object):
                 cls.valueNetwork = multi_gpu_model(cls.valueNetwork, gpus=cls.gpus)
         else:
             cls.valueNetwork = Sequential()
-            cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
-                                       bias_initializer=initializer
-                                       , kernel_initializer=initializer))
+            hidden1 = Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
+                                       bias_initializer=initializer, kernel_initializer=initializer)
+
+            cls.valueNetwork.add(hidden1)
             #cls.valueNetwork.add(Dropout(0.5))
             if cls.hiddenLayer2 > 0:
-                cls.valueNetwork.add(
-                    Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
-                          , kernel_initializer=initializer))
+                hidden2 = Dense(cls.hiddenLayer2, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
+                                bias_initializer=initializer, kernel_initializer=initializer)
+                cls.valueNetwork.add(hidden2)
                 #cls.valueNetwork.add(Dropout(0.5))
 
             if cls.hiddenLayer3 > 0:
-                cls.valueNetwork.add(
-                    Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
-                          , kernel_initializer=initializer))
+                hidden3 = Dense(cls.hiddenLayer3, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
+                                bias_initializer=initializer, kernel_initializer=initializer)
+                cls.valueNetwork.add(hidden3)
                 #cls.valueNetwork.add(Dropout(0.5))
 
             cls.valueNetwork.add(
                 Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
                       , kernel_initializer=initializer))
+
+            if cls.parameters.USE_POLICY_NETWORK:
+                cls.policyNetwork = Sequential()
+                hidden1 = Dense(50, input_dim=cls.stateReprLen, activation='sigmoid',
+                                bias_initializer=initializer, kernel_initializer=initializer)
+                cls.policyNetwork.add(hidden1)
+                out = Dense(cls.num_actions, activation='softmax', bias_initializer=initializer,
+                            kernel_initializer=initializer)
+                cls.policyNetwork.add(out)
+
 
         cls.targetNetwork = keras.models.clone_model(cls.valueNetwork)
         cls.targetNetwork.set_weights(cls.valueNetwork.get_weights())
@@ -107,17 +128,19 @@ class Bot(object):
 
         cls.valueNetwork.compile(loss='mse', optimizer=optimizer)
         cls.targetNetwork.compile(loss='mse', optimizer=optimizer)
+        if cls.parameters.USE_POLICY_NETWORK:
+            cls.policyNetwork.compile(loss='mse', optimizer=optimizer)
 
     def __init__(self, player, field, type, trainMode):
-        self.expRepEnabled = EXP_REPLAY_ENABLED
-        self.gridViewEnabled = GRID_VIEW_ENABLED
+        self.expRepEnabled = self.parameters.EXP_REPLAY_ENABLED
+        self.gridViewEnabled = self.parameters.GRID_VIEW_ENABLED
         self.trainMode = trainMode
         self.type = type
         self.player = player
         self.field = field
         if self.type == "Greedy":
-            self.splitLikelihood = numpy.random.randint(9950,10000)
-            self.ejectLikelihood = numpy.random.randint(9990,10000)
+            self.splitLikelihood = 100000 #numpy.random.randint(9950,10000)
+            self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
         self.totalMasses = []
         self.reset()
 
@@ -210,22 +233,26 @@ class Bot(object):
             target += self.discount * action_Q_values[newActionIdx]
         return target
 
-    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive):
+    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, verbose = False):
         state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState, reward, alive)
 
         td_error = target - state_Q_values[actionIdx]
-        if  __debug__ and self.player.getSelected():
+        if  __debug__ and self.player.getSelected() and verbose:
             print("")
-            print("State to be updated: ", oldState)
+            #print("State to be updated: ", oldState)
             print("Action: ", self.actions[actionIdx])
             print("Reward: " ,round(reward, 2))
-            print("S\': ", newState)
-            print("Qvalue of action before trainig: ", round(state_Q_values[actionIdx], 4))
+            #print("S\': ", newState)
+            print("Qvalue of action before training: ", round(state_Q_values[actionIdx], 4))
             print("Target Qvalue of that action: ", round(target, 4))
             print("All qvalues: ", numpy.round(state_Q_values, 3))
+            print("Expected Q-value: ", round(max(state_Q_values), 3))
             print("TD-Error: ", td_error)
-        state_Q_values[actionIdx] = target
+        if self.parameters.USE_TARGET:
+            state_Q_values[actionIdx] = target
+        else:
+            state_Q_values[actionIdx] = td_error
         return numpy.array([oldState]), numpy.array([state_Q_values]), td_error
 
     def qLearn(self):
@@ -253,7 +280,7 @@ class Bot(object):
             # Get reward of skipped frames
             reward = self.cumulativeReward
             input, target, td_error = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward,
-                                                                 newState, alive)
+                                                                 newState, alive, True)
             # Fit value network using experience replay of random past states:
             if self.expRepEnabled:
                 self.experienceReplay(reward, newState, td_error)
@@ -290,6 +317,7 @@ class Bot(object):
             print(self.player, " died.")
             print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
             self.reset()
+
     def testNetwork(self):
         alive = self.player.getIsAlive()
         if alive:
@@ -331,7 +359,7 @@ class Bot(object):
         len_memory = len(self.memories)
         if len_memory < self.memoriesPerUpdate:
             return
-        inputSize = STATE_REPR_LEN
+        inputSize = self.parameters.STATE_REPR_LEN
         outputSize = self.num_actions
         batch_size = self.memoriesPerUpdate
         # Initialize vectors
@@ -387,15 +415,24 @@ class Bot(object):
             if __debug__:
                 self.player.setExploring(True)
         else:
-            # Take action based on greediness towards Q values
-            qValues = self.valueNetwork.predict(numpy.array([newState]))
-            argMax = numpy.argmax(qValues)
-            self.currentActionIdx = argMax
-            if __debug__:
-                self.player.setExploring(False)
+            if self.parameters.USE_POLICY_NETWORK:
+                numpyNewState = numpy.array([newState])
+                qValues = self.valueNetwork.predict(numpyNewState)
+                qValueSum = sum(qValues)
+                normalizedQValues = numpy.array([qValue / qValueSum for qValue in qValues])
+                self.policyNetwork.train_on_batch(numpyNewState, normalizedQValues)
+                actionValues = self.policyNetwork.predict(numpyNewState)
+                self.currentActionIdx = numpy.argmax(actionValues)
+            else:
+                # Take action based on greediness towards Q values
+                qValues = self.valueNetwork.predict(numpy.array([newState]))
+                self.currentActionIdx = numpy.argmax(qValues)
+                if __debug__:
+                    self.player.setExploring(False)
         self.currentAction = self.actions[self.currentActionIdx]
         self.skipFrames = self.frameSkipRate
         self.cumulativeReward = 0
+
 
         # # #Testing implementation of action history
         # self.actionHistory.insert(0,self.currentAction)

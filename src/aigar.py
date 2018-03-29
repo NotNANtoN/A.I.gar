@@ -1,5 +1,6 @@
 import matplotlib
 import sys
+import importlib
 
 from keras.models import load_model
 
@@ -42,21 +43,25 @@ def createHumans(numberOfHumans, model1):
 def createBots(number, model, type, modelName, gridSquarePerFov = 0):
     if type == "NN":
         Bot.num_NNbots = number
-        if not GRID_VIEW_ENABLED:
-            Bot.stateReprLen = 12
-        Bot.initializeNNs()
     elif type == "Greedy":
         Bot.num_Greedybots = number
     for i in range(number):
         model.createBot(type)
     # Load a stored model:
     if modelName is not None:
-        for bot in model.getBots():
-            if bot.getType() == type:
-                Bot.loadedModelName = modelName
-                Bot.valueNetwork = load_model(modelName + ".h5")
-                Bot.targetNetwork = Bot.valueNetwork
-                break
+        path = "savedModels/" + modelName
+        packageName = "savedModels." + modelName
+        #if not os._exists(path):
+        #    print("Invalid model name, no model found under ", path)
+        #    quit()
+        Bot.parameters = importlib.import_module('.networkParameters', package=packageName)
+        Bot.initializeNNs()
+        Bot.loadedModelName = modelName
+        Bot.valueNetwork = load_model(path + "/NN_model.h5")
+        Bot.targetNetwork = Bot.valueNetwork
+    elif type == "NN":
+        Bot.initializeNNs()
+
 
 
 
@@ -89,7 +94,7 @@ if __name__ == '__main__':
         loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
         if loadModel == 1:
             while modelName == None:
-                modelName = input("Enter the model name (without .h5): ")
+                modelName = input("Enter the model name (name of directory in savedModels): ")
         if loadModel == 2:
             modelName = "mostRecentAutosave"
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
