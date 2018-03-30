@@ -17,7 +17,7 @@ class spatialHashTable(object):
         self.left = left
         self.top = top
         self.size = hashTableSize
-        self.rows = math.ceil(hashTableSize / bucketSize)
+        self.rows = int(math.ceil(hashTableSize / bucketSize))
         self.cols = self.rows
         self.bucketSize = bucketSize
         self.buckets = {}

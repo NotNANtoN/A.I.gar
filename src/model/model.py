@@ -81,15 +81,18 @@ class Model(object):
             self.copyParameters()
         self.field.initialize()
 
+    def resetModel(self):
+        print("Resetting field and players!")
+        for bot in self.bots:
+            if bot.getType() == "NN":
+                print("Average reward of ", bot.getPlayer(), " for this episode: ", bot.getAvgReward())
+        self.field.reset()
+        self.resetBots()
+
     def update(self):
         # Reset the model after self.resetLimit steps:
         if self.resetLimit > 0 and self.counter > 0 and  self.counter % self.resetLimit  == 0:
-            print("Resetting field and players!")
-            for bot in self.bots:
-                if bot.getType() == "NN":
-                    print("Average reward of ", bot.getPlayer(), " for this episode: ", bot.getAvgReward())
-            self.field.reset()
-            self.resetBots()
+            self.resetModel()
 
         timeStart = time.time()
         timeProcessStart = time.process_time()
@@ -106,7 +109,7 @@ class Model(object):
         # Save the models occasionally in case the program crashes at some point
         if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
             self.saveSpecs()
-            self.saveModels(self.path, True)
+            self.saveModels(self.path)
             if self.counter % 50000 == 0:
                 self.save()
 
@@ -151,16 +154,26 @@ class Model(object):
         shutil.copy("model/networkParameters.py", self.path)
         shutil.copy("model/parameters.py", self.path)
 
-    def saveModels(self, path, autosave = False):
+    def saveModels(self, path, end = False):
         savedTypes = []
         for bot in self.bots:
             botType = bot.getType()
             if botType != "Greedy" and botType not in savedTypes:
                 bot.saveModel(path)
                 savedTypes.append(botType)
-        if not autosave:
+        if end:
             path = path[:-1]
-            updatedPath = path + "_" + str(self.counter)
+            suffix = ""
+            if self.counter > 1000000000:
+                suffix = "B"
+                self.counter = int(self.counter / 1000000000)
+            elif self.counter > 1000000:
+                suffix = "M"
+                self.counter = int(self.counter / 1000000)
+            elif self.counter > 1000:
+                suffix = "K"
+                self.counter = int(self.counter / 1000)
+            updatedPath = path + "_" + str(self.counter) + suffix
             os.rename(path, updatedPath)
             self.path = updatedPath + "/"
 
@@ -178,7 +191,7 @@ class Model(object):
                     savedTypes.append(botType)
 
     def save(self, end = False):
-        self.saveModels(self.path)
+        self.saveModels(self.path, end)
         self.saveSpecs(end)
         self.plotTDError()
         self.plotMassesOverTime()

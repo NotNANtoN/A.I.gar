@@ -1,7 +1,8 @@
 Simulation:
 Start datetime - Mar-30_15:57:08
-Running for - 0:00:00.000911
-steps - 0
+Running for - 0:42:48.334000
+End datetime - Mar-30_16:39:56
+steps - 100000
 number of rl bots - 1
 number of greedy bots - 0
 Virus Enabled - False
