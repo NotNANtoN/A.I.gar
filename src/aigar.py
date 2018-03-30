@@ -51,9 +51,6 @@ def createBots(number, model, type, modelName, gridSquarePerFov = 0):
     if modelName is not None:
         path = "savedModels/" + modelName
         packageName = "savedModels." + modelName
-        #if not os._exists(path):
-        #    print("Invalid model name, no model found under ", path)
-        #    quit()
         Bot.parameters = importlib.import_module('.networkParameters', package=packageName)
         Bot.initializeNNs()
         Bot.loadedModelName = modelName
@@ -61,9 +58,6 @@ def createBots(number, model, type, modelName, gridSquarePerFov = 0):
         Bot.targetNetwork = Bot.valueNetwork
     elif type == "NN":
         Bot.initializeNNs()
-
-
-
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
@@ -95,6 +89,10 @@ if __name__ == '__main__':
         if loadModel == 1:
             while modelName == None:
                 modelName = input("Enter the model name (name of directory in savedModels): ")
+                path = "savedModels/" + modelName
+                if not os._exists(path):
+                    print("Invalid model name, no model found under ", path)
+                    modelName = None
         if loadModel == 2:
             modelName = "mostRecentAutosave"
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))

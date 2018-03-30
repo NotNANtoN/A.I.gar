@@ -21,51 +21,45 @@ class Bot(object):
         if action[2] or action[3]:
             actions.remove(action)
 
-    #spec = importlib.util.spec_from_file_location("networkParameters",".networkParameters.py")
-    #parameters = importlib.util.module_from_spec(spec)
-    #spec.loader.exec_module(parameters)
-
-    parameters =  importlib.import_module('.networkParameters', package="model")
-    #model = __import__("model")
-    #parameters = model.
-    #print(parameters)
-
-    num_actions = len(actions)
-    stateReprLen = parameters.STATE_REPR_LEN
-    actionLen = 4
-
-    gpus = parameters.GPUS
-
-    # Experience replay:
-    memoryCapacity = parameters.MEMORY_CAPACITY
-    memoriesPerUpdate = parameters.MEMORIES_PER_UPDATE # Must be divisible by 4 atm due to experience replay
-    memories = []
-
     num_NNbots = 0
     num_Greedybots = 0
+    num_actions = len(actions)
+    actionLen = 4
+    memories = []
 
-    # Q-learning
-    targetNetworkSteps = parameters.TARGET_NETWORK_STEPS
-    targetNetworkMaxSteps = parameters.TARGET_NETWORK_MAX_STEPS
-    discount = parameters.DISCOUNT
-    epsilon = parameters.EPSILON
-    frameSkipRate = parameters.FRAME_SKIP_RATE
-    gridSquaresPerFov = parameters.GRID_SQUARES_PER_FOV # is modified by the user later on anyways
 
-    #ANN
-    learningRate = parameters.ALPHA
-    optimizer = parameters.OPTIMIZER
-    activationFuncHidden = parameters.ACTIVATION_FUNC_HIDDEN
-    activationFuncOutput = parameters.ACTIVATION_FUNC_OUTPUT
-
-    hiddenLayer1 = parameters.HIDDEN_LAYER_1
-    hiddenLayer2 = parameters.HIDDEN_LAYER_2
-    hiddenLayer3 = parameters.HIDDEN_LAYER_3
+    parameters =  importlib.import_module('.networkParameters', package="model")
 
     loadedModelName = None
 
     @classmethod
     def initializeNNs(cls):
+        cls.stateReprLen = cls.parameters.STATE_REPR_LEN
+
+        cls.gpus = cls.parameters.GPUS
+
+        # Experience replay:
+        cls.memoryCapacity = cls.parameters.MEMORY_CAPACITY
+        cls.memoriesPerUpdate = cls.parameters.MEMORIES_PER_UPDATE  # Must be divisible by 4 atm due to experience replay
+
+        # Q-learning
+        cls.targetNetworkSteps = cls.parameters.TARGET_NETWORK_STEPS
+        cls.targetNetworkMaxSteps = cls.parameters.TARGET_NETWORK_MAX_STEPS
+        cls.discount = cls.parameters.DISCOUNT
+        cls.epsilon = cls.parameters.EPSILON
+        cls.frameSkipRate = cls.parameters.FRAME_SKIP_RATE
+        cls.gridSquaresPerFov = cls.parameters.GRID_SQUARES_PER_FOV  # is modified by the user later on anyways
+
+        # ANN
+        cls.learningRate = cls.parameters.ALPHA
+        cls.optimizer = cls.parameters.OPTIMIZER
+        cls.activationFuncHidden = cls.parameters.ACTIVATION_FUNC_HIDDEN
+        cls.activationFuncOutput = cls.parameters.ACTIVATION_FUNC_OUTPUT
+
+        cls.hiddenLayer1 = cls.parameters.HIDDEN_LAYER_1
+        cls.hiddenLayer2 = cls.parameters.HIDDEN_LAYER_2
+        cls.hiddenLayer3 = cls.parameters.HIDDEN_LAYER_3
+
         weight_initializer_range = math.sqrt(6 / (cls.stateReprLen + cls.num_actions))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                        maxval=weight_initializer_range, seed=None)
