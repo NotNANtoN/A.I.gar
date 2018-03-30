@@ -78,6 +78,7 @@ class Model(object):
         if self.trainingEnabled:
             self.createPath()
             self.saveSpecs()
+            self.copyParameters()
         self.field.initialize()
 
     def update(self):
@@ -106,6 +107,8 @@ class Model(object):
         if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
             self.saveSpecs()
             self.saveModels(self.path, True)
+            if self.counter % 50000 == 0:
+                self.save()
 
         # Store debug info and display progress
         if self.trainingEnabled and "NN" in [bot.getType() for bot in self.bots]:
@@ -116,7 +119,7 @@ class Model(object):
                         reward = bot.getLastReward()
                         tdError = bot.getTDError()
                         self.rewards.append(reward)
-                        self.tdErrors.append(abs(tdError))
+                        self.tdErrors.append(tdError)
         self.counter += 1
 
     def takeBotActions(self):
@@ -132,6 +135,7 @@ class Model(object):
         if not os.path.exists(basePath):
             os.makedirs(basePath)
         now = datetime.datetime.now()
+        self.startTime = now
         nowStr = now.strftime("%b-%d_%H:%M")
         path = basePath + "/" + nowStr
         # Also display seconds in name if we already have a model this minute
@@ -142,6 +146,10 @@ class Model(object):
         path += "/"
         self.path = path
 
+    def copyParameters(self):
+        # Copy the simulation, NN and RL parameters so that we can load them later on
+        shutil.copy("model/networkParameters.py", self.path)
+        shutil.copy("model/parameters.py", self.path)
 
     def saveModels(self, path, autosave = False):
         savedTypes = []
@@ -156,10 +164,7 @@ class Model(object):
             os.rename(path, updatedPath)
             self.path = updatedPath + "/"
 
-    def saveSpecs(self):
-        # Copy the simulation, NN and RL parameters so that we can load them later on
-        shutil.copy("model/networkParameters.py", self.path)
-        shutil.copy("model/parameters.py", self.path)
+    def saveSpecs(self, end = False):
         # Save any additional info on this training
         name_of_file = self.path + "model_specifications.txt"
         savedTypes = []
@@ -167,21 +172,26 @@ class Model(object):
              for bot in self.bots:
                 botType = bot.getType()
                 if botType != "Greedy" and botType not in savedTypes:
-                    data = self.getRelevantModelData(bot)
+                    data = self.getRelevantModelData(bot, end)
                     file.write(data)
                     file.write("\n")
                     savedTypes.append(botType)
 
-    def save(self):
+    def save(self, end = False):
         self.saveModels(self.path)
-        self.saveSpecs()
+        self.saveSpecs(end)
         self.plotTDError()
         self.plotMassesOverTime()
 
-    def getRelevantModelData(self, bot):
+    def getRelevantModelData(self, bot, end = False):
         data = ""
         #Simulation:
         data += "Simulation:\n"
+        data += "Start datetime - " + self.startTime.strftime("%b-%d_%H:%M:%S") + "\n"
+        now = datetime.datetime.now()
+        data += "Running for - " + str(now - self.startTime) + "\n"
+        if end:
+            data += "End datetime - " + now.strftime("%b-%d_%H:%M:%S") + "\n"
         data += "steps - " + str(self.counter) + "\n"
         data += "number of rl bots - " + str(Bot.num_NNbots) + "\n"
         data += "number of greedy bots - " + str(Bot.num_Greedybots) + "\n"
@@ -213,6 +223,12 @@ class Model(object):
         data += "Optimizer - " + str(Bot.optimizer) + "\n"
         return data
 
+    def printBotMasses(self):
+        for bot in self.bots:
+            mass = bot.getPlayer().getTotalMass()
+            print("Mass of ", bot.getPlayer(), ":", end = " ")
+            print(round(mass,1) if mass != None else (bot.getPlayer, " is dead!"))
+
     def visualize(self, timeStart):
         stepsTillUpdate = 100
         self.timings.append(time.process_time() - timeStart)
@@ -226,9 +242,14 @@ class Model(object):
             print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
             print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
+            self.printBotMasses()
             print(" ")
             self.tdErrors = []
             self.rewards = []
+
+        if self.counter != 0 and self.counter % 100000 == 0:
+            self.plotTDError()
+            self.plotMassesOverTime()
 
     def plotTDError(self):
         path = self.path
@@ -247,16 +268,15 @@ class Model(object):
 
     def plotMassesOverTime(self):
         for bot in self.bots:
-            if bot.getType() == "NN":
-                masses = bot.getMassOverTime()
-                len_masses = len(masses)
-                playerName = str(bot.getPlayer())
-                plt.plot(range(len_masses), masses)
-                plt.title("Mass over time of " + playerName)
-                plt.xlabel("Step")
-                plt.ylabel("Total Player Mass")
-                plt.savefig(self.path + "MassOverTime" + playerName + ".png")
-                plt.close()
+            masses = bot.getMassOverTime()
+            len_masses = len(masses)
+            playerName = str(bot.getPlayer())
+            plt.plot(range(len_masses), masses)
+            plt.title("Mass over time of " + playerName)
+            plt.xlabel("Step")
+            plt.ylabel("Total Player Mass")
+            plt.savefig(self.path + "MassOverTime" + playerName + ".png")
+            plt.close()
 
     # Setters:
     def setEpsilon(self, val):

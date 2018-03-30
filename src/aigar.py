@@ -146,4 +146,4 @@ if __name__ == '__main__':
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
 
     if model.getTrainingEnabled():
-        model.save()
+        model.save(True)

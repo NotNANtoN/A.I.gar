@@ -163,6 +163,7 @@ class Bot(object):
 
 
     def makeMove(self):
+        self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
             if self.trainMode:
                 self.qLearn()
@@ -256,7 +257,6 @@ class Bot(object):
         return numpy.array([oldState]), numpy.array([state_Q_values]), td_error
 
     def qLearn(self):
-        self.totalMasses.append(self.player.getTotalMass())
         #After S has been initialized, set S as oldState and take action A based on policy
         alive = self.player.getIsAlive()
         self.cumulativeReward += self.getReward() if self.lastMass else 0

@@ -20,7 +20,7 @@ EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EPSILON_DECREASE_RATE = 1
 FRAME_SKIP_RATE = 1
 GRID_SQUARES_PER_FOV = 13
-NUM_OF_GRIDS = 3
+NUM_OF_GRIDS = 4
 
 #ANN
 NEURON_TYPE = "MLP"
