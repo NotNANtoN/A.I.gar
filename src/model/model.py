@@ -128,13 +128,16 @@ class Model(object):
             bot.reset()
 
     def createPath(self):
+        basePath = "savedModels"
+        if not os.path.exists(basePath):
+            os.makedirs(basePath)
         now = datetime.datetime.now()
-        nowStr = now.strftime("%m-%d_%H:%M")
-
-        path = "savedModels"
-        if not os.path.exists(path):
-            os.makedirs(path)
-        path += "/" + nowStr
+        nowStr = now.strftime("%b-%d_%H:%M")
+        path = basePath + "/" + nowStr
+        # Also display seconds in name if we already have a model this minute
+        if os.path.exists(path):
+            nowStr = now.strftime("%b-%d_%H:%M:%")
+            path = basePath + "/" + nowStr
         os.makedirs(path)
         path += "/"
         self.path = path
@@ -154,10 +157,10 @@ class Model(object):
             self.path = updatedPath + "/"
 
     def saveSpecs(self):
+        # Copy the simulation, NN and RL parameters so that we can load them later on
         shutil.copy("model/networkParameters.py", self.path)
-
-
-
+        shutil.copy("model/parameters.py", self.path)
+        # Save any additional info on this training
         name_of_file = self.path + "model_specifications.txt"
         savedTypes = []
         with open(name_of_file, "w") as file:
@@ -182,6 +185,8 @@ class Model(object):
         data += "steps - " + str(self.counter) + "\n"
         data += "number of rl bots - " + str(Bot.num_NNbots) + "\n"
         data += "number of greedy bots - " + str(Bot.num_Greedybots) + "\n"
+        data += "Virus Enabled - " + str(self.virusEnabled) + "\n"
+        data += "Reset every x steps - " + str(self.resetLimit) + "\n"
         data += "\n"
         # RL:
         data += "Reinforcement learning:\n"
@@ -196,7 +201,7 @@ class Model(object):
         data += "Name of model that was loaded - " + (Bot.loadedModelName if Bot.loadedModelName else "None") + "\n"
         data += "\n"
         # ANN:
-        data += "ANN:"
+        data += "ANN:\n"
         data += "Input layer neurons(stateReprLen) - " + str(Bot.stateReprLen) + "\n"
         data += "First hidden layer neurons - " + str(Bot.hiddenLayer1) + "\n"
         data += "Second hidden layer neurons - " + str(Bot.hiddenLayer2) + "\n"
