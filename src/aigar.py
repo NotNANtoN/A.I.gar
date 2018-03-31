@@ -90,7 +90,7 @@ if __name__ == '__main__':
             while modelName == None:
                 modelName = input("Enter the model name (name of directory in savedModels): ")
                 path = "savedModels/" + modelName
-                if not os._exists(path):
+                if not os.path.exists(path):
                     print("Invalid model name, no model found under ", path)
                     modelName = None
         if loadModel == 2:
