@@ -79,20 +79,32 @@ class Bot(object):
                 cls.valueNetwork = multi_gpu_model(cls.valueNetwork, gpus=cls.gpus)
         else:
             cls.valueNetwork = Sequential()
-            hidden1 = Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
-                                       bias_initializer=initializer, kernel_initializer=initializer)
+            if cls.parameters.NEURON_TYPE == "MLP":
+                hidden1 = Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
+                                          bias_initializer=initializer, kernel_initializer=initializer)
+            elif cls.parameters.NEURON_TYPE == "LSTM":
+                hidden1 = LSTM(cls.hiddenLayer1, input_shape=(cls.stateReprLen, 1), activation=cls.activationFuncHidden,
+                                bias_initializer=initializer, kernel_initializer=initializer)
 
             cls.valueNetwork.add(hidden1)
             #cls.valueNetwork.add(Dropout(0.5))
             if cls.hiddenLayer2 > 0:
-                hidden2 = Dense(cls.hiddenLayer2, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
-                                bias_initializer=initializer, kernel_initializer=initializer)
+                if cls.parameters.NEURON_TYPE == "MLP":
+                    hidden2 = Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                elif cls.parameters.NEURON_TYPE == "LSTM":
+                    hidden2 = LSTM(cls.hiddenLayer2, activation=cls.activationFuncHidden,
+                                   bias_initializer=initializer, kernel_initializer=initializer)
                 cls.valueNetwork.add(hidden2)
                 #cls.valueNetwork.add(Dropout(0.5))
 
             if cls.hiddenLayer3 > 0:
-                hidden3 = Dense(cls.hiddenLayer3, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
-                                bias_initializer=initializer, kernel_initializer=initializer)
+                if cls.parameters.NEURON_TYPE == "MLP":
+                    hidden3 = Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                elif cls.parameters.NEURON_TYPE == "LSTM":
+                    hidden3 = LSTM(cls.hiddenLayer3, activation=cls.activationFuncHidden,
+                                   bias_initializer=initializer, kernel_initializer=initializer)
                 cls.valueNetwork.add(hidden3)
                 #cls.valueNetwork.add(Dropout(0.5))
 

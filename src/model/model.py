@@ -164,13 +164,13 @@ class Model(object):
         if end:
             path = path[:-1]
             suffix = ""
-            if self.counter > 1000000000:
+            if self.counter >= 1000000000:
                 suffix = "B"
                 self.counter = int(self.counter / 1000000000)
-            elif self.counter > 1000000:
+            elif self.counter >= 1000000:
                 suffix = "M"
                 self.counter = int(self.counter / 1000000)
-            elif self.counter > 1000:
+            elif self.counter >= 1000:
                 suffix = "K"
                 self.counter = int(self.counter / 1000)
             updatedPath = path + "_" + str(self.counter) + suffix

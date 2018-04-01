@@ -17,13 +17,13 @@ DISCOUNT = 0.9
 Exploration = True
 EPSILON = 0.05 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EPSILON_DECREASE_RATE = 1
-FRAME_SKIP_RATE = 2
-GRID_SQUARES_PER_FOV = 12
-NUM_OF_GRIDS = 3
+FRAME_SKIP_RATE = 1
+GRID_SQUARES_PER_FOV = 13
+NUM_OF_GRIDS = 4
 
 #ANN
-NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
-ALPHA = 0.00025 #Learning rate
+NEURON_TYPE = "MLP"
+ALPHA = 0.0005 #Learning rate
 OPTIMIZER = "Adam"
 ACTIVATION_FUNC_HIDDEN = 'tanh' #'sigmoid'
 ACTIVATION_FUNC_OUTPUT = 'linear'
