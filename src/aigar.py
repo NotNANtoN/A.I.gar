@@ -1,6 +1,7 @@
 import matplotlib
 import sys
 import importlib
+import numpy
 
 from keras.models import load_model
 
@@ -10,6 +11,47 @@ from model.parameters import *
 from model.networkParameters import *
 from view.startScreen import StartScreen
 from view.view import View
+
+import numpy as np
+import tensorflow as tf
+import random as rn
+
+# The below is necessary in Python 3.2.3 onwards to
+# have reproducible behavior for certain hash-based operations.
+# See these references for further details:
+# https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED
+# https://github.com/keras-team/keras/issues/2280#issuecomment-306959926
+
+import os
+os.environ['PYTHONHASHSEED'] = '0'
+
+# The below is necessary for starting Numpy generated random numbers
+# in a well-defined initial state.
+
+np.random.seed(42)
+
+# The below is necessary for starting core Python generated random numbers
+# in a well-defined state.
+
+rn.seed(12345)
+
+# Force TensorFlow to use single thread.
+# Multiple threads are a potential source of
+# non-reproducible results.
+# For further details, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
+
+session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+
+from keras import backend as K
+
+# The below tf.set_random_seed() will make random number generation
+# in the TensorFlow backend have a well-defined initial state.
+# For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+
+tf.set_random_seed(1234)
+
+sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+K.set_session(sess)
 
 def modelMustHavePlayers():
     print("Model must have players")
@@ -135,13 +177,33 @@ if __name__ == '__main__':
         smallPart = int(maxSteps / 200)
         for step in range(maxSteps):
             model.update()
-            if step < maxSteps / 4:
-                lr = startEpsilon - (1 - endEpsilon) * step / (maxSteps / 4)
+            if step < maxSteps / 2:
+                epsilon = startEpsilon - (1 - endEpsilon) * step / (maxSteps / 4)
             else:
-                lr = endEpsilon
-            model.setEpsilon(lr)
+                epsilon = endEpsilon
+            model.setEpsilon(epsilon)
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
 
     if model.getTrainingEnabled():
         model.save(True)
+        for bot in model.bots:
+            player = bot.getPlayer()
+            print("")
+            print("Network parameters for ", player, ":")
+            attributes = dir(bot.parameters)
+            for attribute in attributes:
+                if not attribute.startswith('__'):
+                    print(attribute, " = ", getattr(bot.parameters, attribute))
+            print("")
+            print("Mass Info for ", player, ":")
+            masses = bot.getMassOverTime()
+            mean = numpy.mean(masses)
+            median = numpy.median(masses)
+            variance = numpy.std(masses)
+            print("Median = ", median, " Mean = ", mean, " Std = ", variance)
+            print("")
+
+
+
+

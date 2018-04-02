@@ -1,7 +1,7 @@
 import time
 import datetime
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Pdf')
 import matplotlib.pyplot as plt
 import numpy
 
@@ -80,6 +80,11 @@ class Model(object):
             self.saveSpecs()
             self.copyParameters()
         self.field.initialize()
+        for bot in self.bots:
+            if bot.getType() == "NN":
+                data = self.getRelevantModelData(bot)
+                print(data)
+                break
 
     def resetModel(self):
         print("Resetting field and players!")
@@ -272,11 +277,11 @@ class Model(object):
         plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
         plt.xlabel("Steps in hundreds")
         plt.ylabel("Running abs TD-Error avg of the last 100 steps")
-        plt.savefig(path + "TD-Errors.png")
+        plt.savefig(path + "TD-Errors.pdf")
         plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
         plt.legend()
         plt.ylabel("Running  avg of the last 100 steps")
-        plt.savefig(path + "Reward_and_TD-Error.png")
+        plt.savefig(path + "Reward_and_TD-Error.pdf")
         plt.close()
 
     def plotMassesOverTime(self):
@@ -284,13 +289,15 @@ class Model(object):
             masses = bot.getMassOverTime()
             meanMass = round(numpy.mean(masses),1)
             medianMass = round(numpy.median(masses),1)
+            varianceMass = round(numpy.std(masses), 1)
             len_masses = len(masses)
             playerName = str(bot.getPlayer())
             plt.plot(range(len_masses), masses)
-            plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass))
+            plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass) + " Std: " +
+                      str(varianceMass))
             plt.xlabel("Step")
             plt.ylabel("Total Player Mass")
-            plt.savefig(self.path + "MassOverTime" + playerName + ".png")
+            plt.savefig(self.path + "MassOverTime" + playerName + ".pdf")
             plt.close()
 
     # Setters:

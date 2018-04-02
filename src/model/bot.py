@@ -326,6 +326,7 @@ class Bot(object):
 
     def testNetwork(self):
         alive = self.player.getIsAlive()
+        self.epsilon = 0
         if alive:
             newState = self.getStateRepresentation()
             self.takeAction(newState)
