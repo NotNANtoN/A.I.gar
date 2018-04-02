@@ -143,7 +143,7 @@ class Model(object):
         path = basePath + "/" + nowStr
         # Also display seconds in name if we already have a model this minute
         if os.path.exists(path):
-            nowStr = now.strftime("%b-%d_%H:%M:%")
+            nowStr = now.strftime("%b-%d_%H:%M:%S")
             path = basePath + "/" + nowStr
         os.makedirs(path)
         path += "/"
