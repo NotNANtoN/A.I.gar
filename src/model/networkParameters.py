@@ -11,8 +11,8 @@ USE_TARGET = True # Otherwise td-error is used in value network
 EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 1000
-TARGET_NETWORK_MAX_STEPS = 2000
-DISCOUNT = 0.9
+TARGET_NETWORK_MAX_STEPS = 5000
+DISCOUNT = 0.9 # 0.9 seems better so far than 0.995
 
 Exploration = True
 EPSILON = 0.05 if Exploration else 0 # Exploration rate. 0 == No Exploration
@@ -25,11 +25,11 @@ NUM_OF_GRIDS = 3
 NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
 ALPHA = 0.00025 #Learning rate
 OPTIMIZER = "Adam"
-ACTIVATION_FUNC_HIDDEN = 'tanh' #'sigmoid'
+ACTIVATION_FUNC_HIDDEN = 'sigmoid' #'tanh' seems to perform worse than sigmoid
 ACTIVATION_FUNC_OUTPUT = 'linear'
 
 #Layer neurons
 STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + 2
-HIDDEN_LAYER_1 = 100
+HIDDEN_LAYER_1 = 100 # Best so far is 200 neurons in first two layers
 HIDDEN_LAYER_2 = 0
 HIDDEN_LAYER_3 = 0

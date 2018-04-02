@@ -282,10 +282,12 @@ class Model(object):
     def plotMassesOverTime(self):
         for bot in self.bots:
             masses = bot.getMassOverTime()
+            meanMass = round(numpy.mean(masses),1)
+            medianMass = round(numpy.median(masses),1)
             len_masses = len(masses)
             playerName = str(bot.getPlayer())
             plt.plot(range(len_masses), masses)
-            plt.title("Mass over time of " + playerName)
+            plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass))
             plt.xlabel("Step")
             plt.ylabel("Total Player Mass")
             plt.savefig(self.path + "MassOverTime" + playerName + ".png")
