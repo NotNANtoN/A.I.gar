@@ -140,6 +140,8 @@ if __name__ == '__main__':
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
         createBots(numberOfNNBots, model, "NN", modelName)
+    if numberOfNNBots == 0:
+         model.setTrainingEnabled(False)
 
 
     if numberOfBots == 0 and not viewEnabled:

@@ -265,8 +265,10 @@ class Bot(object):
     def qLearn(self):
         #After S has been initialized, set S as oldState and take action A based on policy
         alive = self.player.getIsAlive()
+
         self.cumulativeReward += self.getReward() if self.lastMass else 0
         self.lastReward = self.cumulativeReward
+
         if alive:
             self.rewardAvgOfEpisode = (self.rewardAvgOfEpisode * self.rewardLenOfEpisode + self.lastReward)\
                                       / (self.rewardLenOfEpisode + 1)

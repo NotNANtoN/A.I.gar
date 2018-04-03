@@ -79,12 +79,13 @@ class Model(object):
             self.createPath()
             self.saveSpecs()
             self.copyParameters()
+            for bot in self.bots:
+                if bot.getType() == "NN":
+                    data = self.getRelevantModelData(bot)
+                    print(data)
+                    break
         self.field.initialize()
-        for bot in self.bots:
-            if bot.getType() == "NN":
-                data = self.getRelevantModelData(bot)
-                print(data)
-                break
+        
 
     def resetModel(self):
         print("Resetting field and players!")
@@ -120,14 +121,20 @@ class Model(object):
 
         # Store debug info and display progress
         if self.trainingEnabled and "NN" in [bot.getType() for bot in self.bots]:
-            self.visualize(timeProcessStart)
+            errors = []
+            rewards = []
             for bot in self.bots:
-                if bot.getType() != "Greedy":
+                if bot.getType() == "NN":
                     if bot.currentActionIdx != None and bot.latestTDerror != None:
                         reward = bot.getLastReward()
-                        tdError = bot.getTDError()
-                        self.rewards.append(reward)
-                        self.tdErrors.append(tdError)
+                        tdError = abs(bot.getTDError())
+                        rewards.append(reward)
+                        errors.append(tdError)
+            # Save the mean td error and reward for the bots per update
+            if len(rewards) > 0:
+                self.rewards.append(numpy.mean(rewards))
+                self.tdErrors.append(numpy.mean(errors))
+            self.visualize(timeProcessStart)
         self.counter += 1
 
     def takeBotActions(self):
@@ -251,8 +258,9 @@ class Model(object):
         stepsTillUpdate = 100
         self.timings.append(time.process_time() - timeStart)
         if self.counter % stepsTillUpdate == 0 and self.counter != 0:
-            recentMeanReward = numpy.mean(self.rewards)
-            recentMeanTDError = numpy.mean(self.tdErrors)
+            avgOnset = -100 if len(self.rewards) >= 100 else -1 * len(self.rewards)
+            recentMeanReward = numpy.mean(self.rewards[avgOnset:])
+            recentMeanTDError = numpy.mean(self.tdErrors[avgOnset:])
             self.meanErrors.append(recentMeanTDError)
             self.meanRewards.append(recentMeanReward)
             print(" ")
@@ -260,27 +268,31 @@ class Model(object):
             print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
             print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
+            print("Number of stored rewards: ", len(self.rewards))
             self.printBotMasses()
             print(" ")
-            self.tdErrors = []
-            self.rewards = []
+   
 
-        if self.counter != 0 and self.counter % 100000 == 0:
+        if self.counter != 0 and self.counter % 100000 == 0 and self.trainingEnabled:
             self.plotTDError()
             self.plotMassesOverTime()
 
+    def runningAvg(self, array, numberOfPoints):
+        res = len(array) // numberOfPoints  # res: running error step
+        return [numpy.mean(array[idx * res:(idx + 1) * res]) for idx in range(numberOfPoints)]
+
     def plotTDError(self):
         path = self.path
-        res = 10  # running error step
-        meanOfmeanError = numpy.convolve(self.meanErrors, numpy.ones((res,)) / res, mode='valid')
-        meanOfmeanRewards = numpy.convolve(self.meanRewards, numpy.ones((res,)) / res, mode='valid')
+        numberOfPoints = 200
+        meanOfmeanError   = self.runningAvg(self.tdErrors, numberOfPoints)
+        meanOfmeanRewards = self.runningAvg(self.rewards,  numberOfPoints)
         plt.plot(range(len(meanOfmeanError)), meanOfmeanError, label="Absolute TD-Error")
-        plt.xlabel("Steps in hundreds")
-        plt.ylabel("Running abs TD-Error avg of the last 100 steps")
+        plt.xlabel("Time")
+        plt.ylabel("TD error averaged")
         plt.savefig(path + "TD-Errors.pdf")
         plt.plot(range(len(meanOfmeanRewards)), meanOfmeanRewards, label="Reward")
         plt.legend()
-        plt.ylabel("Running  avg of the last 100 steps")
+        plt.ylabel("Running avg")
         plt.savefig(path + "Reward_and_TD-Error.pdf")
         plt.close()
 
@@ -290,11 +302,12 @@ class Model(object):
             meanMass = round(numpy.mean(masses),1)
             medianMass = round(numpy.median(masses),1)
             varianceMass = round(numpy.std(masses), 1)
+            maxMass = round(max(masses), 1)
             len_masses = len(masses)
             playerName = str(bot.getPlayer())
             plt.plot(range(len_masses), masses)
             plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass) + " Std: " +
-                      str(varianceMass))
+                      str(varianceMass) + " Max: " + str(maxMass))
             plt.xlabel("Step")
             plt.ylabel("Total Player Mass")
             plt.savefig(self.path + "MassOverTime" + playerName + ".pdf")
