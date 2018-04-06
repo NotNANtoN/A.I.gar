@@ -21,7 +21,7 @@ EPSILON = 0.0 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EPSILON_DECREASE_RATE = 1
 FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance. 
 GRID_SQUARES_PER_FOV = 7 #Grid size of 9 performs really good with 100 hidden neurons (90 better on average than 12 and 15)!
-NUM_OF_GRIDS = 3
+NUM_OF_GRIDS = 5
 
 #ANN
 NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
@@ -37,3 +37,5 @@ HIDDEN_LAYER_2 = 500
 HIDDEN_LAYER_3 = 500
 # More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation
 
+#Q-learning parameters
+TD = 0

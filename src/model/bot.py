@@ -578,10 +578,11 @@ class Bot(object):
                     # TODO: also add a count grid for own cells?
 
                     # Create Virus Cell representation
-                    virusesInGS = virusSHT.getBucketContent(count)
-                    if virusesInGS:
-                        biggestVirus = max(virusesInGS, key = lambda virus: virus.getRadius()).getMass()
-                        gsVirus[count] = biggestVirus
+                    if self.field.getVirusEnabled():
+                        virusesInGS = virusSHT.getBucketContent(count)
+                        if virusesInGS:
+                            biggestVirus = max(virusesInGS, key = lambda virus: virus.getRadius()).getMass()
+                            gsVirus[count] = biggestVirus
 
                 # Create Wall representation
                 # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
@@ -599,11 +600,9 @@ class Bot(object):
         # Concatenate the basis data about the location of pellets, own cells and the walls:
         totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestOwnCellMassProportion, gsWalls))
         # If there are other players in the game, the bot needs information about them:
-        if len(self.field.getPlayers() ) > 1:
-            totalInfo = numpy.concatenate((totalInfo, gsBiggestEnemyCellMassProportion))
+        totalInfo = numpy.concatenate((totalInfo, gsBiggestEnemyCellMassProportion))
         # If there are viruses in the game, the bot needs to know their location
-        if self.field.getVirusEnabled():
-            totalInfo = numpy.concatenate((totalInfo, gsVirus))
+        totalInfo = numpy.concatenate((totalInfo, gsVirus))
         # Add total Mass of player and field size:
         totalMass = self.player.getTotalMass()
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
