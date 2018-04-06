@@ -80,7 +80,7 @@ class View:
             # Print grid for grid state representation
             for bot in self.model.getBots():
                 player = bot.getPlayer()
-                if player.getIsAlive() and player.getSelected():
+                if player.getIsAlive() and player.getSelected() and bot.getType() == "NN":
                     playerFovPos = player.getFovPos()
                     playerFovSize = player.getFovSize()
                     neededLines = bot.gridSquaresPerFov - 1
