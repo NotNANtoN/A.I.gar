@@ -580,10 +580,11 @@ class Bot(object):
                     # TODO: also add a count grid for own cells?
 
                     # Create Virus Cell representation
-                    virusesInGS = virusSHT.getBucketContent(count)
-                    if virusesInGS:
-                        biggestVirus = max(virusesInGS, key = lambda virus: virus.getRadius()).getMass()
-                        gsVirus[count] = biggestVirus
+                    if self.field.getVirusEnabled():
+                        virusesInGS = virusSHT.getBucketContent(count)
+                        if virusesInGS:
+                            biggestVirus = max(virusesInGS, key = lambda virus: virus.getRadius()).getMass()
+                            gsVirus[count] = biggestVirus
 
                 # Create Wall representation
                 # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0

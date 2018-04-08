@@ -37,3 +37,5 @@ HIDDEN_LAYER_2 = 500
 HIDDEN_LAYER_3 = 500
 # More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation
 
+#Q-learning parameters
+TD = 0
