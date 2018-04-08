@@ -207,6 +207,7 @@ class Model(object):
         self.saveSpecs(end)
         self.plotTDError()
         self.plotMassesOverTime()
+        self.plotQValuesOverTime()
 
     def getRelevantModelData(self, bot, end = False):
         data = ""
@@ -312,6 +313,20 @@ class Model(object):
             plt.ylabel("Total Player Mass")
             plt.savefig(self.path + "MassOverTime" + playerName + ".pdf")
             plt.close()
+
+    def plotQValuesOverTime(self):
+        for bot in self.bots:
+            qValues = bot.getQValues()
+            qValues = self.runningAvg(qValues, 200)
+            meanQValue = round(numpy.mean(qValues), 1)
+            playerName = str(bot.getPlayer())
+            plt.plot(range(len(qValues)), qValues)
+            plt.title("Q-Values of " + playerName + "- Mean: " + str(meanQValue))
+            plt.xlabel("Step")
+            plt.ylabel("Q-value of current action")
+            plt.savefig(self.path + "qValuesOverTime" + playerName + ".pdf")
+            plt.close()
+
 
     # Setters:
     def setEpsilon(self, val):

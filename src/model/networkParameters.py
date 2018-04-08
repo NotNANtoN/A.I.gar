@@ -7,7 +7,7 @@ REPLAY_AFTER_X_STEPS = 0
 
 # Q-learning
 USE_POLICY_NETWORK = False
-USE_TARGET = True # Otherwise td-error is used in value network
+USE_TARGET = True # Otherwise td-error is used in value network. Using td-error is not horrible, but worse than target
 EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 10000
@@ -20,13 +20,13 @@ EPSILON = 0.0 if Exploration else 0 # Exploration rate. 0 == No Exploration
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
 EPSILON_DECREASE_RATE = 1
 FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance. 
-GRID_SQUARES_PER_FOV = 7 #Grid size of 9 performs really good with 100 hidden neurons (90 better on average than 12 and 15)!
-NUM_OF_GRIDS = 3
+GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
+NUM_OF_GRIDS = 5
 
 #ANN
 NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
 ALPHA = 0.00025 #Learning rate
-OPTIMIZER = "Adam"
+OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu' #'tanh' seems to perform worse than sigmoid. 'relu' is better than sigmoid, but gives more variable results.
 ACTIVATION_FUNC_OUTPUT = 'linear'
 

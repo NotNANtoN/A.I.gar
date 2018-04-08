@@ -148,6 +148,7 @@ class Bot(object):
             self.splitLikelihood = 100000 #numpy.random.randint(9950,10000)
             self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
         self.totalMasses = []
+        self.qValues = []
         self.reset()
 
     def reset(self):
@@ -243,8 +244,8 @@ class Bot(object):
     def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, verbose = False):
         state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState, reward, alive)
-
-        td_error = target - state_Q_values[actionIdx]
+        q_value_of_action = state_Q_values[actionIdx]
+        td_error = target - q_value_of_action
         if  __debug__ and self.player.getSelected() and verbose:
             print("")
             #print("State to be updated: ", oldState)
@@ -260,7 +261,7 @@ class Bot(object):
             state_Q_values[actionIdx] = target
         else:
             state_Q_values[actionIdx] = td_error
-        return numpy.array([oldState]), numpy.array([state_Q_values]), td_error
+        return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
 
     def qLearn(self):
         #After S has been initialized, set S as oldState and take action A based on policy
@@ -287,8 +288,11 @@ class Bot(object):
         if self.currentAction != None:
             # Get reward of skipped frames
             reward = self.cumulativeReward
-            input, target, td_error = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward,
+            input, target, td_error, q_value_action = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward,
                                                                  newState, alive, True)
+            # Save data for plotting purposes
+            self.latestTDerror = td_error
+            self.qValues.append(q_value_action)
             # Fit value network using experience replay of random past states:
             if self.expRepEnabled:
                 self.experienceReplay(reward, newState, td_error)
@@ -303,8 +307,6 @@ class Bot(object):
                 print("(also after experience replay, so last shown action is not necessarily this action )")
                 print("TD-Error: ", td_error)
                 print("")
-
-            self.latestTDerror = td_error
 
 
             # Update the target network after 1000 steps
@@ -361,7 +363,7 @@ class Bot(object):
         r = memory[2]
         sPrime = memory[3]
         alive = (sPrime is not None)
-        return self.createInputOutputPair(s, a, r, sPrime, alive)
+        return self.createInputOutputPair(s, a, r, sPrime, alive)[:-1]
 
     def train_on_experience(self):
         # Fit value network on memories
@@ -597,13 +599,8 @@ class Bot(object):
             print("counted pellets: ", pelletcount)
             print(" ")
         # Concatenate the basis data about the location of pellets, own cells and the walls:
-        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestOwnCellMassProportion, gsWalls))
-        # If there are other players in the game, the bot needs information about them:
-        if len(self.field.getPlayers() ) > 1:
-            totalInfo = numpy.concatenate((totalInfo, gsBiggestEnemyCellMassProportion))
-        # If there are viruses in the game, the bot needs to know their location
-        if self.field.getVirusEnabled():
-            totalInfo = numpy.concatenate((totalInfo, gsVirus))
+        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestOwnCellMassProportion, gsWalls,
+                                       gsBiggestEnemyCellMassProportion, gsVirus))
         # Add total Mass of player and field size:
         totalMass = self.player.getTotalMass()
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
@@ -630,6 +627,9 @@ class Bot(object):
     def isRelativeCellData(self, cell, left, top, size):
         return self.getRelativeCellPos(cell, left, top, size) + \
                ([round(cell.getRadius() / size if cell.getRadius() <= size else 1, 5)] if cell != None else [0])
+
+    def getQValues(self):
+        return self.qValues
 
     def getMassOverTime(self):
         return self.totalMasses
