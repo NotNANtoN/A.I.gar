@@ -16,9 +16,9 @@ class Bot(object):
     actions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
                eject in [0, 1]]
     # Filter out actions that do a split and eject at the same time
+    # Also filter eject actions for now
     for action in actions[:]:
-        #if action[2] and action[3]:
-        if action[2] or action[3]:
+        if action[2] and action[3] or action[3]:
             actions.remove(action)
 
     num_NNbots = 0
