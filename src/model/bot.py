@@ -145,7 +145,7 @@ class Bot(object):
         self.player = player
         self.field = field
         if self.type == "Greedy":
-            self.splitLikelihood = 100000 #numpy.random.randint(9950,10000)
+            self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
         self.totalMasses = []
         self.qValues = []
