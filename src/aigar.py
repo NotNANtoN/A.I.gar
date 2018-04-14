@@ -101,6 +101,9 @@ def createBots(number, model, type, modelName, gridSquarePerFov = 0):
     elif type == "NN":
         Bot.initializeNNs()
 
+def addHumanTraining(humansNumber):
+    Bot.num_trainingHuman = humansNumber
+
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
@@ -125,7 +128,27 @@ if __name__ == '__main__':
 
     numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
     numberOfBots += numberOfNNBots
-    if fitsLimitations(numberOfBots, MAXBOTS) and numberOfNNBots > 0:
+
+    numberOfHumans = 0
+    if guiEnabled and viewEnabled:
+        numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
+        if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
+            createHumans(numberOfHumans, model)
+            humanTraining = False
+            if numberOfHumans <= 2 and numberOfHumans > 0:
+                humanTraining = int(input("Do you want to train the network using human input? (1 == yes)\n"))
+                mouseEnabled = not humanTraining
+            if not humanTraining:
+                mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
+        if numberOfBots + numberOfHumans == 0:
+            modelMustHavePlayers()
+
+        if not model.hasHuman():
+            spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
+            if spectate == 1:
+                model.addPlayerSpectator()
+
+    if fitsLimitations(numberOfBots, MAXBOTS) and (numberOfNNBots > 0 or humanTraining):
         modelName = None
         loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
         if loadModel == 1:
@@ -137,7 +160,9 @@ if __name__ == '__main__':
                     modelName = None
         if loadModel == 2:
             modelName = "mostRecentAutosave"
-        enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
+        enableTrainMode = humanTraining
+        if not humanTraining:
+            enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
         createBots(numberOfNNBots, model, "NN", modelName)
     if numberOfNNBots == 0:
@@ -147,18 +172,6 @@ if __name__ == '__main__':
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
 
-    numberOfHumans = 0
-    if guiEnabled and viewEnabled:
-        numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
-        if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
-            createHumans(numberOfHumans, model)
-        if numberOfBots + numberOfHumans == 0:
-            modelMustHavePlayers()
-
-        if not model.hasHuman():
-            spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
-            if spectate == 1:
-                model.addPlayerSpectator()
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
@@ -167,7 +180,7 @@ if __name__ == '__main__':
     model.initialize()
     if guiEnabled:
         view = View(model, screenWidth, screenHeight)
-        controller = Controller(model, viewEnabled, view)
+        controller = Controller(model, viewEnabled, view, mouseEnabled)
         view.draw()
         while controller.running:
             controller.process_input()

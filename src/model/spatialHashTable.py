@@ -69,6 +69,7 @@ class spatialHashTable(object):
         return self.getIdsForArea(pos, radius)
 
     def getIdsForArea(self, pos, radius):
+        print(pos)
         ids = set()
         hashFunc = self.getHashId
         cellLeft = max(0, pos[0] - radius)

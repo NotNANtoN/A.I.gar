@@ -7,12 +7,13 @@ class Controller:
     Initializing the 'root' main container, the model, the view,
     """
 
-    def __init__(self, model, viewEnabled, view):
+    def __init__(self, model, viewEnabled, view, mouseEnabled):
         self.model = model
         self.view = view
         self.screenWidth, self.screenHeight = self.view.getScreenDims()
         self.running = True
         self.viewEnabled = viewEnabled
+        self.mouseEnabled = mouseEnabled
         self.selectedPlayer = None
         self.paused = False
 
@@ -25,30 +26,55 @@ class Controller:
                 if human.getIsAlive():
                     human.setSplit(False)
                     human.setEject(False)
-            #Human1 direction control
-            humanCommandPoint[0] = pygame.mouse.get_pos()
-            #Human2 direction control
-            if len(humanList) > 1:
-                keys = pygame.key.get_pressed()
-                if humanList[1].getIsAlive():
-                    if keys[pygame.K_UP]:
-                        humanCommandPoint[1][1] -= self.screenHeight/2
-                    if keys[pygame.K_DOWN]:
-                        humanCommandPoint[1][1] += self.screenHeight/2
-                    if keys[pygame.K_LEFT]:
-                        humanCommandPoint[1][0] -= self.screenWidth/2
-                    if keys[pygame.K_RIGHT]:
-                        humanCommandPoint[1][0] += self.screenWidth/2
+            if self.mouseEnabled:
+                # Human1 direction control
+                humanCommandPoint[0] = pygame.mouse.get_pos()
+
+                #Human2 direction control
+                if len(humanList) > 1:
+                    keys = pygame.key.get_pressed()
+                    if humanList[1].getIsAlive():
+                        if keys[pygame.K_UP]:
+                            humanCommandPoint[1][1] -= self.screenHeight/2
+                        if keys[pygame.K_DOWN]:
+                            humanCommandPoint[1][1] += self.screenHeight/2
+                        if keys[pygame.K_LEFT]:
+                            humanCommandPoint[1][0] -= self.screenWidth/2
+                        if keys[pygame.K_RIGHT]:
+                            humanCommandPoint[1][0] += self.screenWidth/2
                     #Human3 direction controls
-                if len(humanList) > 2 and humanList[2].getIsAlive():
+                    if len(humanList) > 2 and humanList[2].getIsAlive():
+                        if keys[pygame.K_w]:
+                            humanCommandPoint[2][1] -= self.screenHeight/2
+                        if keys[pygame.K_s]:
+                            humanCommandPoint[2][1] += self.screenHeight/2
+                        if keys[pygame.K_a]:
+                            humanCommandPoint[2][0] -= self.screenWidth/2
+                        if keys[pygame.K_d]:
+                            humanCommandPoint[2][0] += self.screenWidth/2
+            else:
+                # Human1 direction control
+
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_UP]:
+                    humanCommandPoint[0][1] -= self.screenHeight / 2
+                if keys[pygame.K_DOWN]:
+                    humanCommandPoint[0][1] += self.screenHeight / 2
+                if keys[pygame.K_LEFT]:
+                    humanCommandPoint[0][0] -= self.screenWidth / 2
+                if keys[pygame.K_RIGHT]:
+                    humanCommandPoint[0][0] += self.screenWidth / 2
+
+                 # Human2 direction control
+                if len(humanList) > 1 and humanList[1].getIsAlive():
                     if keys[pygame.K_w]:
-                        humanCommandPoint[2][1] -= self.screenHeight/2
+                        humanCommandPoint[1][1] -= self.screenHeight/2
                     if keys[pygame.K_s]:
-                        humanCommandPoint[2][1] += self.screenHeight/2
+                        humanCommandPoint[1][1] += self.screenHeight/2
                     if keys[pygame.K_a]:
-                        humanCommandPoint[2][0] -= self.screenWidth/2
+                        humanCommandPoint[1][0] -= self.screenWidth/2
                     if keys[pygame.K_d]:
-                        humanCommandPoint[2][0] += self.screenWidth/2
+                        humanCommandPoint[1][0] += self.screenWidth/2
 
 
             for i in range(len(humanList)):

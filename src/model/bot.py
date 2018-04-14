@@ -23,6 +23,7 @@ class Bot(object):
 
     num_NNbots = 0
     num_Greedybots = 0
+    num_trainingHumans = 0
     num_actions = len(actions)
     actionLen = 4
     memories = []
@@ -141,6 +142,7 @@ class Bot(object):
         self.expRepEnabled = self.parameters.EXP_REPLAY_ENABLED
         self.gridViewEnabled = self.parameters.GRID_VIEW_ENABLED
         self.trainMode = trainMode
+        self.trainOnHuman = None
         self.type = type
         self.player = player
         self.field = field
