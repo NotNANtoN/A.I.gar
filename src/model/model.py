@@ -171,7 +171,7 @@ class Model(object):
         for bot in self.bots:
             botType = bot.getType()
             if botType != "Greedy" and botType not in savedTypes:
-                bot.saveModel(path)
+                bot.getNetwork().saveModel(path, bot)
                 savedTypes.append(botType)
         if end:
             path = path[:-1]
@@ -210,6 +210,7 @@ class Model(object):
         self.plotQValuesOverTime()
 
     def getRelevantModelData(self, bot, end = False):
+        network = bot.getNetwork()
         data = ""
         #Simulation:
         data += "Simulation:\n"
@@ -226,27 +227,27 @@ class Model(object):
         data += "\n"
         # RL:
         data += "Reinforcement learning:\n"
-        data += "Epsilon - " + str(Bot.epsilon) + "\n"
-        data += "Discount factor - " + str(Bot.discount) + "\n"
-        data += "Frame skip rate - " + str(Bot.frameSkipRate) + "\n"
+        data += "Epsilon - " + str(network.getEpsilon()) + "\n"
+        data += "Discount factor - " + str(network.getDiscount()) + "\n"
+        data += "Frame skip rate - " + str(network.getFrameSkipRate()) + "\n"
         data += "State representation - " + ("Grid" if bot.gridViewEnabled else "Simple") + "\n"
         if bot.gridViewEnabled:
-            data += "Grid - " + str(Bot.gridSquaresPerFov) + "x" +  str(Bot.gridSquaresPerFov)  + "\n"
+            data += "Grid - " + str(network.getGridSquaresPerFov()) + "x" +  str(network.getGridSquaresPerFov())  + "\n"
         data += "Experience Replay - " + ("Enabled" if bot.expRepEnabled else "Disabled") + "\n"
-        data += "Target Network steps until update - " + str(Bot.targetNetworkMaxSteps) + "\n"
-        data += "Name of model that was loaded - " + (Bot.loadedModelName if Bot.loadedModelName else "None") + "\n"
+        data += "Target Network steps until update - " + str(network.getTargetNetworkMaxSteps()) + "\n"
+        data += "Name of model that was loaded - " + (network.getLoadedModelName() if network.getLoadedModelName() else "None") + "\n"
         data += "\n"
         # ANN:
         data += "ANN:\n"
-        data += "Input layer neurons(stateReprLen) - " + str(Bot.stateReprLen) + "\n"
-        data += "First hidden layer neurons - " + str(Bot.hiddenLayer1) + "\n"
-        data += "Second hidden layer neurons - " + str(Bot.hiddenLayer2) + "\n"
-        data += "Third hidden layer neurons - " + str(Bot.hiddenLayer3) + "\n"
-        data += "Output layer neurons(number of actions) - " + str(Bot.num_actions) + "\n"
-        data += "Learning rate - " + str(Bot.learningRate) + "\n"
-        data += "Activation function hidden layer(s) - " + Bot.activationFuncHidden + "\n"
-        data += "Activation function output layer - " + Bot.activationFuncOutput + "\n"
-        data += "Optimizer - " + str(Bot.optimizer) + "\n"
+        data += "Input layer neurons(stateReprLen) - " + str(network.getStateReprLen()) + "\n"
+        data += "First hidden layer neurons - " + str(network.getHiddenLayer1()) + "\n"
+        data += "Second hidden layer neurons - " + str(network.getHiddenLayer2()) + "\n"
+        data += "Third hidden layer neurons - " + str(network.getHiddenLayer3()) + "\n"
+        data += "Output layer neurons(number of actions) - " + str(network.getNumOfActions()) + "\n"
+        data += "Learning rate - " + str(network.getLearningRate()) + "\n"
+        data += "Activation function hidden layer(s) - " + network.getActivationFuncHidden() + "\n"
+        data += "Activation function output layer - " + network.getActivationFuncOutput() + "\n"
+        data += "Optimizer - " + str(network.getOptimizer()) + "\n"
         return data
 
     def printBotMasses(self):
@@ -337,10 +338,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type):
+    def createBot(self, type, network):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, self.trainingEnabled)
+        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, network)
         self.addBot(bot)
 
     def createHuman(self, name):
@@ -384,9 +385,6 @@ class Model(object):
     # Getters:
     def getPath(self):
         return self.path
-
-    def getEpsilon(self):
-        return Bot.epsilon
 
     def getTopTenPlayers(self):
         players = self.getPlayers()[:]

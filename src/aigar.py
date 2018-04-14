@@ -7,6 +7,7 @@ from keras.models import load_model
 
 from controller.controller import Controller
 from model.model import *
+from model.network import *
 from model.parameters import *
 from model.networkParameters import *
 from view.startScreen import StartScreen
@@ -82,24 +83,24 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, modelName, gridSquarePerFov = 0):
+def createBots(number, model, type, network = None):
     if type == "NN":
         Bot.num_NNbots = number
     elif type == "Greedy":
         Bot.num_Greedybots = number
     for i in range(number):
-        model.createBot(type)
+        model.createBot(type, network)
     # Load a stored model:
-    if modelName is not None:
-        path = "savedModels/" + modelName
-        packageName = "savedModels." + modelName
-        Bot.parameters = importlib.import_module('.networkParameters', package=packageName)
-        Bot.initializeNNs()
-        Bot.loadedModelName = modelName
-        Bot.valueNetwork = load_model(path + "/NN_model.h5")
-        Bot.targetNetwork = Bot.valueNetwork
-    elif type == "NN":
-        Bot.initializeNNs()
+    # if modelName is not None:
+    #     path = "savedModels/" + modelName
+    #     packageName = "savedModels." + modelName
+    #     network.parameters = importlib.import_module('.networkParameters', package=packageName)
+    #     network.initializeNNs()
+    #     network.loadedModelName = modelName
+    #     network.valueNetwork = load_model(path + "/NN_model.h5")
+    #     network.targetNetwork = network.valueNetwork
+    # elif type == "NN":
+    #     Bot.initializeNNs()
 
 def addHumanTraining(humansNumber):
     Bot.num_trainingHuman = humansNumber
@@ -130,15 +131,16 @@ if __name__ == '__main__':
     numberOfBots += numberOfNNBots
 
     numberOfHumans = 0
+    mouseEnabled = True
+    humanTraining = False
     if guiEnabled and viewEnabled:
         numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
         if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
             createHumans(numberOfHumans, model)
-            humanTraining = False
             if numberOfHumans <= 2 and numberOfHumans > 0:
                 humanTraining = int(input("Do you want to train the network using human input? (1 == yes)\n"))
                 mouseEnabled = not humanTraining
-            if not humanTraining:
+            if numberOfHumans >0 and not humanTraining:
                 mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
         if numberOfBots + numberOfHumans == 0:
             modelMustHavePlayers()
@@ -160,11 +162,12 @@ if __name__ == '__main__':
                     modelName = None
         if loadModel == 2:
             modelName = "mostRecentAutosave"
-        enableTrainMode = humanTraining
+        enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
             enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
-        createBots(numberOfNNBots, model, "NN", modelName)
+        network = Network(enableTrainMode, numberOfNNBots, numberOfHumans, modelName)
+        createBots(numberOfNNBots, model, "NN", network)
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 
@@ -186,7 +189,7 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
-        endEpsilon = model.getEpsilon()
+        endEpsilon = network.getEpsilon()
         startEpsilon = 1
         startEpsilon = 1
         smallPart = int(maxSteps / 200)
@@ -202,14 +205,15 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
+        parameters = network.getParameters()
         for bot in model.bots:
             player = bot.getPlayer()
             print("")
             print("Network parameters for ", player, ":")
-            attributes = dir(bot.parameters)
+            attributes = dir(parameters)
             for attribute in attributes:
                 if not attribute.startswith('__'):
-                    print(attribute, " = ", getattr(bot.parameters, attribute))
+                    print(attribute, " = ", getattr(parameters, attribute))
             print("")
             print("Mass Info for ", player, ":")
             masses = bot.getMassOverTime()
