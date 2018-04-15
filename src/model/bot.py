@@ -11,142 +11,22 @@ from .parameters import *
 from .spatialHashTable import spatialHashTable
 
 class Bot(object):
-    # """docstring for Bot"""
-    # # Create all possible discrete actions
-    # actions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
-    #            eject in [0, 1]]
-    # # Filter out actions that do a split and eject at the same time
-    # # Also filter eject actions for now
-    # for action in actions[:]:
-    #     if action[2] and action[3] or action[3]:
-    #         actions.remove(action)
-    #
     num_NNbots = 0
     num_Greedybots = 0
-    # num_actions = len(actions)
-    # actionLen = 4
     memories = []
-    #
-    #
-    # parameters =  importlib.import_module('.networkParameters', package="model")
-    #
-    # loadedModelName = None
 
-    # @classmethod
-    # def initializeNNs(cls):
-    #     cls.stateReprLen = cls.parameters.STATE_REPR_LEN
-    #
-    #     cls.gpus = cls.parameters.GPUS
-    #
-        # # Experience replay:
-        # cls.memoryCapacity = cls.parameters.MEMORY_CAPACITY
-        # cls.memoriesPerUpdate = cls.parameters.MEMORIES_PER_UPDATE  # Must be divisible by 4 atm due to experience replay
-    #
-    #     # Q-learning
-    #     cls.targetNetworkSteps = cls.parameters.TARGET_NETWORK_STEPS
-    #     cls.targetNetworkMaxSteps = cls.parameters.TARGET_NETWORK_MAX_STEPS
-    #     cls.discount = cls.parameters.DISCOUNT
-    #     cls.epsilon = cls.parameters.EPSILON
-    #     cls.frameSkipRate = cls.parameters.FRAME_SKIP_RATE
-    #     cls.gridSquaresPerFov = cls.parameters.GRID_SQUARES_PER_FOV  # is modified by the user later on anyways
-    #
-    #     # ANN
-    #     cls.learningRate = cls.parameters.ALPHA
-    #     cls.optimizer = cls.parameters.OPTIMIZER
-    #     cls.activationFuncHidden = cls.parameters.ACTIVATION_FUNC_HIDDEN
-    #     cls.activationFuncOutput = cls.parameters.ACTIVATION_FUNC_OUTPUT
-    #
-    #     cls.hiddenLayer1 = cls.parameters.HIDDEN_LAYER_1
-    #     cls.hiddenLayer2 = cls.parameters.HIDDEN_LAYER_2
-    #     cls.hiddenLayer3 = cls.parameters.HIDDEN_LAYER_3
-    #
-    #     weight_initializer_range = math.sqrt(6 / (cls.stateReprLen + cls.num_actions))
-    #     initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
-    #                                                    maxval=weight_initializer_range, seed=None)
-    #     if cls.gpus > 1:
-    #         with tf.device("/cpu:0"):
-    #             cls.valueNetwork = Sequential()
-    #             cls.valueNetwork.add(Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
-    #                                        bias_initializer=initializer, kernel_initializer=initializer))
-    #             if cls.hiddenLayer2 > 0:
-    #                 cls.valueNetwork.add(Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden, bias_initializer=initializer
-    #                           , kernel_initializer=initializer))
-    #             if cls.hiddenLayer3 > 0:
-    #                 cls.valueNetwork.add(Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden, bias_initializer=initializer
-    #                                            , kernel_initializer=initializer))
-    #             cls.valueNetwork.add(Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
-    #                                    , kernel_initializer=initializer))
-    #             cls.valueNetwork = multi_gpu_model(cls.valueNetwork, gpus=cls.gpus)
-    #     else:
-    #         cls.valueNetwork = Sequential()
-    #         if cls.parameters.NEURON_TYPE == "MLP":
-    #             hidden1 = Dense(cls.hiddenLayer1, input_dim=cls.stateReprLen, activation=cls.activationFuncHidden,
-    #                                       bias_initializer=initializer, kernel_initializer=initializer)
-    #         elif cls.parameters.NEURON_TYPE == "LSTM":
-    #             hidden1 = LSTM(cls.hiddenLayer1, input_shape=(cls.stateReprLen, 1), activation=cls.activationFuncHidden,
-    #                             bias_initializer=initializer, kernel_initializer=initializer)
-    #
-    #         cls.valueNetwork.add(hidden1)
-    #         #cls.valueNetwork.add(Dropout(0.5))
-    #         if cls.hiddenLayer2 > 0:
-    #             if cls.parameters.NEURON_TYPE == "MLP":
-    #                 hidden2 = Dense(cls.hiddenLayer2, activation=cls.activationFuncHidden,
-    #                                 bias_initializer=initializer, kernel_initializer=initializer)
-    #             elif cls.parameters.NEURON_TYPE == "LSTM":
-    #                 hidden2 = LSTM(cls.hiddenLayer2, activation=cls.activationFuncHidden,
-    #                                bias_initializer=initializer, kernel_initializer=initializer)
-    #             cls.valueNetwork.add(hidden2)
-    #             #cls.valueNetwork.add(Dropout(0.5))
-    #
-    #         if cls.hiddenLayer3 > 0:
-    #             if cls.parameters.NEURON_TYPE == "MLP":
-    #                 hidden3 = Dense(cls.hiddenLayer3, activation=cls.activationFuncHidden,
-    #                                 bias_initializer=initializer, kernel_initializer=initializer)
-    #             elif cls.parameters.NEURON_TYPE == "LSTM":
-    #                 hidden3 = LSTM(cls.hiddenLayer3, activation=cls.activationFuncHidden,
-    #                                bias_initializer=initializer, kernel_initializer=initializer)
-    #             cls.valueNetwork.add(hidden3)
-    #             #cls.valueNetwork.add(Dropout(0.5))
-    #
-    #         cls.valueNetwork.add(
-    #             Dense(cls.num_actions, activation=cls.activationFuncOutput, bias_initializer=initializer
-    #                   , kernel_initializer=initializer))
-    #
-    #         if cls.parameters.USE_POLICY_NETWORK:
-    #             cls.policyNetwork = Sequential()
-    #             hidden1 = Dense(50, input_dim=cls.stateReprLen, activation='sigmoid',
-    #                             bias_initializer=initializer, kernel_initializer=initializer)
-    #             cls.policyNetwork.add(hidden1)
-    #             out = Dense(cls.num_actions, activation='softmax', bias_initializer=initializer,
-    #                         kernel_initializer=initializer)
-    #             cls.policyNetwork.add(out)
-    #
-    #
-    #     cls.targetNetwork = keras.models.clone_model(cls.valueNetwork)
-    #     cls.targetNetwork.set_weights(cls.valueNetwork.get_weights())
-    #
-    #
-    #
-    #     if cls.optimizer == "Adam":
-    #         optimizer = keras.optimizers.Adam(lr=cls.learningRate)
-    #     elif cls.optimizer == "SGD":
-    #         optimizer = keras.optimizers.SGD(lr=cls.learningRate)
-    #
-    #     cls.valueNetwork.compile(loss='mse', optimizer=optimizer)
-    #     cls.targetNetwork.compile(loss='mse', optimizer=optimizer)
-    #     if cls.parameters.USE_POLICY_NETWORK:
-    #         cls.policyNetwork.compile(loss='mse', optimizer=optimizer)
-
-    def __init__(self, player, field, type, trainMode, network):
-        if network != None:
-            self.network = network
-            self.expRepEnabled = self.network.getParameters().EXP_REPLAY_ENABLED
-            self.gridViewEnabled = self.network.getParameters().GRID_VIEW_ENABLED
-            # Experience replay:
-            self.memoryCapacity = self.network.getParameters().MEMORY_CAPACITY
-            self.memoriesPerUpdate = self.network.getParameters().MEMORIES_PER_UPDATE  # Must be divisible by 4 atm due to experience replay
-
+    def __init__(self, player, field, type, trainMode, learningAlg):
+        self.learningAlg = None
+        self.trainMode = None
+        if learningAlg is not None:
+            self.learningAlg = learningAlg
             self.trainMode = trainMode
+
+            self.expRepEnabled = self.learningAlg.getNetwork().getParameters().EXP_REPLAY_ENABLED
+            self.gridViewEnabled = self.learningAlg.getNetwork().getParameters().GRID_VIEW_ENABLED
+            # Experience replay:
+            self.memoryCapacity = self.learningAlg.getNetwork().getParameters().MEMORY_CAPACITY
+            self.memoriesPerUpdate = self.learningAlg.getNetwork().getParameters().MEMORIES_PER_UPDATE  # Must be divisible by 4 atm due to experience replay
 
         self.type = type
         self.player = player
@@ -179,9 +59,9 @@ class Bot(object):
         self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
             if self.trainMode:
-                self.network.qLearn(self)
+                self.learningAlg.learn(self)
             else:
-                self.network.testNetwork()
+                self.learningAlg.testNetwork(self)
         elif self.type == "Greedy":
             if not self.player.getIsAlive():
                 return
@@ -233,119 +113,6 @@ class Bot(object):
 
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
-    # def calculateTarget(self, newState, reward, alive):
-    #     targetNetworkEnabled = True
-    #     target = reward
-    #     if alive:
-    #         # The target is the reward plus the discounted prediction of the value network
-    #         if targetNetworkEnabled:
-    #             action_Q_values = self.targetNetwork.predict(numpy.array([newState]))[0]
-    #         else:
-    #             action_Q_values = self.valueNetwork.predict(numpy.array([newState]))[0]
-    #         newActionIdx = numpy.argmax(action_Q_values)
-    #         target += self.discount * action_Q_values[newActionIdx]
-    #     return target
-
-    # def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, verbose = False):
-    #     state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
-    #     target = self.calculateTarget(newState, reward, alive)
-    #     q_value_of_action = state_Q_values[actionIdx]
-    #     td_error = target - q_value_of_action
-    #     if  __debug__ and self.player.getSelected() and verbose:
-    #         print("")
-    #         #print("State to be updated: ", oldState)
-    #         print("Action: ", self.actions[actionIdx])
-    #         print("Reward: " ,round(reward, 2))
-    #         #print("S\': ", newState)
-    #         print("Qvalue of action before training: ", round(state_Q_values[actionIdx], 4))
-    #         print("Target Qvalue of that action: ", round(target, 4))
-    #         print("All qvalues: ", numpy.round(state_Q_values, 3))
-    #         print("Expected Q-value: ", round(max(state_Q_values), 3))
-    #         print("TD-Error: ", td_error)
-    #     if self.parameters.USE_TARGET:
-    #         state_Q_values[actionIdx] = target
-    #     else:
-    #         state_Q_values[actionIdx] = td_error
-    #     return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
-
-    # def qLearn(self):
-    #     #After S has been initialized, set S as oldState and take action A based on policy
-    #     alive = self.player.getIsAlive()
-    #
-    #     self.cumulativeReward += self.getReward() if self.lastMass else 0
-    #     self.lastReward = self.cumulativeReward
-    #
-    #     if alive:
-    #         self.rewardAvgOfEpisode = (self.rewardAvgOfEpisode * self.rewardLenOfEpisode + self.lastReward)\
-    #                                   / (self.rewardLenOfEpisode + 1)
-    #         self.rewardLenOfEpisode += 1
-    #     # Do not train if we are skipping this frame
-    #     if self.skipFrames > 0 :
-    #         self.skipFrames -= 1
-    #         self.currentAction[2:4] = [0, 0]
-    #         self.latestTDerror = None
-    #         if alive:
-    #             return
-    #
-    #     newState = self.getStateRepresentation()
-    #
-    #     # Only train when we there is an old state to train
-    #     if self.currentAction != None:
-    #         # Get reward of skipped frames
-    #         reward = self.cumulativeReward
-    #         input, target, td_error, q_value_action = self.createInputOutputPair(self.oldState, self.currentActionIdx, reward,
-    #                                                              newState, alive, self.player, True)
-    #         # Save data for plotting purposes
-    #         self.latestTDerror = td_error
-    #         self.qValues.append(q_value_action)
-    #         # Fit value network using experience replay of random past states:
-    #         if self.expRepEnabled:
-    #             self.experienceReplay(reward, newState, td_error)
-    #         # Fit value network using only the current experience
-    #         else:
-    #             self.valueNetwork.train_on_batch(input, target)
-    #
-    #         if  __debug__ and self.player.getSelected():
-    #             updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([self.oldState]))[0][
-    #                 self.currentActionIdx]
-    #             print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
-    #             print("(also after experience replay, so last shown action is not necessarily this action )")
-    #             print("TD-Error: ", td_error)
-    #             print("")
-    #
-    #
-    #         # Update the target network after 1000 steps
-    #         # Save the weights of the model when updating the target network to avoid losing progress on program crashes
-    #         self.targetNetworkSteps -= 1
-    #         if self.targetNetworkSteps == 0:
-    #             self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-    #             self.targetNetworkSteps = self.targetNetworkMaxSteps * self.num_NNbots
-    #
-    #
-    #     # If the player is alive then save the action, state and mass of this update
-    #     if self.player.getIsAlive():
-    #         self.takeAction(newState)
-    #         self.lastMass = self.player.getTotalMass()
-    #         self.oldState = newState
-    #     # Otherwise reset values to start a new episode for this actor
-    #     else:
-    #         print(self.player, " died.")
-    #         print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
-    #         self.reset()
-
-    # def testNetwork(self):
-    #     alive = self.player.getIsAlive()
-    #     self.epsilon = 0
-    #     if alive:
-    #         newState = self.getStateRepresentation()
-    #         self.takeAction(newState)
-
-
-    def experienceReplay(self, reward, newState, td_error):
-        if self.player.getIsAlive():
-            self.remember(self.oldState, self.currentActionIdx, reward, newState, td_error)
-        self.train_on_experience()
-
     def remember(self, state, action, reward, newState, td_error):
         # Store current state, action, reward, state pair in memory
         # Delete oldest memory if memory is at full capacity
@@ -361,94 +128,6 @@ class Bot(object):
         # Square the TD-error and multiply by minus one, because the heap pops the smallest number
         heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory, self.lastMemory))
         self.lastMemory = newMemory
-
-    def memoryToInputOutput(self, memory):
-        s = memory[0]
-        a = memory[1]
-        r = memory[2]
-        sPrime = memory[3]
-        alive = (sPrime is not None)
-        return self.network.createInputOutputPair(s, a, r, sPrime, alive, self.player)[:-1]
-
-    def train_on_experience(self):
-        # Fit value network on memories
-        len_memory = len(self.memories)
-        if len_memory < self.network.getMemoriesPerUpdate():
-            return
-        inputSize = self.network.getParameters().STATE_REPR_LEN
-        outputSize = self.network.getNumOfActions()
-        batch_size = self.network.getMemoriesPerUpdate()
-        # Initialize vectors
-        inputs = numpy.zeros((batch_size, inputSize))
-        targets = numpy.zeros((batch_size, outputSize))
-        batch_count = 0
-        # Get most surprising memories:
-        popped_memories = []
-        for idx in range(int(batch_size * 0)):
-            # Get the item with highest priority (td-error)
-            memory = heapq.heappop(self.memories)[1]
-            input, target, td_error = self.memoryToInputOutput(memory)
-            # Set input and target
-            inputs[idx] = input
-            targets[idx] = target
-            # Update td-error for memory
-            popped_memories.append(((td_error * td_error) * -1, memory))
-            batch_count += 1
-        # Put the retrieved memories back in memory
-        for poppedMemory in popped_memories:
-            heapq.heappush(self.memories, poppedMemory)
-
-        # Get recent memories:
-        # WARNING: this does not acutally get the most recent memories, so we have to change it
-        # TODO: change it
-        for idx in range(int(batch_size * 0)):
-            memory = self.memories[len_memory - idx - 1][1]
-            input, target, td_error = self.memoryToInputOutput(memory)
-            inputs[batch_count] = input
-            targets[batch_count] = target
-            # Update TD-Error of memory:
-            self.memories[idx] = (td_error, memory)
-            batch_count += 1
-
-        # Fill up the rest of the batch with random memories:
-        while batch_count < batch_size:
-            randIdx = numpy.random.randint(len(self.memories))
-            memory = self.memories[randIdx][1]
-            input, target, td_error = self.memoryToInputOutput(memory)
-            inputs[batch_count] = input
-            targets[batch_count] = target
-            # Update TD-Error of memory:
-            self.memories[randIdx] = (td_error, memory)
-            batch_count += 1
-
-        # Train on memories
-        self.network.trainOnBatch(inputs, targets)
-
-    # def takeAction(self, newState):
-    #     # Take random action with probability 1 - epsilon
-    #     if numpy.random.random(1) < self.epsilon:
-    #         self.currentActionIdx = numpy.random.randint(len(self.actions))
-    #         if __debug__:
-    #             self.player.setExploring(True)
-    #     else:
-    #         if self.parameters.USE_POLICY_NETWORK:
-    #             numpyNewState = numpy.array([newState])
-    #             qValues = self.valueNetwork.predict(numpyNewState)
-    #             qValueSum = sum(qValues)
-    #             normalizedQValues = numpy.array([qValue / qValueSum for qValue in qValues])
-    #             self.policyNetwork.train_on_batch(numpyNewState, normalizedQValues)
-    #             actionValues = self.policyNetwork.predict(numpyNewState)
-    #             self.currentActionIdx = numpy.argmax(actionValues)
-    #         else:
-    #             # Take action based on greediness towards Q values
-    #             qValues = self.valueNetwork.predict(numpy.array([newState]))
-    #             self.currentActionIdx = numpy.argmax(qValues)
-    #             if __debug__:
-    #                 self.player.setExploring(False)
-    #     self.currentAction = self.actions[self.currentActionIdx]
-    #     self.skipFrames = self.frameSkipRate
-    #     self.cumulativeReward = 0
-
 
     def getStateRepresentation(self):
         stateRepr = None
@@ -507,7 +186,7 @@ class Bot(object):
         left = x - fovSize / 2
         top = y - fovSize / 2
         # Initialize spatial hash tables:
-        gridSquaresPerFov = self.network.getGridSquaresPerFov()
+        gridSquaresPerFov = self.learningAlg.getNetwork().getGridSquaresPerFov()
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
         pelletSHT = spatialHashTable(fovSize, gsSize, left, top) #SHT = spatial hash table
         enemySHT =  spatialHashTable(fovSize, gsSize, left, top)
@@ -607,21 +286,7 @@ class Bot(object):
         totalMass = self.player.getTotalMass()
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
 
-        #Testing implementation of action memory
-        #totalInfo = numpy.concatenate((totalInfo, numpy.array(self.actionHistory).flatten()))
-        # for i in range(GRID_SQUARES_PER_FOV):
-        #     print(str(gsPelletProportion[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]) + " "
-        #           + str(gsBiggestOwnCellMassProportion[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]) + " "
-        #           + str(gsWalls[GRID_SQUARES_PER_FOV*i:GRID_SQUARES_PER_FOV*(i+1)]))
-        # print("\n")
         return totalInfo
-
-    # def saveModel(self, path):
-    #     self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-    #     self.targetNetwork.save(path + self.type + "_model.h5")
-
-    # def setEpsilon(self, val):
-    #     self.epsilon = val
 
     def isCellData(self, cell):
         return [cell.getX(), cell.getY(), cell.getRadius()]
@@ -682,5 +347,17 @@ class Bot(object):
     def getTrainMode(self):
         return self.trainMode
 
-    def getNetwork(self):
-        return self.network
+    def getLearningAlg(self):
+        return self.learningAlg
+
+    def getOldState(self):
+        return self.oldState
+
+    def getCurrentActionIdx(self):
+        return self.currentActionIdx
+
+    def getCumulativeReward(self):
+        return self.cumulativeReward
+
+    def getMemories(self):
+        return self.memories

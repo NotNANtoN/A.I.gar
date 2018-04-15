@@ -14,7 +14,7 @@ from .spatialHashTable import spatialHashTable
 
 class Network(object):
 
-    def __init__(self, trainMode, numOfNNbots, numOfHumans, modelName):
+    def __init__(self, trainMode, modelName):
         self.trainMode = trainMode
 
         self.actions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
@@ -29,9 +29,6 @@ class Network(object):
 
         self.parameters = importlib.import_module('.networkParameters', package="model")
         self.loadedModelName = None
-
-        self.num_NNbots = numOfNNbots
-        self.num_humans = numOfHumans
 
         self.stateReprLen = self.parameters.STATE_REPR_LEN
 
@@ -182,111 +179,12 @@ class Network(object):
             state_Q_values[actionIdx] = td_error
         return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
 
-    def qLearn(self, bot):
-        #After S has been initialized, set S as oldState and take action A based on policy
-        alive = bot.player.getIsAlive()
-
-        bot.cumulativeReward += bot.getReward() if bot.lastMass else 0
-        bot.lastReward = bot.cumulativeReward
-
-        if alive:
-            bot.rewardAvgOfEpisode = (bot.rewardAvgOfEpisode * bot.rewardLenOfEpisode + bot.lastReward)\
-                                      / (bot.rewardLenOfEpisode + 1)
-            bot.rewardLenOfEpisode += 1
-        # Do not train if we are skipping this frame
-        if bot.skipFrames > 0 :
-            bot.skipFrames -= 1
-            bot.currentAction[2:4] = [0, 0]
-            bot.latestTDerror = None
-            if alive:
-                return
-
-        newState = bot.getStateRepresentation()
-
-        # Only train when we there is an old state to train
-        if bot.currentAction != None:
-            # Get reward of skipped frames
-            reward = bot.cumulativeReward
-            input, target, td_error, q_value_action = self.createInputOutputPair(bot.oldState, bot.currentActionIdx, reward,
-                                                                 newState, alive, bot.player, True)
-            # Save data for plotting purposes
-            bot.latestTDerror = td_error
-            bot.qValues.append(q_value_action)
-            # Fit value network using experience replay of random past states:
-            if bot.expRepEnabled:
-                bot.experienceReplay(reward, newState, td_error)
-            # Fit value network using only the current experience
-            else:
-                self.valueNetwork.train_on_batch(input, target)
-
-            if  __debug__ and bot.player.getSelected():
-                updatedQvalueOfAction = self.valueNetwork.predict(numpy.array([bot.oldState]))[0][
-                    bot.currentActionIdx]
-                print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
-                print("(also after experience replay, so last shown action is not necessarily this action )")
-                print("TD-Error: ", td_error)
-                print("")
-
-
-            # Update the target network after 1000 steps
-            # Save the weights of the model when updating the target network to avoid losing progress on program crashes
-            self.targetNetworkSteps -= 1
-            if self.targetNetworkSteps == 0:
-                self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-                #Added num_humans to the following line
-                self.targetNetworkSteps = self.targetNetworkMaxSteps * (self.num_NNbots + self.num_humans)
-
-
-        # If the player is alive then save the action, state and mass of this update
-        if bot.player.getIsAlive():
-            self.takeAction(newState, bot)
-            bot.lastMass = bot.player.getTotalMass()
-            bot.oldState = newState
-        # Otherwise reset values to start a new episode for this actor
-        else:
-            print(bot.player, " died.")
-            print("Average reward of ", bot.player, " for this episode: ", bot.rewardAvgOfEpisode)
-            bot.reset()
-
-    def testNetwork(self, bot):
-        alive = bot.player.getIsAlive()
-        self.epsilon = 0
-        if alive:
-            newState = bot.getStateRepresentation()
-            self.takeAction(newState, bot)
-
-    def takeAction(self, newState, bot):
-        # Take random action with probability 1 - epsilon
-        if numpy.random.random(1) < self.epsilon:
-            bot.currentActionIdx = numpy.random.randint(len(bot.actions))
-            if __debug__:
-                bot.player.setExploring(True)
-        else:
-            if self.parameters.USE_POLICY_NETWORK:
-                numpyNewState = numpy.array([newState])
-                qValues = self.valueNetwork.predict(numpyNewState)
-                qValueSum = sum(qValues)
-                normalizedQValues = numpy.array([qValue / qValueSum for qValue in qValues])
-                self.policyNetwork.train_on_batch(numpyNewState, normalizedQValues)
-                actionValues = self.policyNetwork.predict(numpyNewState)
-                bot.currentActionIdx = numpy.argmax(actionValues)
-            else:
-                # Take action based on greediness towards Q values
-                qValues = self.valueNetwork.predict(numpy.array([newState]))
-                bot.currentActionIdx = numpy.argmax(qValues)
-                if __debug__:
-                    bot.player.setExploring(False)
-        bot.currentAction = self.actions[bot.currentActionIdx]
-        bot.skipFrames = self.frameSkipRate
-        bot.cumulativeReward = 0
-
     def trainOnBatch(self, inputs, targets):
         self.valueNetwork.train_on_batch(inputs, targets)
 
     def saveModel(self, path, bot):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
         self.targetNetwork.save(path + bot.type + "_model.h5")
-
 
     def setEpsilon(self, val):
         self.epsilon = val

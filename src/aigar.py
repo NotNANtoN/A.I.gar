@@ -8,8 +8,8 @@ from keras.models import load_model
 from controller.controller import Controller
 from model.model import *
 from model.network import *
+from model.qLearning import *
 from model.parameters import *
-from model.networkParameters import *
 from view.startScreen import StartScreen
 from view.view import View
 
@@ -83,27 +83,14 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, network = None):
+def createBots(number, model, type, learningAlg = None):
     if type == "NN":
         Bot.num_NNbots = number
     elif type == "Greedy":
         Bot.num_Greedybots = number
     for i in range(number):
-        model.createBot(type, network)
-    # Load a stored model:
-    # if modelName is not None:
-    #     path = "savedModels/" + modelName
-    #     packageName = "savedModels." + modelName
-    #     network.parameters = importlib.import_module('.networkParameters', package=packageName)
-    #     network.initializeNNs()
-    #     network.loadedModelName = modelName
-    #     network.valueNetwork = load_model(path + "/NN_model.h5")
-    #     network.targetNetwork = network.valueNetwork
-    # elif type == "NN":
-    #     Bot.initializeNNs()
+        model.createBot(type, learningAlg)
 
-def addHumanTraining(humansNumber):
-    Bot.num_trainingHuman = humansNumber
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
@@ -140,7 +127,7 @@ if __name__ == '__main__':
             if numberOfHumans <= 2 and numberOfHumans > 0:
                 humanTraining = int(input("Do you want to train the network using human input? (1 == yes)\n"))
                 mouseEnabled = not humanTraining
-            if numberOfHumans >0 and not humanTraining:
+            if numberOfHumans > 0 and not humanTraining:
                 mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
         if numberOfBots + numberOfHumans == 0:
             modelMustHavePlayers()
@@ -152,6 +139,8 @@ if __name__ == '__main__':
 
     if fitsLimitations(numberOfBots, MAXBOTS) and (numberOfNNBots > 0 or humanTraining):
         modelName = None
+        algorithm = None
+        learningAlg = None
         loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
         if loadModel == 1:
             while modelName == None:
@@ -160,14 +149,41 @@ if __name__ == '__main__':
                 if not os.path.exists(path):
                     print("Invalid model name, no model found under ", path)
                     modelName = None
+
         if loadModel == 2:
             modelName = "mostRecentAutosave"
+        if modelName is not None:
+            packageName = "savedModels." + modelName
+            parameters = importlib.import_module('.networkParameters', package=packageName)
+            if ALGORITHM == "Q-learning":
+                algorithm = 0
+            elif ALGORITHM == "n-step Q-learning":
+                algorithm = 1
+            else:
+                print("ALGORITHM in networkParameters not found.\n")
+
+        if loadModel == 0:
+            algorithm = int(input("What learning algorithm do you want to use?\n" + \
+            "'Q-Learning' == 0, 'n-step Q-Learning' == 1\n"))
+
+        #Create algorithm instance
+        if algorithm == 0:
+            ALGORITHM = "Q-Learning"
+            learningAlg = QLearn(numberOfNNBots, numberOfHumans)
+        elif algorithm == 1:
+            ALGORITHM = "n-step Q-Learning"
+            # learningAlg = NsQl(numberOfNNBots, numberOfHumans)
+        else:
+            print("Please enter a valid algorithm.\n")
+            quit()
+
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
             enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
-        network = Network(enableTrainMode, numberOfNNBots, numberOfHumans, modelName)
-        createBots(numberOfNNBots, model, "NN", network)
+        network = Network(enableTrainMode, modelName)
+        learningAlg.setNetwork(network)
+        createBots(numberOfNNBots, model, "NN", learningAlg)
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 

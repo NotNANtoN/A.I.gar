@@ -171,7 +171,7 @@ class Model(object):
         for bot in self.bots:
             botType = bot.getType()
             if botType != "Greedy" and botType not in savedTypes:
-                bot.getNetwork().saveModel(path, bot)
+                bot.getLearningAlg().getNetwork().saveModel(path, bot)
                 savedTypes.append(botType)
         if end:
             path = path[:-1]
@@ -210,7 +210,7 @@ class Model(object):
         self.plotQValuesOverTime()
 
     def getRelevantModelData(self, bot, end = False):
-        network = bot.getNetwork()
+        network = bot.getLearningAlg().getNetwork()
         data = ""
         #Simulation:
         data += "Simulation:\n"
@@ -338,10 +338,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type, network):
+    def createBot(self, type, learningAlg):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, network)
+        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg)
         self.addBot(bot)
 
     def createHuman(self, name):

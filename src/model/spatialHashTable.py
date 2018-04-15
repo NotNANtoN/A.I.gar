@@ -1,4 +1,3 @@
-import numpy
 import math
 
 class spatialHashTable(object):
