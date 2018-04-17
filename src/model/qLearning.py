@@ -11,19 +11,75 @@ class QLearn(object):
     def setNetwork(self, network):
         self.network = network
 
-    def testNetwork(self, bot):
-        alive = bot.player.getIsAlive()
+    def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
-        if alive:
-            newState = bot.getStateRepresentation()
-            self.takeAction(newState, bot)
 
-    def takeAction(self, newState, bot):
+        player = bot.getPlayer()
+        return self.decideMove(newState, player)
+
+    def learn(self, bot, newState):
+        td_error = None
+        q_value_action = None
+        currentAction = None
+        newLastMemory = None
+        reward = bot.getCumulativeReward()
+        oldState = bot.getOldState()
+        currentActionIdx = bot.getCurrentActionIdx()
+        player = bot.getPlayer()
+        alive = player.getIsAlive()
+
+        # Make sure it's not the first state of the episode
+        if bot.getCurrentAction() is not None:
+            # Only load memories if expReplay is enabled
+            if bot.getExpRepEnabled():
+                memories = bot.getMemories()
+                lastMemory = bot.getLastMemory()
+                td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
+                                                      currentActionIdx, alive, player, memories, lastMemory)
+            else:
+                td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
+                                                      currentActionIdx, alive, player)
+        if alive:
+            # Decide on which new action (a) to take given the new state (S'), only if the player is still alive
+            currentActionIdx, currentAction = self.decideMove(newState, player)
+        cumulativeReward = 0
+
+        return td_error, q_value_action, newLastMemory, currentActionIdx, currentAction, cumulativeReward
+
+    def train(self, newState, reward, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
+        input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx, reward,
+                                                                             newState, alive, player, True)
+        newLastMemory = None
+        if memories is not None:
+            newLastMemory = self.experienceReplay(reward, oldState, newState, td_error, currentActionIdx, alive,
+                                                  player, memories, lastMemory)
+        # Fit value network using only the current experience
+        else:
+            self.network.valueNetwork.train_on_batch(input, target)
+
+        if  __debug__ and player.getSelected():
+            updatedQvalueOfAction = self.network.valueNetwork.predict(numpy.array([oldState]))[0][
+                currentActionIdx]
+            print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
+            print("(also after experience replay, so last shown action is not necessarily this action )")
+            print("TD-Error: ", td_error)
+            print("")
+        # Update the target network after 1000 steps
+        # Save the weights of the model when updating the target network to avoid losing progress on program crashes
+        self.network.targetNetworkSteps -= 1
+        if self.network.targetNetworkSteps == 0:
+            self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
+            # Added num_humans to the following line
+            self.network.targetNetworkSteps = self.network.targetNetworkMaxSteps * (self.num_NNbots + self.num_humans)
+
+        return td_error, q_value_action, newLastMemory
+
+    def decideMove(self, newState, player):
         # Take random action with probability 1 - epsilon
         if numpy.random.random(1) < self.network.epsilon:
-            bot.currentActionIdx = numpy.random.randint(len(bot.actions))
+            currentActionIdx = numpy.random.randint(len(self.network.getActions()))
             if __debug__:
-                bot.player.setExploring(True)
+                player.setExploring(True)
         else:
             if self.network.getParameters().USE_POLICY_NETWORK:
                 numpyNewState = numpy.array([newState])
@@ -32,92 +88,79 @@ class QLearn(object):
                 normalizedQValues = numpy.array([qValue / qValueSum for qValue in qValues])
                 self.network.policyNetwork.train_on_batch(numpyNewState, normalizedQValues)
                 actionValues = self.network.policyNetwork.predict(numpyNewState)
-                bot.currentActionIdx = numpy.argmax(actionValues)
+                currentActionIdx = numpy.argmax(actionValues)
             else:
                 # Take action based on greediness towards Q values
                 qValues = self.network.valueNetwork.predict(numpy.array([newState]))
-                bot.currentActionIdx = numpy.argmax(qValues)
+                currentActionIdx = numpy.argmax(qValues)
                 if __debug__:
-                    bot.player.setExploring(False)
-        bot.currentAction = self.network.actions[bot.currentActionIdx]
-        bot.skipFrames = self.network.frameSkipRate
-        bot.cumulativeReward = 0
+                    player.setExploring(False)
+        currentAction = self.network.actions[currentActionIdx]
+        # skipFrames = self.network.frameSkipRate
+        # cumulativeReward = 0
+        return currentActionIdx, currentAction
 
-    def learn(self, bot):
-        #After S has been initialized, set S as oldState and take action A based on policy
-        alive = bot.player.getIsAlive()
-
-        bot.cumulativeReward += bot.getReward() if bot.lastMass else 0
-        bot.lastReward = bot.cumulativeReward
-
-        if alive:
-            bot.rewardAvgOfEpisode = (bot.rewardAvgOfEpisode * bot.rewardLenOfEpisode + bot.lastReward)\
-                                      / (bot.rewardLenOfEpisode + 1)
-            bot.rewardLenOfEpisode += 1
-        # Do not train if we are skipping this frame
-        if bot.skipFrames > 0 :
-            bot.skipFrames -= 1
-            bot.currentAction[2:4] = [0, 0]
-            bot.latestTDerror = None
-            if alive:
-                return
-
-        newState = bot.getStateRepresentation()
-
-        # Only train when we there is an old state to train
-        if bot.currentAction is not None:
-            # Get reward of skipped frames
-            reward = bot.getCumulativeReward()
-            oldState = bot.getOldState()
-            currentActionIdx = bot.currentActionIdx
-            player = bot.getPlayer()
-            input, target, td_error, q_value_action = self.network.createInputOutputPair(oldState, currentActionIdx, reward,
-                                                                 newState, alive, player, True)
-            # Save data for plotting purposes
-            bot.latestTDerror = td_error
-            bot.qValues.append(q_value_action)
-            # Fit value network using experience replay of random past states:
-            if bot.expRepEnabled:
-                self.experienceReplay(reward, newState, td_error, bot)
-            # Fit value network using only the current experience
-            else:
-                self.network.valueNetwork.train_on_batch(input, target)
-
-            if  __debug__ and bot.player.getSelected():
-                updatedQvalueOfAction = self.network.valueNetwork.predict(numpy.array([oldState]))[0][
-                    bot.currentActionIdx]
-                print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
-                print("(also after experience replay, so last shown action is not necessarily this action )")
-                print("TD-Error: ", td_error)
-                print("")
-
-            # Update the target network after 1000 steps
-            # Save the weights of the model when updating the target network to avoid losing progress on program crashes
-            self.network.targetNetworkSteps -= 1
-            if self.network.targetNetworkSteps == 0:
-                self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
-                # Added num_humans to the following line
-                self.network.targetNetworkSteps = self.network.targetNetworkMaxSteps * (self.num_NNbots + self.num_humans)
-
-        # If the player is alive then save the action, state and mass of this update
-        if bot.player.getIsAlive():
-            self.takeAction(newState, bot)
-            bot.lastMass = bot.player.getTotalMass()
-            bot.oldState = newState
-        # Otherwise reset values to start a new episode for this actor
+    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, player, verbose=False):
+        state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
+        target = self.calculateTarget(newState, reward, alive)
+        q_value_of_action = state_Q_values[actionIdx]
+        td_error = target - q_value_of_action
+        if __debug__ and player.getSelected() and verbose:
+            print("")
+            # print("State to be updated: ", oldState)
+            print("Action: ", self.network.getActions()[actionIdx])
+            print("Reward: ", round(reward, 2))
+            # print("S\': ", newState)
+            print("Qvalue of action before training: ", round(state_Q_values[actionIdx], 4))
+            print("Target Qvalue of that action: ", round(target, 4))
+            print("All qvalues: ", numpy.round(state_Q_values, 3))
+            print("Expected Q-value: ", round(max(state_Q_values), 3))
+            print("TD-Error: ", td_error)
+        if self.network.getParameters().USE_TARGET:
+            state_Q_values[actionIdx] = target
         else:
-            print(bot.player, " died.")
-            print("Average reward of ", bot.player, " for this episode: ", bot.rewardAvgOfEpisode)
-            bot.reset()
+            state_Q_values[actionIdx] = td_error
+        return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
 
-    def experienceReplay(self, reward, newState, td_error, bot):
-        if bot.getPlayer().getIsAlive():
-            bot.remember(bot.getOldState(), bot.getCurrentActionIdx(), reward, newState, td_error)
-        self.train_on_experience(bot)
+    def calculateTarget(self, newState, reward, alive):
+        targetNetworkEnabled = True
+        target = reward
+        if alive:
+            # The target is the reward plus the discounted prediction of the value network
+            if targetNetworkEnabled:
+                action_Q_values = self.network.getTargetNetwork().predict(numpy.array([newState]))[0]
+            else:
+                action_Q_values = self.network.getValueNetwork().predict(numpy.array([newState]))[0]
+            newActionIdx = numpy.argmax(action_Q_values)
+            target += self.network.getDiscount() * action_Q_values[newActionIdx]
+        return target
 
-    def train_on_experience(self, bot):
-        memories = bot.getMemories()
-        player = bot.getPlayer()
+    def experienceReplay(self, reward, oldState, newState, td_error, currentActionIdx, alive, player, memories, lastMemory):
+        newLastMemory = None
+        if alive:
+            newLastMemory = self.storeInMemory(currentActionIdx, reward, oldState, newState, td_error, alive,
+                                       memories, lastMemory)
+        self.train_on_experience(player, memories)
+        return newLastMemory
+
+    def storeInMemory(self, actionIdx, reward, oldState, newState, td_error, alive, memories, lastMemory):
+        # Store current state, action, reward, state pair in memory
+        # Delete oldest memory if memory is at full capacity
+        memoryCapacity = self.network.getMemoryCapacity()
+        if len(memories) > memoryCapacity:
+            #if numpy.random.random() > 0.0:
+            del memories[-1]
+            #else:
+            #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
+        if alive:
+            newMemory = [oldState.tolist(), actionIdx, reward, newState.tolist()]
+        else:
+            newMemory = [oldState.tolist(), actionIdx, reward, None]
+        # Square the TD-error and multiply by minus one, because the heap pops the smallest number
+        heapq.heappush(memories, ((td_error * td_error) * -1, newMemory, lastMemory))
+        return newMemory
+
+    def train_on_experience(self, player, memories):
         # Fit value network on memories
         len_memory = len(memories)
         if len_memory < self.network.getMemoriesPerUpdate():
@@ -143,7 +186,7 @@ class QLearn(object):
             batch_count += 1
         # Put the retrieved memories back in memory
         for poppedMemory in popped_memories:
-            heapq.heappush(self.memories, poppedMemory)
+            heapq.heappush(memories, poppedMemory)
 
         # Get recent memories:
         # WARNING: this does not acutally get the most recent memories, so we have to change it
@@ -177,7 +220,7 @@ class QLearn(object):
         r = memory[2]
         sPrime = memory[3]
         alive = (sPrime is not None)
-        return self.network.createInputOutputPair(s, a, r, sPrime, alive, player)[:-1]
+        return self.createInputOutputPair(s, a, r, sPrime, alive, player)[:-1]
 
     def getNetwork(self):
         return self.network

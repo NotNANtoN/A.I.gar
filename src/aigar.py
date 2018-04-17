@@ -155,9 +155,9 @@ if __name__ == '__main__':
         if modelName is not None:
             packageName = "savedModels." + modelName
             parameters = importlib.import_module('.networkParameters', package=packageName)
-            if ALGORITHM == "Q-learning":
+            if parameters.ALGORITHM == "Q-learning":
                 algorithm = 0
-            elif ALGORITHM == "n-step Q-learning":
+            elif parameters.ALGORITHM == "n-step Q-learning":
                 algorithm = 1
             else:
                 print("ALGORITHM in networkParameters not found.\n")

@@ -1,12 +1,6 @@
 import heapq
-import keras
 import numpy
-import tensorflow as tf
 import importlib.util
-from keras.layers import Dense, LSTM, Softmax
-from keras.models import Sequential
-from keras.utils.training_utils import multi_gpu_model
-
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
@@ -21,12 +15,13 @@ class Bot(object):
         if learningAlg is not None:
             self.learningAlg = learningAlg
             self.trainMode = trainMode
+            # If just testing, set exploration to 0
+            if trainMode == False:
+                self.learningAlg.getNetwork().setEpsilon(0)
+                self.learningAlg.getNetwork().setFrameSkipRate(0)
 
             self.expRepEnabled = self.learningAlg.getNetwork().getParameters().EXP_REPLAY_ENABLED
             self.gridViewEnabled = self.learningAlg.getNetwork().getParameters().GRID_VIEW_ENABLED
-            # Experience replay:
-            self.memoryCapacity = self.learningAlg.getNetwork().getParameters().MEMORY_CAPACITY
-            self.memoriesPerUpdate = self.learningAlg.getNetwork().getParameters().MEMORIES_PER_UPDATE  # Must be divisible by 4 atm due to experience replay
 
         self.type = type
         self.player = player
@@ -54,14 +49,59 @@ class Bot(object):
         elif self.type == "Greedy":
             self.currentAction = [0, 0, 0, 0]
 
+    def updateRewards(self):
+        self.cumulativeReward += self.getReward() if self.lastMass else 0
+        self.lastReward = self.cumulativeReward
+
+        if self.player.getIsAlive():
+            self.rewardAvgOfEpisode = (self.rewardAvgOfEpisode * self.rewardLenOfEpisode + self.lastReward) \
+                                     / (self.rewardLenOfEpisode + 1)
+            self.rewardLenOfEpisode += 1
+
+    def updateFrameSkip(self):
+        # Do not train if we are skipping this frame
+        if self.skipFrames > 0:
+            self.skipFrames -= 1
+            self.currentAction[2:4] = [0, 0]
+            self.latestTDerror = None
+            if self.player.getIsAlive():
+                return True
+        return False
 
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
+            newState = self.getStateRepresentation()
             if self.trainMode:
-                self.learningAlg.learn(self)
+                currentlySkipping = False
+                if self.currentAction is not None:
+                    self.updateRewards()
+                    currentlySkipping = self.updateFrameSkip()
+                if not currentlySkipping:
+                    td_e, qva, nlm, caIdx, ca, cr = self.learningAlg.learn(self, newState)
+                    self.latestTDerror = td_e
+                    self.qValues.append(qva)
+                    if nlm is not None:
+                        self.lastMemory = nlm
+                    self.currentActionIdx = caIdx
+                    self.currentAction = ca
+                    self.cumulativeReward = cr
+                    self.skipFrames = self.learningAlg.getNetwork().getFrameSkipRate()
+
+                if self.player.getIsAlive():
+                    self.lastMass = self.player.getTotalMass()
+                    self.oldState = newState
+                else:
+                    print(self.player, " died.")
+                    print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
+                    self.reset()
+
             else:
-                self.learningAlg.testNetwork(self)
+                # If simply testing, no training required, only action decision
+                if self.player.getIsAlive():
+                    caIdx, ca = self.learningAlg.decideMove(newState, self.player)
+                    self.currentActionIdx = caIdx
+                    self.currentAction = ca
         elif self.type == "Greedy":
             if not self.player.getIsAlive():
                 return
@@ -112,22 +152,6 @@ class Bot(object):
             ejectChoice = True if self.currentAction[3] > 0.5 else False
 
             self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
-
-    def remember(self, state, action, reward, newState, td_error):
-        # Store current state, action, reward, state pair in memory
-        # Delete oldest memory if memory is at full capacity
-        if len(self.memories) > self.memoryCapacity:
-            #if numpy.random.random() > 0.0:
-            del self.memories[-1]
-            #else:
-            #    self.memories.remove(min(self.memories, key = lambda memory: abs(memory[-1])))
-        if self.player.getIsAlive():
-            newMemory = [state.tolist(), action, reward, newState.tolist()]
-        else:
-            newMemory = [state.tolist(), action, reward, None]
-        # Square the TD-error and multiply by minus one, because the heap pops the smallest number
-        heapq.heappush(self.memories, ((td_error * td_error) * -1, newMemory, self.lastMemory))
-        self.lastMemory = newMemory
 
     def getStateRepresentation(self):
         stateRepr = None
@@ -356,8 +380,17 @@ class Bot(object):
     def getCurrentActionIdx(self):
         return self.currentActionIdx
 
+    def getCurrentAction(self):
+        return self.currentAction
+
     def getCumulativeReward(self):
         return self.cumulativeReward
 
     def getMemories(self):
         return self.memories
+
+    def getLastMemory(self):
+        return self.lastMemory
+
+    def getExpRepEnabled(self):
+        return self.expRepEnabled
