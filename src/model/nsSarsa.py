@@ -3,16 +3,13 @@ import heapq
 
 class nsSarsa(object):
 
-    def __init__(self, numOfNNbots, numOfHumans):
+    def __init__(self, numOfNNbots, numOfHumans, network):
         self.network = None
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
         self.name = "nsSarsa"
-        self.temporalDifference = None
         self.nStepRewards = 0
         self.tau = 0
-
-    def setNetwork(self, network):
         self.network = network
         self.temporalDifference = self.network.getParameters().TD
 

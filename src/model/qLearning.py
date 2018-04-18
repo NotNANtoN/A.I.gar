@@ -3,14 +3,11 @@ import heapq
 
 class QLearn(object):
 
-    def __init__(self, numOfNNbots, numOfHumans):
+    def __init__(self, numOfNNbots, numOfHumans, network):
         self.network = None
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
         self.name = "Q-learning"
-        self.temporalDifference = None
-
-    def setNetwork(self, network):
         self.network = network
         self.temporalDifference = self.network.getParameters().TD
 

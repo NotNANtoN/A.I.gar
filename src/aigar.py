@@ -88,13 +88,26 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, learningAlg = None):
+def createBots(number, model, type, algorithm = None, network = None):
     if type == "NN":
         Bot.num_NNbots = number
+        for i in range(number):
+            # Create algorithm instance
+            learningAlg = None
+            if algorithm == 0:
+                learningAlg = QLearn(numberOfNNBots, numberOfHumans, network)
+            elif algorithm == 1:
+                learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network)
+            elif algorithm == 2:
+                learningAlg = ActorCritic()
+            else:
+                print("Please enter a valid algorithm.\n")
+                quit()
+            model.createBot(type, learningAlg)
     elif type == "Greedy":
         Bot.num_Greedybots = number
-    for i in range(number):
-        model.createBot(type, learningAlg)
+        for i in range(number):
+            model.createBot(type, learningAlg)
 
 
 if __name__ == '__main__':
@@ -173,25 +186,24 @@ if __name__ == '__main__':
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
             "'Q-Learning' == 0, 'n-step Q-Learning' == 1, 'Continuous Actor-Critic' == 2\n"))
 
-        #Create algorithm instance
-        if algorithm == 0:
-            learningAlg = QLearn(numberOfNNBots, numberOfHumans)
-        elif algorithm == 1:
-            pass
-            # learningAlg = NsQl(numberOfNNBots, numberOfHumans)
-        elif algorithm == 2:
-            learningAlg = ActorCritic()
-        else:
-            print("Please enter a valid algorithm.\n")
-            quit()
+        # #Create algorithm instance
+        # if algorithm == 0:
+        #     learningAlg = QLearn(numberOfNNBots, numberOfHumans)
+        # elif algorithm == 1:
+        #     pass
+        #     # learningAlg = NsQl(numberOfNNBots, numberOfHumans)
+        # elif algorithm == 2:
+        #     learningAlg = ActorCritic()
+        # else:
+        #     print("Please enter a valid algorithm.\n")
+        #     quit()
 
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
             enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
         network = Network(enableTrainMode, modelName)
-        learningAlg.setNetwork(network)
-        createBots(numberOfNNBots, model, "NN", learningAlg)
+        createBots(numberOfNNBots, model, "NN", algorithm, network)
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 
