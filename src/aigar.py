@@ -17,42 +17,46 @@ import numpy as np
 import tensorflow as tf
 import random as rn
 
-# The below is necessary in Python 3.2.3 onwards to
-# have reproducible behavior for certain hash-based operations.
-# See these references for further details:
-# https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED
-# https://github.com/keras-team/keras/issues/2280#issuecomment-306959926
 
-import os
-os.environ['PYTHONHASHSEED'] = '0'
+def fix_seeds():
+    # The below is necessary in Python 3.2.3 onwards to
+    # have reproducible behavior for certain hash-based operations.
+    # See these references for further details:
+    # https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED
+    # https://github.com/keras-team/keras/issues/2280#issuecomment-306959926
 
-# The below is necessary for starting Numpy generated random numbers
-# in a well-defined initial state.
+    import os
+    os.environ['PYTHONHASHSEED'] = '0'
 
-np.random.seed(42)
+    # The below is necessary for starting Numpy generated random numbers
+    # in a well-defined initial state.
 
-# The below is necessary for starting core Python generated random numbers
-# in a well-defined state.
+    np.random.seed(42)
 
-rn.seed(12345)
+    # The below is necessary for starting core Python generated random numbers
+    # in a well-defined state.
 
-# Force TensorFlow to use single thread.
-# Multiple threads are a potential source of
-# non-reproducible results.
-# For further details, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
+    rn.seed(12345)
 
-session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    # Force TensorFlow to use single thread.
+    # Multiple threads are a potential source of
+    # non-reproducible results.
+    # For further details, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
 
-from keras import backend as K
+    session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 
-# The below tf.set_random_seed() will make random number generation
-# in the TensorFlow backend have a well-defined initial state.
-# For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+    from keras import backend as K
 
-tf.set_random_seed(1234)
+    # The below tf.set_random_seed() will make random number generation
+    # in the TensorFlow backend have a well-defined initial state.
+    # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
 
-sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-K.set_session(sess)
+    tf.set_random_seed(1234)
+
+    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+    K.set_session(sess)
+
+
 
 def modelMustHavePlayers():
     print("Model must have players")
@@ -96,6 +100,8 @@ if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
+
+    # fix_seeds()
 
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
@@ -155,24 +161,25 @@ if __name__ == '__main__':
         if modelName is not None:
             packageName = "savedModels." + modelName
             parameters = importlib.import_module('.networkParameters', package=packageName)
-            if ALGORITHM == "Q-learning":
+            if parameters.ALGORITHM == "Q-learning":
                 algorithm = 0
-            elif ALGORITHM == "n-step Q-learning":
+            elif parameters.ALGORITHM == "n-step Q-learning":
                 algorithm = 1
             else:
                 print("ALGORITHM in networkParameters not found.\n")
 
         if loadModel == 0:
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
-            "'Q-Learning' == 0, 'n-step Q-Learning' == 1\n"))
+            "'Q-Learning' == 0, 'n-step Q-Learning' == 1, 'Continuous Actor-Critic' == 2\n"))
 
         #Create algorithm instance
         if algorithm == 0:
-            ALGORITHM = "Q-Learning"
             learningAlg = QLearn(numberOfNNBots, numberOfHumans)
         elif algorithm == 1:
-            ALGORITHM = "n-step Q-Learning"
+            pass
             # learningAlg = NsQl(numberOfNNBots, numberOfHumans)
+        elif algorithm == 2:
+            learningAlg = ActorCritic()
         else:
             print("Please enter a valid algorithm.\n")
             quit()
