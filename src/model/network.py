@@ -43,7 +43,7 @@ class Network(object):
         self.discount = self.parameters.DISCOUNT
         self.epsilon = self.parameters.EPSILON
         self.frameSkipRate = self.parameters.FRAME_SKIP_RATE
-        self.gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV  # is modified by the user later on anyways
+        self.gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
 
         # ANN
         self.learningRate = self.parameters.ALPHA

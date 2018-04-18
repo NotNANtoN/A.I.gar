@@ -79,6 +79,9 @@ class Critic(object):
 
 
 class ActorCritic(object):
+    def __repr__(self):
+        return "AC"
+
     def __init__(self, parameters):
         self.actor = Actor(parameters)
         self.critic = Critic(parameters)
@@ -89,7 +92,7 @@ class ActorCritic(object):
     def remember(self, old_s, a, r, new_s):
         pass
 
-    def train(self, batch):
+    def train(self):
         if self.parameters.enable_exp_rep:
             memories = self.expReplay.sample()
             inputs_critic = []
@@ -121,8 +124,17 @@ class ActorCritic(object):
             self.actor.train(total_weight_changes_actor)
 
 
-    def act(self, state):
-        action = self.actor.predict(state)
 
-        return action
+    def act_test(self, state):
+        return self.actor.predict(state)
+
+    def act_train(self, state):
+        actions = self.actor.predict(state)
+        std_dev = self.parameters.std_dev
+        actions = [numpy.random.normal(mean, std_dev) for mean in actions]
+        numpy.clip(actions, 0, 1)
+        return actions
+
+
+
 

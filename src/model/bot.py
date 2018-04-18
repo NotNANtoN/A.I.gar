@@ -14,6 +14,7 @@ class Bot(object):
         self.trainMode = None
         if learningAlg is not None:
             self.learningAlg = learningAlg
+            # If Actor-Critic we use continuous actions
             self.trainMode = trainMode
             # If just testing, set exploration to 0
             if trainMode == False:
@@ -103,55 +104,11 @@ class Bot(object):
                     self.currentActionIdx = caIdx
                     self.currentAction = ca
         elif self.type == "Greedy":
-            if not self.player.getIsAlive():
-                return
-            midPoint = self.player.getFovPos()
-            size = self.player.getFovSize()
-            x = int(midPoint[0])
-            y = int(midPoint[1])
-            left = x - int(size / 2)
-            top = y - int(size / 2)
-
-            cellsInFov = self.field.getPelletsInFov(midPoint, size)
-
-            playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
-            firstPlayerCell = self.player.getCells()[0]
-            for opponentCell in playerCellsInFov:
-                # If the single celled bot can eat the opponent cell add it to list
-                if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
-                    cellsInFov.append(opponentCell)
-            if cellsInFov:
-                bestCell = max(cellsInFov, key = lambda p: p.getMass() / (p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
-                bestCellPos = self.getRelativeCellPos(bestCell, left, top, size)
-                self.currentAction[0] = bestCellPos[0]
-                self.currentAction[1] = bestCellPos[1]
-            else:
-                size = int(size / 2)
-                self.currentAction[0] = numpy.random.random()
-                self.currentAction[1] = numpy.random.random()
-            randNumSplit = numpy.random.randint(0,10000)
-            randNumEject = numpy.random.randint(0,10000)
-            self.currentAction[2] = False
-            self.currentAction[3] = False
-            if randNumSplit > self.splitLikelihood:
-                self.currentAction[2] = True
-            if randNumEject > self.ejectLikelihood:
-                self.currentAction[3] = True
+            self.make_greedy_bot_move()
 
         if self.player.getIsAlive():
-            midPoint = self.player.getFovPos()
-            size = self.player.getFovSize()
-            x = int(midPoint[0])
-            y = int(midPoint[1])
-            left = x - int(size / 2)
-            top = y - int(size / 2)
-            size = int(size)
-            xChoice = left + self.currentAction[0] * size
-            yChoice = top + self.currentAction[1] * size
-            splitChoice = True if self.currentAction[2] > 0.5 else False
-            ejectChoice = True if self.currentAction[3] > 0.5 else False
+            self.set_command_point(self.currentAction)
 
-            self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
     def getStateRepresentation(self):
         stateRepr = None
@@ -311,6 +268,59 @@ class Bot(object):
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
 
         return totalInfo
+
+
+    def set_command_point(self, action):
+        midPoint = self.player.getFovPos()
+        size = self.player.getFovSize()
+        x = int(midPoint[0])
+        y = int(midPoint[1])
+        left = x - int(size / 2)
+        top = y - int(size / 2)
+        size = int(size)
+        xChoice = left + action[0] * size
+        yChoice = top + action[1] * size
+        splitChoice = True if action[2] > 0.5 else False
+        ejectChoice = True if action[3] > 0.5 else False
+
+        self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
+
+    def make_greedy_bot_move(self):
+        if not self.player.getIsAlive():
+            return
+        midPoint = self.player.getFovPos()
+        size = self.player.getFovSize()
+        x = int(midPoint[0])
+        y = int(midPoint[1])
+        left = x - int(size / 2)
+        top = y - int(size / 2)
+
+        cellsInFov = self.field.getPelletsInFov(midPoint, size)
+
+        playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
+        firstPlayerCell = self.player.getCells()[0]
+        for opponentCell in playerCellsInFov:
+            # If the single celled bot can eat the opponent cell add it to list
+            if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
+                cellsInFov.append(opponentCell)
+        if cellsInFov:
+            bestCell = max(cellsInFov, key=lambda p: p.getMass() / (
+                p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
+            bestCellPos = self.getRelativeCellPos(bestCell, left, top, size)
+            self.currentAction[0] = bestCellPos[0]
+            self.currentAction[1] = bestCellPos[1]
+        else:
+            size = int(size / 2)
+            self.currentAction[0] = numpy.random.random()
+            self.currentAction[1] = numpy.random.random()
+        randNumSplit = numpy.random.randint(0, 10000)
+        randNumEject = numpy.random.randint(0, 10000)
+        self.currentAction[2] = False
+        self.currentAction[3] = False
+        if randNumSplit > self.splitLikelihood:
+            self.currentAction[2] = True
+        if randNumEject > self.ejectLikelihood:
+            self.currentAction[3] = True
 
     def isCellData(self, cell):
         return [cell.getX(), cell.getY(), cell.getRadius()]

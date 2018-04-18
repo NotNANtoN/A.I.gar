@@ -10,6 +10,7 @@ from model.model import *
 from model.network import *
 from model.qLearning import *
 from model.parameters import *
+from model.actorCritic import  *
 from view.startScreen import StartScreen
 from view.view import View
 
