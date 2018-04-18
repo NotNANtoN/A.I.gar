@@ -83,7 +83,7 @@ class View:
                 if player.getIsAlive() and player.getSelected() and bot.getType() == "NN":
                     playerFovPos = player.getFovPos()
                     playerFovSize = player.getFovSize()
-                    neededLines = bot.gridSquaresPerFov - 1
+                    neededLines = bot.getGridSquaresPerFov() - 1
                     distanceBetweenLines = self.modelToViewScaleRadius(playerFovSize / bot.gridSquaresPerFov, fovSize)
                     scaledPos = self.modelToViewScaling(playerFovPos, fovPos, fovSize)
                     scaledSize = self.modelToViewScaleRadius(playerFovSize, fovSize)

@@ -20,9 +20,11 @@ class Bot(object):
             if trainMode == False:
                 self.learningAlg.getNetwork().setEpsilon(0)
                 self.learningAlg.getNetwork().setFrameSkipRate(0)
-
+            self.gridSquaresPerFov = self.learningAlg.getNetwork().getParameters().GRID_SQUARES_PER_FOV
             self.expRepEnabled = self.learningAlg.getNetwork().getParameters().EXP_REPLAY_ENABLED
             self.gridViewEnabled = self.learningAlg.getNetwork().getParameters().GRID_VIEW_ENABLED
+            self.temporalDifference = self.learningAlg.getNetwork().getParameters().TD
+            self.frameSkipRate = self.learningAlg.getNetwork().getFrameSkipRate()
 
         self.type = type
         self.player = player
@@ -37,16 +39,20 @@ class Bot(object):
     def reset(self):
         self.lastMass = None
         self.oldState = None
+        self.stateHistory = []
         self.latestTDerror = None
         self.lastMemory = None
         self.skipFrames = 0
         self.cumulativeReward = 0
         self.lastReward = 0
+        self.rewardHistory = []
         self.rewardAvgOfEpisode = 0
         self.rewardLenOfEpisode = 0
         if self.type == "NN":
             self.currentActionIdx = None
             self.currentAction = None
+            self.actionIdxHistory = []
+            self.actionHistory =[]
         elif self.type == "Greedy":
             self.currentAction = [0, 0, 0, 0]
 
@@ -54,7 +60,7 @@ class Bot(object):
         self.cumulativeReward += self.getReward() if self.lastMass else 0
         self.lastReward = self.cumulativeReward
 
-        if self.player.getIsAlive():
+        if self.player.getIsAlive() and self.lastReward is not None:
             self.rewardAvgOfEpisode = (self.rewardAvgOfEpisode * self.rewardLenOfEpisode + self.lastReward) \
                                      / (self.rewardLenOfEpisode + 1)
             self.rewardLenOfEpisode += 1
@@ -79,19 +85,32 @@ class Bot(object):
                     self.updateRewards()
                     currentlySkipping = self.updateFrameSkip()
                 if not currentlySkipping:
-                    td_e, qva, nlm, caIdx, ca, cr = self.learningAlg.learn(self, newState)
+                    if self.temporalDifference > 0:
+                        self.rewardHistory.append(self.cumulativeReward)
+
+                    td_e, qva, nlm, naIdx, na = self.learningAlg.learn(self, newState)
                     self.latestTDerror = td_e
                     self.qValues.append(qva)
                     if nlm is not None:
                         self.lastMemory = nlm
-                    self.currentActionIdx = caIdx
-                    self.currentAction = ca
-                    self.cumulativeReward = cr
-                    self.skipFrames = self.learningAlg.getNetwork().getFrameSkipRate()
+                    # Reset frame skipping variables
+                    self.cumulativeReward = 0
+                    self.skipFrames = self.frameSkipRate
+                    if self.temporalDifference > 0:
+                        if len(self.stateHistory) > self.temporalDifference:
+                            del self.stateHistory[0]
+                            del self.actionHistory[0]
+                            del self.actionIdxHistory[0]
+                            del self.rewardHistory[0]
+                        self.stateHistory.append(newState)
+                        self.actionHistory.append(na)
+                        self.actionIdxHistory.append(naIdx)
+                    self.oldState = newState
+                    self.currentAction = na
+                    self.currentActionIdx = naIdx
 
                 if self.player.getIsAlive():
                     self.lastMass = self.player.getTotalMass()
-                    self.oldState = newState
                 else:
                     print(self.player, " died.")
                     print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
@@ -338,6 +357,9 @@ class Bot(object):
     def getAvgReward(self):
         return self.rewardAvgOfEpisode
 
+    def getRewardHistory(self):
+        return self.rewardHistory
+
     def getLastReward(self):
         return self.lastReward
 
@@ -384,7 +406,10 @@ class Bot(object):
     def getLearningAlg(self):
         return self.learningAlg
 
-    def getOldState(self):
+    def getStateHistory(self):
+        return self.stateHistory
+
+    def getLastState(self):
         return self.oldState
 
     def getCurrentActionIdx(self):
@@ -392,6 +417,12 @@ class Bot(object):
 
     def getCurrentAction(self):
         return self.currentAction
+
+    def getActionHistory(self):
+        return self.actionHistory
+
+    def getActionIdxHistory(self):
+        return self.actionIdxHistory
 
     def getCumulativeReward(self):
         return self.cumulativeReward
@@ -404,3 +435,6 @@ class Bot(object):
 
     def getExpRepEnabled(self):
         return self.expRepEnabled
+
+    def getGridSquaresPerFov(self):
+        return self.gridSquaresPerFov

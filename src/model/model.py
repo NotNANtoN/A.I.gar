@@ -125,7 +125,7 @@ class Model(object):
             rewards = []
             for bot in self.bots:
                 if bot.getType() == "NN":
-                    if bot.currentActionIdx != None and bot.latestTDerror != None:
+                    if bot.getCurrentActionIdx() != None and bot.getTDError() != None:
                         reward = bot.getLastReward()
                         tdError = abs(bot.getTDError())
                         rewards.append(reward)
