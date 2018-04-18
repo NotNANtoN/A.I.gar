@@ -4,10 +4,32 @@ import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
+class ExpReplay(object):
+    # TODO: extend with prioritized replay based on td_error
+    def __init(self, parameters):
+        self.memories = []
+        self.max = parameters.max_memories
+        self.batch_size = parameters.memory_batch_size
+
+    def remember(self, old_s, a, r, new_s):
+        self.memories.append((old_s, a, r, new_s))
+
+
+    def canReplay(self):
+        return len(self.memories) >= self.batch_size
+
+    def sample(self):
+        return numpy.random.choice(self.memories, self.batch_size)
+
+    def getMemories(self):
+        return self.memories
+
+
+
 class Bot(object):
     num_NNbots = 0
     num_Greedybots = 0
-    memories = []
+    expReplayer = ExpReplay()
 
     def __init__(self, player, field, type, trainMode, learningAlg):
         self.learningAlg = None
@@ -80,6 +102,7 @@ class Bot(object):
         if self.type == "NN":
             newState = self.getStateRepresentation()
             if self.trainMode:
+
                 currentlySkipping = False
                 if self.currentAction is not None:
                     self.updateRewards()
@@ -428,7 +451,7 @@ class Bot(object):
         return self.cumulativeReward
 
     def getMemories(self):
-        return self.memories
+        return self.expReplayer.getMemories()
 
     def getLastMemory(self):
         return self.lastMemory

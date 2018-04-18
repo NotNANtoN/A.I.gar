@@ -110,15 +110,6 @@ class Network(object):
                 Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                       , kernel_initializer=initializer))
 
-            if self.parameters.USE_POLICY_NETWORK:
-                self.policyNetwork = Sequential()
-                hidden1 = Dense(50, input_dim=self.stateReprLen, activation='sigmoid',
-                                bias_initializer=initializer, kernel_initializer=initializer)
-                self.policyNetwork.add(hidden1)
-                out = Dense(self.num_actions, activation='softmax', bias_initializer=initializer,
-                            kernel_initializer=initializer)
-                self.policyNetwork.add(out)
-
 
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
@@ -132,8 +123,7 @@ class Network(object):
 
         self.valueNetwork.compile(loss='mse', optimizer=optimizer)
         self.targetNetwork.compile(loss='mse', optimizer=optimizer)
-        if self.parameters.USE_POLICY_NETWORK:
-            self.policyNetwork.compile(loss='mse', optimizer=optimizer)
+
 
         if modelName is not None:
             path = "savedModels/" + modelName

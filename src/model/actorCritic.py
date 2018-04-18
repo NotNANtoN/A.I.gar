@@ -1,55 +1,218 @@
 import keras
 import numpy
+import math
+import tensorflow as tf
+import importlib
+from keras.layers import Dense, LSTM, Softmax
+from keras.models import Sequential
+from keras.utils.training_utils import multi_gpu_model
+from keras.models import load_model
+from keras import backend as K
 
-
-class ExpReplay(object):
-    # TODO: extend with prioritized replay based on td_error
-    def __init(self, parameters):
-        self.memories = []
-        self.max = parameters.max_memories
-        self.batch_size = parameters.memory_batch_size
-
-    def remember(self, old_s, a, r, new_s):
-        self.memories.append((old_s, a, r, new_s))
-
-
-    def canReplay(self):
-        return len(self.memories) >= self.batch_size
-
-    def sample(self):
-        return numpy.random.sample((self.batch_size, self.memories))
+def relu_max(x):
+    return K.relu(x, max_value=1)
 
 
 class ValueNetwork(object):
-    def __init__(self, parameters):
-        if parameters.enable_LSTM:
-            #not implemented yet
-            quit()
+    def __init__(self, parameters, modelName=None):
+        self.parameters = parameters
+        self.loadedModelName = None
+
+        self.stateReprLen = self.parameters.STATE_REPR_LEN
+
+        self.gpus = self.parameters.GPUS
+
+        self.learningRate = self.parameters.ALPHA_POLICY
+        self.optimizer = self.parameters.OPTIMIZER_POLICY
+        self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN_POLICY
+        self.activationFuncOutput = self.parameters.ACTIVATION_FUNC_OUTPUT_POLICY
+
+        self.hiddenLayer1 = self.parameters.HIDDEN_LAYER_1_POLICY
+        self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2_POLICY
+        self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3_POLICY
+
+        num_outputs = 1  # value for state
+
+        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
+        initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
+                                                       maxval=weight_initializer_range, seed=None)
+        if self.gpus > 1:
+            with tf.device("/cpu:0"):
+                self.model = Sequential()
+                self.model.add(
+                    Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
+                          bias_initializer=initializer, kernel_initializer=initializer))
+                if self.hiddenLayer2 > 0:
+                    self.model.add(
+                        Dense(self.hiddenLayer2, activation=self.activationFuncHidden, bias_initializer=initializer
+                              , kernel_initializer=initializer))
+                if self.hiddenLayer3 > 0:
+                    self.model.add(
+                        Dense(self.hiddenLayer3, activation=self.activationFuncHidden, bias_initializer=initializer
+                              , kernel_initializer=initializer))
+                self.model.add(
+                    Dense(num_outputs, activation='linear', bias_initializer=initializer
+                          , kernel_initializer=initializer))
+                self.model = multi_gpu_model(self.model, gpus=self.gpus)
         else:
-            self.model = keras.Sequential()
+            self.model = Sequential()
+            hidden1 = None
+            if self.parameters.NEURON_TYPE == "MLP":
+                hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen,
+                                activation=self.activationFuncHidden,
+                                bias_initializer=initializer, kernel_initializer=initializer)
+            elif self.parameters.NEURON_TYPE == "LSTM":
+                hidden1 = LSTM(self.hiddenLayer1, input_shape=(self.stateReprLen, 1),
+                               activation=self.activationFuncHidden,
+                               bias_initializer=initializer, kernel_initializer=initializer)
+
+            self.model.add(hidden1)
+            # self.valueNetwork.add(Dropout(0.5))
+            hidden2 = None
+            if self.hiddenLayer2 > 0:
+                if self.parameters.NEURON_TYPE == "MLP":
+                    hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                elif self.parameters.NEURON_TYPE == "LSTM":
+                    hidden2 = LSTM(self.hiddenLayer2, activation=self.activationFuncHidden,
+                                   bias_initializer=initializer, kernel_initializer=initializer)
+                self.model.add(hidden2)
+                # self.valueNetwork.add(Dropout(0.5))
+
+            if self.hiddenLayer3 > 0:
+                hidden3 = None
+                if self.parameters.NEURON_TYPE == "MLP":
+                    hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                elif self.parameters.NEURON_TYPE == "LSTM":
+                    hidden3 = LSTM(self.hiddenLayer3, activation=self.activationFuncHidden,
+                                   bias_initializer=initializer, kernel_initializer=initializer)
+                self.model.add(hidden3)
+                # self.valueNetwork.add(Dropout(0.5))
+
+            self.model.add(
+                Dense(num_outputs, activation='linear', bias_initializer=initializer
+                      , kernel_initializer=initializer))
+
+        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        self.model.compile(loss='mse', optimizer=optimizer)
+
+        if modelName is not None:
+            path = "savedModels/" + modelName
+            packageName = "savedModels." + modelName
+            self.parameters = importlib.import_module('.networkParameters', package=packageName)
+            self.loadedModelName = modelName
+            self.model = load_model(path + "/value_model.h5")
 
     def predict(self, state):
         return self.model.predict(numpy.array([state]))[0]
         
 
     def train(self, inputs, targets):
-        pass
+        self.model.train_on_batch(inputs, targets)
+
+    def save(self, path):
+        self.model.save(path + "value" + "_model.h5")
 
 
 class PolicyNetwork(object):
-    def __init__(self, parameters):
-        if parameters.enable_LSTM:
-            # not implemented yet
-            quit()
+    def __init__(self, parameters, modelName = None):
+        self.parameters = parameters
+        self.loadedModelName = None
+
+        self.stateReprLen = self.parameters.STATE_REPR_LEN
+
+        self.gpus = self.parameters.GPUS
+
+        self.learningRate = self.parameters.ALPHA_POLICY
+        self.optimizer = self.parameters.OPTIMIZER_POLICY
+        self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN_POLICY
+        self.activationFuncOutput = self.parameters.ACTIVATION_FUNC_OUTPUT_POLICY
+
+        self.hiddenLayer1 = self.parameters.HIDDEN_LAYER_1_POLICY
+        self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2_POLICY
+        self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3_POLICY
+
+        num_outputs = 4 # x, y, split, eject all continuous between 0 and 1
+
+        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
+        initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
+                                                       maxval=weight_initializer_range, seed=None)
+        if self.gpus > 1:
+            with tf.device("/cpu:0"):
+                self.model = Sequential()
+                self.model.add(
+                    Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
+                          bias_initializer=initializer, kernel_initializer=initializer))
+                if self.hiddenLayer2 > 0:
+                    self.model.add(
+                        Dense(self.hiddenLayer2, activation=self.activationFuncHidden, bias_initializer=initializer
+                              , kernel_initializer=initializer))
+                if self.hiddenLayer3 > 0:
+                    self.model.add(
+                        Dense(self.hiddenLayer3, activation=self.activationFuncHidden, bias_initializer=initializer
+                              , kernel_initializer=initializer))
+                self.model.add(
+                    Dense(num_outputs, activation=relu_max, bias_initializer=initializer
+                          , kernel_initializer=initializer))
+                self.model = multi_gpu_model(self.model, gpus=self.gpus)
         else:
-            self.model = keras.Sequential()
+            self.model = Sequential()
+            hidden1 = None
+            if self.parameters.NEURON_TYPE == "MLP":
+                hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
+                                bias_initializer=initializer, kernel_initializer=initializer)
+            elif self.parameters.NEURON_TYPE == "LSTM":
+                hidden1 = LSTM(self.hiddenLayer1, input_shape=(self.stateReprLen, 1),
+                               activation=self.activationFuncHidden,
+                               bias_initializer=initializer, kernel_initializer=initializer)
+
+            self.model.add(hidden1)
+            # self.valueNetwork.add(Dropout(0.5))
+            hidden2 = None
+            if self.hiddenLayer2 > 0:
+                if self.parameters.NEURON_TYPE == "MLP":
+                    hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                elif self.parameters.NEURON_TYPE == "LSTM":
+                    hidden2 = LSTM(self.hiddenLayer2, activation=self.activationFuncHidden,
+                                   bias_initializer=initializer, kernel_initializer=initializer)
+                self.model.add(hidden2)
+                # self.valueNetwork.add(Dropout(0.5))
+
+            if self.hiddenLayer3 > 0:
+                hidden3 = None
+                if self.parameters.NEURON_TYPE == "MLP":
+                    hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                elif self.parameters.NEURON_TYPE == "LSTM":
+                    hidden3 = LSTM(self.hiddenLayer3, activation=self.activationFuncHidden,
+                                   bias_initializer=initializer, kernel_initializer=initializer)
+                self.model.add(hidden3)
+                # self.valueNetwork.add(Dropout(0.5))
+
+            self.model.add(
+                Dense(num_outputs, activation=relu_max, bias_initializer=initializer
+                      , kernel_initializer=initializer))
+
+        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        self.model.compile(loss='mse', optimizer=optimizer)
+
+        if modelName is not None:
+            path = "savedModels/" + modelName
+            packageName = "savedModels." + modelName
+            self.parameters = importlib.import_module('.networkParameters', package=packageName)
+            self.loadedModelName = modelName
+            self.model = load_model(path + "/actor_model.h5")
 
     def predict(self, state):
-        pass
+        return self.model.predict(numpy.array([state]))
 
     def train(self, inputs, targets):
-        pass
+        self.model.train_on_batch(inputs, targets)
 
+    def save(self, path):
+        self.model.save(path + "actor"+ "_model.h5")
 
 class Actor(object):
     def __init__(self, parameters):
@@ -64,8 +227,6 @@ class Actor(object):
 
     def getGradient(self, input, output):
         return self.policyNetwork.get_gradient(input, output)
-
-
 
 class Critic(object):
     def __init__(self, parameters):
@@ -86,44 +247,35 @@ class ActorCritic(object):
         self.actor = Actor(parameters)
         self.critic = Critic(parameters)
         self.parameters = parameters
-        if parameters.enable_exp_rep:
-            self.expReplay = ExpReplay(parameters)
 
-    def remember(self, old_s, a, r, new_s):
-        pass
+    def train(self, batch):
+        inputs_critic = []
+        targets_critic = []
+        total_weight_changes_actor = 0
+        for sample in batch:
+            # Calculate input and target for critic
+            old_s, a, r, new_s = sample
+            alive = new_s is not None
+            old_state_value = self.critic.predict(old_s)
+            target = r
+            if alive:
+                # The target is the reward plus the discounted prediction of the value network
+                updated_prediction = self.critic.predict(new_s)
+                target += self.parameters.discount * updated_prediction
+            td_error = target - old_state_value
+            inputs_critic.append(old_s)
+            targets_critic.append(target)
 
-    def train(self):
-        if self.parameters.enable_exp_rep:
-            memories = self.expReplay.sample()
-            inputs_critic = []
-            targets_critic = []
-            total_weight_changes_actor = 0
-            for memory in memories:
-                # Calculate input and target for critic
-                old_s, a, r, new_s = memory
-                alive = new_s is not None
-                old_state_value = self.critic.predict(old_s)
-                target = r
-                if alive:
-                    # The target is the reward plus the discounted prediction of the value network
-                    updated_prediction = self.critic.predict(new_s)
-                    target += self.parameters.discount * updated_prediction
-                td_error = target - old_state_value
-                inputs_critic.append(old_s)
-                targets_critic.append(target)
+            # Calculate weight change of actor:
+            std_dev = self.parameters.std_dev
+            actor_action = self.actor.predict(old_s)
+            gradient_of_log_prob_target_actor = actor_action + (a - actor_action) / (std_dev * std_dev)
+            gradient = self.actor.getGradient(old_s, gradient_of_log_prob_target_actor)
+            single_weight_change_actor = gradient * td_error
+            total_weight_changes_actor += single_weight_change_actor
 
-                # Calculate weight change of actor:
-                std_dev = self.parameters.std_dev
-                actor_action = self.actor.predict(old_s)
-                gradient_of_log_prob_target_actor = actor_action + (a - actor_action) / (std_dev * std_dev)
-                gradient = self.actor.getGradient(old_s, gradient_of_log_prob_target_actor)
-                single_weight_change_actor = gradient * td_error
-                total_weight_changes_actor += single_weight_change_actor
-
-            self.critic.train(inputs_critic, targets_critic)
-            self.actor.train(total_weight_changes_actor)
-
-
+        self.critic.train(inputs_critic, targets_critic)
+        self.actor.train(total_weight_changes_actor)
 
     def act_test(self, state):
         return self.actor.predict(state)
