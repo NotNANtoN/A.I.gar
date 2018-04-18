@@ -55,14 +55,12 @@ class Bot(object):
             self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
         self.totalMasses = []
-        self.qValues = []
         self.reset()
 
     def reset(self):
         self.lastMass = None
         self.oldState = None
         self.stateHistory = []
-        self.latestTDerror = None
         self.lastMemory = None
         self.skipFrames = 0
         self.cumulativeReward = 0
@@ -97,40 +95,42 @@ class Bot(object):
                 return True
         return False
 
+    def updateValues(self, newActionIdx, newAction, newState, newLastMemory):
+        if newLastMemory is not None:
+            self.lastMemory = newLastMemory
+        # Reset frame skipping variables
+        self.cumulativeReward = 0
+        self.skipFrames = self.frameSkipRate
+        if self.temporalDifference > 0:
+            if len(self.stateHistory) > self.temporalDifference:
+                del self.stateHistory[0]
+                del self.actionHistory[0]
+                del self.actionIdxHistory[0]
+                del self.rewardHistory[0]
+            self.stateHistory.append(newState)
+            self.actionHistory.append(newAction)
+            self.actionIdxHistory.append(newActionIdx)
+        self.oldState = newState
+        self.currentAction = newAction
+        self.currentActionIdx = newActionIdx
+
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
             newState = self.getStateRepresentation()
-            if self.trainMode:
-
-                currentlySkipping = False
-                if self.currentAction is not None:
-                    self.updateRewards()
-                    currentlySkipping = self.updateFrameSkip()
-                if not currentlySkipping:
+            currentlySkipping = False
+            if self.currentAction is not None:
+                self.updateRewards()
+                currentlySkipping = self.updateFrameSkip()
+            if not currentlySkipping:
+                if self.trainMode:
                     if self.temporalDifference > 0:
                         self.rewardHistory.append(self.cumulativeReward)
-
-                    td_e, qva, nlm, naIdx, na = self.learningAlg.learn(self, newState)
-                    self.latestTDerror = td_e
-                    self.qValues.append(qva)
-                    if nlm is not None:
-                        self.lastMemory = nlm
-                    # Reset frame skipping variables
-                    self.cumulativeReward = 0
-                    self.skipFrames = self.frameSkipRate
-                    if self.temporalDifference > 0:
-                        if len(self.stateHistory) > self.temporalDifference:
-                            del self.stateHistory[0]
-                            del self.actionHistory[0]
-                            del self.actionIdxHistory[0]
-                            del self.rewardHistory[0]
-                        self.stateHistory.append(newState)
-                        self.actionHistory.append(na)
-                        self.actionIdxHistory.append(naIdx)
-                    self.oldState = newState
-                    self.currentAction = na
-                    self.currentActionIdx = naIdx
+                    nlm, naIdx, na = self.learningAlg.learn(self, newState)
+                else:
+                    nlm = None
+                    naIdx, na = self.learningAlg.decideMove(newState, self.player, self.player.getIsAlive())
+                self.updateValues(naIdx, na, newState, nlm)
 
                 if self.player.getIsAlive():
                     self.lastMass = self.player.getTotalMass()
@@ -138,13 +138,9 @@ class Bot(object):
                     print(self.player, " died.")
                     print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
                     self.reset()
+                    self.learningAlg.reset()
+                return
 
-            else:
-                # If simply testing, no training required, only action decision
-                if self.player.getIsAlive():
-                    caIdx, ca = self.learningAlg.decideMove(newState, self.player)
-                    self.currentActionIdx = caIdx
-                    self.currentAction = ca
         elif self.type == "Greedy":
             self.make_greedy_bot_move()
 
@@ -371,9 +367,6 @@ class Bot(object):
         return self.getRelativeCellPos(cell, left, top, size) + \
                ([round(cell.getRadius() / size if cell.getRadius() <= size else 1, 5)] if cell != None else [0])
 
-    def getQValues(self):
-        return self.qValues
-
     def getMassOverTime(self):
         return self.totalMasses
 
@@ -402,9 +395,6 @@ class Bot(object):
         totalCells = len(cells)
         return [self.isRelativeCellData(cells[idx], left, top, size) if idx < totalCells else [0, 0, 0]
                      for idx in range(1)]
-
-    def getTDError(self):
-        return self.latestTDerror
 
     def getReward(self):
         if self.lastMass is None:

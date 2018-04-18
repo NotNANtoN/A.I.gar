@@ -10,6 +10,11 @@ class QLearn(object):
         self.name = "Q-learning"
         self.network = network
         self.temporalDifference = self.network.getParameters().TD
+        self.latestTDerror = None
+        self.qValues = []
+
+    def reset(self):
+        self.latestTDerror = None
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
@@ -19,8 +24,6 @@ class QLearn(object):
 
     def learn(self, bot, newState):
         # Observe R_n, S_n+1
-        td_error = None
-        q_value_action = None
         newLastMemory = None
         reward = bot.getCumulativeReward()
         currentActionIdx = bot.getCurrentActionIdx()
@@ -40,13 +43,12 @@ class QLearn(object):
             else:
                 td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
                                                       currentActionIdx, alive, player)
-        newAction = None
-        newActionIdx = None
-        if alive:
-            # Decide on which new action A_n given S_n, only if the player is still alive
-            newActionIdx, newAction = self.decideMove(newState, player)
+            self.latestTDerror = td_error
+            self.qValues.append(q_value_action)
+        # Decide on which new action A_n given S_n, only if the player is still alive
+        newActionIdx, newAction = self.decideMove(newState, player, alive)
 
-        return td_error, q_value_action, newLastMemory, newActionIdx, newAction
+        return newLastMemory, newActionIdx, newAction
 
     def train(self, newState, reward, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
         input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx, reward,
@@ -76,31 +78,33 @@ class QLearn(object):
 
         return td_error, q_value_action, newLastMemory
 
-    def decideMove(self, newState, player):
-        # Take random action with probability 1 - epsilon
-        if numpy.random.random(1) < self.network.epsilon:
-            newActionIdx = numpy.random.randint(len(self.network.getActions()))
-            if __debug__:
-                player.setExploring(True)
-        else:
-            if self.network.getParameters().USE_POLICY_NETWORK:
-                numpyNewState = numpy.array([newState])
-                qValues = self.network.valueNetwork.predict(numpyNewState)
-                qValueSum = sum(qValues)
-                normalizedQValues = numpy.array([qValue / qValueSum for qValue in qValues])
-                self.network.policyNetwork.train_on_batch(numpyNewState, normalizedQValues)
-                actionValues = self.network.policyNetwork.predict(numpyNewState)
-                newActionIdx = numpy.argmax(actionValues)
-            else:
-                # Take action based on greediness towards Q values
-                qValues = self.network.valueNetwork.predict(numpy.array([newState]))
-                newActionIdx = numpy.argmax(qValues)
+    def decideMove(self, newState, player, alive):
+        if alive:
+            # Take random action with probability 1 - epsilon
+            if numpy.random.random(1) < self.network.epsilon:
+                newActionIdx = numpy.random.randint(len(self.network.getActions()))
                 if __debug__:
-                    player.setExploring(False)
-        newAction = self.network.actions[newActionIdx]
-        # skipFrames = self.network.frameSkipRate
-        # cumulativeReward = 0
-        return newActionIdx, newAction
+                    player.setExploring(True)
+            else:
+                if self.network.getParameters().USE_POLICY_NETWORK:
+                    numpyNewState = numpy.array([newState])
+                    qValues = self.network.valueNetwork.predict(numpyNewState)
+                    qValueSum = sum(qValues)
+                    normalizedQValues = numpy.array([qValue / qValueSum for qValue in qValues])
+                    self.network.policyNetwork.train_on_batch(numpyNewState, normalizedQValues)
+                    actionValues = self.network.policyNetwork.predict(numpyNewState)
+                    newActionIdx = numpy.argmax(actionValues)
+                else:
+                    # Take action based on greediness towards Q values
+                    qValues = self.network.valueNetwork.predict(numpy.array([newState]))
+                    newActionIdx = numpy.argmax(qValues)
+                    if __debug__:
+                        player.setExploring(False)
+            newAction = self.network.actions[newActionIdx]
+            # skipFrames = self.network.frameSkipRate
+            # cumulativeReward = 0
+            return newActionIdx, newAction
+        return None, None
 
     def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, player, verbose=False):
         state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
@@ -226,3 +230,9 @@ class QLearn(object):
 
     def getNetwork(self):
         return self.network
+
+    def getQvalues(self):
+        return self.qValues
+
+    def getTDError(self):
+        return self.latestTDerror
