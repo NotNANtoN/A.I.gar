@@ -7,7 +7,7 @@ class ExpectedSarsa(object):
         self.network = None
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
-        self.name = "Q-learning"
+        self.name = "ExpectedSarsa"
         self.temporalDifference = None
 
     def setNetwork(self, network):
@@ -34,8 +34,8 @@ class ExpectedSarsa(object):
         # Make sure it's not the first state of the episode
         if len(bot.actionHistory) > self.temporalDifference:
             # Only load memories if expReplay is enabled
-            oldState = bot.getLastState()
-            if bot.getExpRepEnabled():
+            oldState = bot.getStateHistory()
+            if False: #bot.getExpRepEnabled():
                 memories = bot.getMemories()
                 lastMemory = bot.getLastMemory()
                 td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
