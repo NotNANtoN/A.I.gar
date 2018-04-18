@@ -26,7 +26,6 @@ class Network(object):
                 self.actions.remove(action)
 
         self.num_actions = len(self.actions)
-
         self.parameters = importlib.import_module('.networkParameters', package="model")
         self.loadedModelName = None
 
@@ -144,41 +143,6 @@ class Network(object):
             self.valueNetwork = load_model(path + "/NN_model.h5")
             self.targetNetwork = self.valueNetwork
 
-    def calculateTarget(self, newState, reward, alive):
-        targetNetworkEnabled = True
-        target = reward
-        if alive:
-            # The target is the reward plus the discounted prediction of the value network
-            if targetNetworkEnabled:
-                action_Q_values = self.targetNetwork.predict(numpy.array([newState]))[0]
-            else:
-                action_Q_values = self.valueNetwork.predict(numpy.array([newState]))[0]
-            newActionIdx = numpy.argmax(action_Q_values)
-            target += self.discount * action_Q_values[newActionIdx]
-        return target
-
-    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, player, verbose=False):
-        state_Q_values = self.valueNetwork.predict(numpy.array([oldState]))[0]
-        target = self.calculateTarget(newState, reward, alive)
-        q_value_of_action = state_Q_values[actionIdx]
-        td_error = target - q_value_of_action
-        if __debug__ and player.getSelected() and verbose:
-            print("")
-            # print("State to be updated: ", oldState)
-            print("Action: ", self.actions[actionIdx])
-            print("Reward: ", round(reward, 2))
-            # print("S\': ", newState)
-            print("Qvalue of action before training: ", round(state_Q_values[actionIdx], 4))
-            print("Target Qvalue of that action: ", round(target, 4))
-            print("All qvalues: ", numpy.round(state_Q_values, 3))
-            print("Expected Q-value: ", round(max(state_Q_values), 3))
-            print("TD-Error: ", td_error)
-        if self.parameters.USE_TARGET:
-            state_Q_values[actionIdx] = target
-        else:
-            state_Q_values[actionIdx] = td_error
-        return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
-
     def trainOnBatch(self, inputs, targets):
         self.valueNetwork.train_on_batch(inputs, targets)
 
@@ -189,11 +153,17 @@ class Network(object):
     def setEpsilon(self, val):
         self.epsilon = val
 
+    def setFrameSkipRate(self, value):
+        self.frameSkipRate = value
+
     def getTrainMode(self):
         return self.trainMode
 
     def getMemoriesPerUpdate(self):
         return self.memoriesPerUpdate
+
+    def getMemoryCapacity(self):
+        return self.memoryCapacity
 
     def getParameters(self):
         return self.parameters
@@ -245,6 +215,15 @@ class Network(object):
 
     def getLoadedModelName(self):
         return self.loadedModelName
+
+    def getActions(self):
+        return self.actions
+
+    def getTargetNetwork(self):
+        return self.targetNetwork
+
+    def getValueNetwork(self):
+        return self.valueNetwork
 
 
 

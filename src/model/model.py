@@ -281,7 +281,15 @@ class Model(object):
 
     def runningAvg(self, array, numberOfPoints):
         res = len(array) // numberOfPoints  # res: running error step
-        return [numpy.mean(array[idx * res:(idx + 1) * res]) for idx in range(numberOfPoints)]
+        meanArray = []
+        epoch = []
+        for i in range(res):
+            for j in range(numberOfPoints):
+                if array[i * numberOfPoints + j] is not None:
+                    epoch.append(array[i * numberOfPoints + j])
+            meanArray.append(numpy.mean(epoch))
+        return meanArray
+        # return [numpy.mean(array[idx * numberOfPoints:(idx + 1) * numberOfPoints]) for idx in range(res)]
 
     def plotTDError(self):
         path = self.path
