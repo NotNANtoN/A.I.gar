@@ -1,5 +1,5 @@
 GPUS = 1
-ALGORITHM = None
+ALGORITHM = "AC"
 # Experience replay:
 MEMORY_CAPACITY = 75000
 MEMORIES_PER_UPDATE = 40 # Must be divisible by 4 atm due to experience replay
