@@ -125,14 +125,12 @@ class Model(object):
             rewards = []
             for bot in self.bots:
                 if bot.getType() == "NN":
-                    print(bot.getCurrentActionIdx(), bot.getLearningAlg().getTDError())
                     if bot.getCurrentActionIdx() != None and bot.getLearningAlg().getTDError() != None:
                         reward = bot.getLastReward()
                         tdError = abs(bot.getLearningAlg().getTDError())
                         rewards.append(reward)
                         errors.append(tdError)
             # Save the mean td error and reward for the bots per update
-            print(rewards)
             if len(rewards) > 0:
                 self.rewards.append(numpy.mean(rewards))
                 self.tdErrors.append(numpy.mean(errors))
@@ -328,6 +326,7 @@ class Model(object):
     def plotQValuesOverTime(self):
         for bot in self.bots:
             qValues = bot.getLearningAlg().getQValues()
+            print(qValues)
             qValues = self.runningAvg(qValues, 200)
             meanQValue = round(numpy.mean(qValues), 1)
             playerName = str(bot.getPlayer())

@@ -14,15 +14,21 @@ class nsSarsa(object):
         self.actionIdxHistory = []
         self.stateHistory = []
         self.time = 0
-        self.terminalTime = -1
-        self.tau = 0
-        self.n = self.network.getParameters().TD
+        self.terminalTime = math.inf
+        self.n = self.network.getParameters().TD + 1
+        self.tau = -self.n
         self.latestTDError = None
         self.qValues = []
 
     def reset(self):
         self.latestTDError = None
         self.time = 0
+        self.terminalTime = math.inf
+        self.tau = -self.n
+        self.stateHistory = []
+        self.actionIdxHistory = []
+        self.rewards = []
+        self.qValues = []
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
@@ -33,21 +39,26 @@ class nsSarsa(object):
     def learn(self, bot, newState):
         player = bot.getPlayer()
         alive = player.getIsAlive()
-        self.actionIdxHistory = bot.getActionIdxHistory()
-        self.stateHistory = bot.getStateHistory()
+        # self.actionIdxHistory.append(bot.getCurrentActionIdx())
+        if self.time == 0:
+            self.stateHistory.append(newState)
 
         newActionIdx = None
         newAction = None
         newLastMemory = None
         while(self.tau < self.terminalTime -1):
-            if self.time < self.terminalTime or self.terminalTime == -1:
+            if self.time < self.terminalTime :
+
                 # Observe R_n, S_n+1 (except at t == 0 where there is no R and S = S_initial)
-                if self.time != 0:
+                if self.time > 0:
                     newLastMemory = None
-                    reward = bot.getCumulativeReward()
+                    # Take action A_n (bot just took it through model update)
+                    self.stateHistory.append(newState)
+                    self.rewards.append(bot.getCumulativeReward())
                     if len(self.rewards) > self.n:
                         del self.rewards[0]
-                    self.rewards.append(reward)
+                        del self.stateHistory[0]
+                        del self.actionIdxHistory[0]
 
                 # If state is terminal
                 if not alive:
@@ -55,6 +66,8 @@ class nsSarsa(object):
                 else:
                     # Decide on which new action A_n given S_n, only if the player is still alive
                     newActionIdx, newAction = self.decideMove(newState, player, alive)
+                    self.actionIdxHistory.append(newActionIdx)
+
             self.tau = self.time - self.n + 1
 
             # Given S_n, A_n, R_n, and S_n+1 decide on A_n+1 and train
@@ -64,17 +77,15 @@ class nsSarsa(object):
                 if False: #bot.getExpRepEnabled():
                     memories = bot.getMemories()
                     lastMemory = bot.getLastMemory()
-                    td_error, q_value_action, newLastMemory = self.train(newState, self.stateHistory()[0],
+
+                    td_error, q_value_action, newLastMemory = self.train(self.stateHistory[1], self.stateHistory[0],
                                                           self.actionIdxHistory[0], alive, player, memories, lastMemory)
                 else:
-                    td_error, q_value_action, newLastMemory = self.train(newState, self.stateHistory()[0],
+
+                    td_error, q_value_action, newLastMemory = self.train(self.stateHistory[1], self.stateHistory[0],
                                                           self.actionIdxHistory[0], alive, player)
                 self.latestTDError = td_error
-                self.qValues = q_value_action
-                # print(self.rewards[0], self.stateHistory[0], self.actionIdxHistory[0])
-                # del self.rewards[0]
-                # del self.stateHistory[0]
-                # del self.actionIdxHistory[0]
+                self.qValues.append(q_value_action)
             self.time += 1
             if alive:
                 break
@@ -82,7 +93,7 @@ class nsSarsa(object):
 
     def train(self, newState, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
         input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx,
-                                                                             newState, alive, player, True)
+                                                                             newState, player, True)
         newLastMemory = None
         if memories is not None:
             newLastMemory = self.experienceReplay(oldState, newState, td_error, currentActionIdx, alive,
@@ -134,7 +145,7 @@ class nsSarsa(object):
             return newActionIdx, newAction
         return None, None
 
-    def createInputOutputPair(self, oldState, actionIdx, reward, newState, player, verbose=False):
+    def createInputOutputPair(self, oldState, actionIdx, newState, player, verbose=False):
         state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
         target = self.calculateTarget(newState)
         q_value_of_action = state_Q_values[actionIdx]
@@ -262,7 +273,7 @@ class nsSarsa(object):
     def getNetwork(self):
         return self.network
 
-    def getQvalues(self):
+    def getQValues(self):
         return self.qValues
 
     def getTDError(self):

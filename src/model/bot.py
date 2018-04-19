@@ -61,19 +61,19 @@ class Bot(object):
     def reset(self):
         self.lastMass = None
         self.oldState = None
-        self.stateHistory = []
+        # self.stateHistory = []
         self.lastMemory = None
         self.skipFrames = 0
         self.cumulativeReward = 0
         self.lastReward = 0
-        self.rewardHistory = []
+        # self.rewardHistory = []
         self.rewardAvgOfEpisode = 0
         self.rewardLenOfEpisode = 0
         if self.type == "NN":
             self.currentActionIdx = None
             self.currentAction = None
-            self.actionIdxHistory = []
-            self.actionHistory =[]
+            # self.actionIdxHistory = []
+            # self.actionHistory =[]
         elif self.type == "Greedy":
             self.currentAction = [0, 0, 0, 0]
 
@@ -102,16 +102,6 @@ class Bot(object):
         # Reset frame skipping variables
         self.cumulativeReward = 0
         self.skipFrames = self.frameSkipRate
-        if self.temporalDifference > 0:
-            if len(self.stateHistory) > self.temporalDifference + 1:
-                del self.stateHistory[0]
-                del self.actionHistory[0]
-                del self.actionIdxHistory[0]
-            if len(self.stateHistory) > self.temporalDifference:
-                del self.rewardHistory[0]
-            self.stateHistory.append(newState)
-            self.actionHistory.append(newAction)
-            self.actionIdxHistory.append(newActionIdx)
         self.oldState = newState
         self.currentAction = newAction
         self.currentActionIdx = newActionIdx
@@ -126,8 +116,6 @@ class Bot(object):
                 currentlySkipping = self.updateFrameSkip()
             if not currentlySkipping:
                 if self.trainMode:
-                    if self.temporalDifference > 0 and self.currentAction is not None:
-                        self.rewardHistory.append(self.cumulativeReward)
                     # Train
                     nlm, naIdx, na = self.learningAlg.learn(self, newState)
                 else:
@@ -377,11 +365,10 @@ class Bot(object):
     def getAvgReward(self):
         return self.rewardAvgOfEpisode
 
-    def getRewardHistory(self):
-        return self.rewardHistory
+    # def getRewardHistory(self):
+    #     return self.rewardHistory
 
     def getLastReward(self):
-        print(self.lastReward)
         return self.lastReward
 
     def getRelativeCellPos(self, cell, left, top, size):
@@ -424,8 +411,8 @@ class Bot(object):
     def getLearningAlg(self):
         return self.learningAlg
 
-    def getStateHistory(self):
-        return self.stateHistory
+    # def getStateHistory(self):
+    #     return self.stateHistory
 
     def getLastState(self):
         return self.oldState
@@ -436,11 +423,11 @@ class Bot(object):
     def getCurrentAction(self):
         return self.currentAction
 
-    def getActionHistory(self):
-        return self.actionHistory
+    # def getActionHistory(self):
+    #     return self.actionHistory
 
-    def getActionIdxHistory(self):
-        return self.actionIdxHistory
+    # def getActionIdxHistory(self):
+    #     return self.actionIdxHistory
 
     def getCumulativeReward(self):
         return self.cumulativeReward
