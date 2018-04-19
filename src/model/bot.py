@@ -103,10 +103,11 @@ class Bot(object):
         self.cumulativeReward = 0
         self.skipFrames = self.frameSkipRate
         if self.temporalDifference > 0:
-            if len(self.stateHistory) > self.temporalDifference:
+            if len(self.stateHistory) > self.temporalDifference + 1:
                 del self.stateHistory[0]
                 del self.actionHistory[0]
                 del self.actionIdxHistory[0]
+            if len(self.stateHistory) > self.temporalDifference:
                 del self.rewardHistory[0]
             self.stateHistory.append(newState)
             self.actionHistory.append(newAction)
@@ -125,11 +126,13 @@ class Bot(object):
                 currentlySkipping = self.updateFrameSkip()
             if not currentlySkipping:
                 if self.trainMode:
-                    if self.temporalDifference > 0:
+                    if self.temporalDifference > 0 and self.currentAction is not None:
                         self.rewardHistory.append(self.cumulativeReward)
+                    # Train
                     nlm, naIdx, na = self.learningAlg.learn(self, newState)
                 else:
                     nlm = None
+                    # Test without training
                     naIdx, na = self.learningAlg.decideMove(newState, self.player, self.player.getIsAlive())
                 self.updateValues(naIdx, na, newState, nlm)
 
@@ -378,6 +381,7 @@ class Bot(object):
         return self.rewardHistory
 
     def getLastReward(self):
+        print(self.lastReward)
         return self.lastReward
 
     def getRelativeCellPos(self, cell, left, top, size):

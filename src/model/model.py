@@ -125,12 +125,14 @@ class Model(object):
             rewards = []
             for bot in self.bots:
                 if bot.getType() == "NN":
+                    print(bot.getCurrentActionIdx(), bot.getLearningAlg().getTDError())
                     if bot.getCurrentActionIdx() != None and bot.getLearningAlg().getTDError() != None:
                         reward = bot.getLastReward()
                         tdError = abs(bot.getLearningAlg().getTDError())
                         rewards.append(reward)
                         errors.append(tdError)
             # Save the mean td error and reward for the bots per update
+            print(rewards)
             if len(rewards) > 0:
                 self.rewards.append(numpy.mean(rewards))
                 self.tdErrors.append(numpy.mean(errors))
@@ -346,7 +348,7 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type, learningAlg):
+    def createBot(self, type, learningAlg = None):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
         bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg)

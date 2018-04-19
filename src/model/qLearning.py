@@ -10,11 +10,11 @@ class QLearn(object):
         self.name = "Q-learning"
         self.network = network
         self.temporalDifference = self.network.getParameters().TD
-        self.latestTDerror = None
+        self.latestTDError = None
         self.qValues = []
 
     def reset(self):
-        self.latestTDerror = None
+        self.latestTDError = None
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
@@ -29,7 +29,6 @@ class QLearn(object):
         currentActionIdx = bot.getCurrentActionIdx()
         player = bot.getPlayer()
         alive = player.getIsAlive()
-
         # Given S_n, A_n, R_n, and S_n+1 decide on A_n+1 and train
         # Make sure it's not the first state of the episode
         if bot.getCurrentAction() is not None:
@@ -43,7 +42,7 @@ class QLearn(object):
             else:
                 td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
                                                       currentActionIdx, alive, player)
-            self.latestTDerror = td_error
+            self.latestTDError = td_error
             self.qValues.append(q_value_action)
         # Decide on which new action A_n given S_n, only if the player is still alive
         newActionIdx, newAction = self.decideMove(newState, player, alive)
@@ -231,8 +230,8 @@ class QLearn(object):
     def getNetwork(self):
         return self.network
 
-    def getQvalues(self):
+    def getQValues(self):
         return self.qValues
 
     def getTDError(self):
-        return self.latestTDerror
+        return self.latestTDError

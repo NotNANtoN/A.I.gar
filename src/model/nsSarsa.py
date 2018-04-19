@@ -1,22 +1,28 @@
 import numpy
 import heapq
+import math
 
 class nsSarsa(object):
 
     def __init__(self, numOfNNbots, numOfHumans, network):
-        self.network = None
+        self.network = network
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
         self.name = "nsSarsa"
-        self.nStepRewards = 0
+        self.discount = self.network.getDiscount()
+        self.rewards = []
+        self.actionIdxHistory = []
+        self.stateHistory = []
+        self.time = 0
+        self.terminalTime = -1
         self.tau = 0
-        self.network = network
-        self.temporalDifference = self.network.getParameters().TD
-        self.latestTDerror = None
+        self.n = self.network.getParameters().TD
+        self.latestTDError = None
         self.qValues = []
 
     def reset(self):
-        self.latestTDerror = None
+        self.latestTDError = None
+        self.time = 0
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
@@ -25,39 +31,61 @@ class nsSarsa(object):
         return self.decideMove(newState, player)
 
     def learn(self, bot, newState):
-        # Observe R_n, S_n+1
-        newLastMemory = None
-        reward = bot.getCumulativeReward()
-        currentActionIdx = bot.getCurrentActionIdx()
         player = bot.getPlayer()
         alive = player.getIsAlive()
+        self.actionIdxHistory = bot.getActionIdxHistory()
+        self.stateHistory = bot.getStateHistory()
 
-        # Given S_n, A_n, R_n, and S_n+1 decide on A_n+1 and train
-        # Make sure it's not the first state of the episode
-        if len(bot.actionHistory) > self.temporalDifference:
-            # Only load memories if expReplay is enabled
-            oldState = bot.getStateHistory()
-            if False: #bot.getExpRepEnabled():
-                memories = bot.getMemories()
-                lastMemory = bot.getLastMemory()
-                td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
-                                                      currentActionIdx, alive, player, memories, lastMemory)
-            else:
-                td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
-                                                      currentActionIdx, alive, player)
-        # Decide on which new action A_n given S_n, only if the player is still alive
-        newActionIdx, newAction = self.decideMove(newState, player, alive)
-        self.tau =
+        newActionIdx = None
+        newAction = None
+        newLastMemory = None
+        while(self.tau < self.terminalTime -1):
+            if self.time < self.terminalTime or self.terminalTime == -1:
+                # Observe R_n, S_n+1 (except at t == 0 where there is no R and S = S_initial)
+                if self.time != 0:
+                    newLastMemory = None
+                    reward = bot.getCumulativeReward()
+                    if len(self.rewards) > self.n:
+                        del self.rewards[0]
+                    self.rewards.append(reward)
 
+                # If state is terminal
+                if not alive:
+                    self.terminalTime = self.time + 1
+                else:
+                    # Decide on which new action A_n given S_n, only if the player is still alive
+                    newActionIdx, newAction = self.decideMove(newState, player, alive)
+            self.tau = self.time - self.n + 1
 
+            # Given S_n, A_n, R_n, and S_n+1 decide on A_n+1 and train
+            # Make sure it's not the first state of the episode
+            if self.tau >= 0:
+                # Only load memories if expReplay is enabled
+                if False: #bot.getExpRepEnabled():
+                    memories = bot.getMemories()
+                    lastMemory = bot.getLastMemory()
+                    td_error, q_value_action, newLastMemory = self.train(newState, self.stateHistory()[0],
+                                                          self.actionIdxHistory[0], alive, player, memories, lastMemory)
+                else:
+                    td_error, q_value_action, newLastMemory = self.train(newState, self.stateHistory()[0],
+                                                          self.actionIdxHistory[0], alive, player)
+                self.latestTDError = td_error
+                self.qValues = q_value_action
+                # print(self.rewards[0], self.stateHistory[0], self.actionIdxHistory[0])
+                # del self.rewards[0]
+                # del self.stateHistory[0]
+                # del self.actionIdxHistory[0]
+            self.time += 1
+            if alive:
+                break
         return newLastMemory, newActionIdx, newAction
 
-    def train(self, newState, reward, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
-        input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx, reward,
+    def train(self, newState, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
+        input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx,
                                                                              newState, alive, player, True)
         newLastMemory = None
         if memories is not None:
-            newLastMemory = self.experienceReplay(reward, oldState, newState, td_error, currentActionIdx, alive,
+            newLastMemory = self.experienceReplay(oldState, newState, td_error, currentActionIdx, alive,
                                                   player, memories, lastMemory)
         # Fit value network using only the current experience
         else:
@@ -106,9 +134,9 @@ class nsSarsa(object):
             return newActionIdx, newAction
         return None, None
 
-    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, player, verbose=False):
+    def createInputOutputPair(self, oldState, actionIdx, reward, newState, player, verbose=False):
         state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
-        target = self.calculateTarget(newState, reward, alive)
+        target = self.calculateTarget(newState)
         q_value_of_action = state_Q_values[actionIdx]
         td_error = target - q_value_of_action
         if __debug__ and player.getSelected() and verbose:
@@ -128,23 +156,26 @@ class nsSarsa(object):
             state_Q_values[actionIdx] = td_error
         return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
 
-    def calculateTarget(self, newState, reward, alive):
+    def calculateTarget(self, newState):
         targetNetworkEnabled = True
-        target = reward
-        if alive:
+        target = 0
+        for i in range(self.tau + 1, min(self.tau + self.n, self.terminalTime)):
+            idx = i - self.tau - 1
+            target += math.pow(self.discount, idx) * self.rewards[idx]
+        if self.tau + self.n < self.terminalTime:
             # The target is the reward plus the discounted prediction of the value network
             if targetNetworkEnabled:
                 action_Q_values = self.network.getTargetNetwork().predict(numpy.array([newState]))[0]
             else:
                 action_Q_values = self.network.getValueNetwork().predict(numpy.array([newState]))[0]
             newActionIdx = numpy.argmax(action_Q_values)
-            target += self.network.getDiscount() * action_Q_values[newActionIdx]
+            target += math.pow(self.discount, self.n) * action_Q_values[newActionIdx]
         return target
 
-    def experienceReplay(self, reward, oldState, newState, td_error, currentActionIdx, alive, player, memories, lastMemory):
+    def experienceReplay(self, oldState, newState, td_error, currentActionIdx, alive, player, memories, lastMemory):
         newLastMemory = None
         if alive:
-            newLastMemory = self.storeInMemory(currentActionIdx, reward, oldState, newState, td_error, alive,
+            newLastMemory = self.storeInMemory(currentActionIdx, self.rewards, oldState, newState, td_error, alive,
                                        memories, lastMemory)
         self.train_on_experience(player, memories)
         return newLastMemory
@@ -235,4 +266,4 @@ class nsSarsa(object):
         return self.qValues
 
     def getTDError(self):
-        return self.latestTDerror
+        return self.latestTDError

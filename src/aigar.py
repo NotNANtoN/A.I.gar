@@ -9,8 +9,10 @@ from controller.controller import Controller
 from model.model import *
 from model.network import *
 from model.qLearning import *
+from model.nsSarsa import *
+from model.ExpectedSarsa import *
 from model.parameters import *
-from model.actorCritic import  *
+from model.actorCritic import *
 from view.startScreen import StartScreen
 from view.view import View
 
@@ -107,7 +109,7 @@ def createBots(number, model, type, algorithm = None, network = None):
     elif type == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
-            model.createBot(type, learningAlg)
+            model.createBot(type)
 
 
 if __name__ == '__main__':
@@ -184,7 +186,7 @@ if __name__ == '__main__':
 
         if loadModel == 0:
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
-            "'Q-Learning' == 0, 'n-step Q-Learning' == 1, 'Continuous Actor-Critic' == 2\n"))
+            "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Continuous Actor-Critic' == 2\n"))
 
         # #Create algorithm instance
         # if algorithm == 0:

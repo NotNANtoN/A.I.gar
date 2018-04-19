@@ -10,11 +10,11 @@ class ExpectedSarsa(object):
         self.name = "ExpectedSarsa"
         self.network = network
         self.temporalDifference = self.network.getParameters().TD
-        self.latestTDerror = None
+        self.latestTDError = None
         self.qValues = []
 
-     def reset(self):
-         self.latestTDerror = None
+    def reset(self):
+         self.latestTDError = None
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
@@ -43,7 +43,7 @@ class ExpectedSarsa(object):
             else:
                 td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
                                                       currentActionIdx, alive, player)
-            self.latestTDerror = td_error
+            self.latestTDError = td_error
             self.qValues.append(q_value_action)
         # Decide on which new action A_n given S_n, only if the player is still alive
         newActionIdx, newAction = self.decideMove(newState, player, alive)
@@ -233,4 +233,4 @@ class ExpectedSarsa(object):
         return self.qValues
 
     def getTDError(self):
-        return self.latestTDerror
+        return self.latestTDError
