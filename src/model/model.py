@@ -125,6 +125,7 @@ class Model(object):
             rewards = []
             for bot in self.bots:
                 if bot.getType() == "NN":
+                    print(bot.getCurrentActionIdx(), bot.getLearningAlg().getTDError())
                     if bot.getCurrentActionIdx() != None and bot.getLearningAlg().getTDError() != None:
                         reward = bot.getLastReward()
                         tdError = abs(bot.getLearningAlg().getTDError())

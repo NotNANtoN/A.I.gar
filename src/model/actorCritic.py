@@ -114,7 +114,6 @@ class ValueNetwork(object):
     def save(self, path):
         self.model.save(path + "value" + "_model.h5")
 
-
 class PolicyNetwork(object):
     def __init__(self, parameters, modelName = None):
         self.parameters = parameters
@@ -221,9 +220,15 @@ class Actor(object):
     def predict(self, state):
         return self.policyNetwork.predict(state)
 
+    # Makes the given target outputs more likely
+    def train_CACLA(self, states, targets):
+        self.policyNetwork.train()
+
     def train(self, weight_changes):
         weights = self.policyNetwork.get_weights()
         self.policyNetwork.set_weights(weights + weight_changes)
+
+
 
     def getGradient(self, input, output):
         return self.policyNetwork.get_gradient(input, output)
@@ -238,15 +243,49 @@ class Critic(object):
     def train(self, inputs, outputs):
         self.valueNetwork.train_on_batch(inputs, outputs)
 
-
 class ActorCritic(object):
     def __repr__(self):
         return "AC"
 
     def __init__(self, parameters):
-        self.actor = Actor(parameters)
-        self.critic = Critic(parameters)
+        self.actor = PolicyNetwork(parameters)
+        self.critic = ValueNetwork(parameters)
         self.parameters = parameters
+        self.parameters.std_dev = self.parameters.EPSILON
+        self.discrete = False
+
+    def learn(self, batch):
+        self.train_CACLA(batch)
+
+    def decideMove(self, state):
+        return self.actor.predict(state)[0]
+
+    def train_CACLA(self, batch):
+        inputs_critic = []
+        targets_critic = []
+        inputs_actor = []
+        targets_actor = []
+        for sample in batch:
+            # Calculate input and target for critic
+            old_s, a, r, new_s = sample
+            alive = new_s is not None
+            old_state_value = self.critic.predict(old_s)
+            target = r
+            if alive:
+                # The target is the reward plus the discounted prediction of the value network
+                updated_prediction = self.critic.predict(new_s)
+                target += self.parameters.discount * updated_prediction
+            td_error = target - old_state_value
+            inputs_critic.append(old_s)
+            targets_critic.append(target)
+
+            if td_error > 0:
+                inputs_actor.append(old_s)
+                targets_actor.append(a)
+
+        self.actor.train(inputs_actor, targets_actor)
+        self.critic.train(inputs_critic, targets_critic)
+
 
     def train(self, batch):
         inputs_critic = []
@@ -277,16 +316,14 @@ class ActorCritic(object):
         self.critic.train(inputs_critic, targets_critic)
         self.actor.train(total_weight_changes_actor)
 
-    def act_test(self, state):
-        return self.actor.predict(state)
-
     def act_train(self, state):
         actions = self.actor.predict(state)
         std_dev = self.parameters.std_dev
         actions = [numpy.random.normal(mean, std_dev) for mean in actions]
-        numpy.clip(actions, 0, 1)
         return actions
 
+    def reset(self):
+        pass
 
 
 

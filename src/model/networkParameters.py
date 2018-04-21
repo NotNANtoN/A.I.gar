@@ -2,7 +2,7 @@ GPUS = 1
 ALGORITHM = "None"
 # Experience replay:
 MEMORY_CAPACITY = 75000
-MEMORIES_PER_UPDATE = 40 # Must be divisible by 4 atm due to experience replay
+MEMORY_BATCH_LEN = 40 # Must be divisible by 4 atm due to experience replay
 REPLAY_AFTER_X_STEPS = 0
 
 # Q-learning

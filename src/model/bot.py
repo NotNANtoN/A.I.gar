@@ -4,16 +4,17 @@ import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
-class ExpReplay(object):
-    # TODO: extend with prioritized replay based on td_error
-    def __init(self, parameters):
+class ExpReplay():
+    # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
+    def __init__(self, parameters):
         self.memories = []
-        self.max = parameters.max_memories
-        self.batch_size = parameters.memory_batch_size
+        self.max = parameters.MEMORY_CAPACITY
+        self.batch_size = parameters.MEMORY_BATCH_LEN
 
     def remember(self, old_s, a, r, new_s):
+        if len(self.memories) >= self.max:
+            del self.memories[0]
         self.memories.append((old_s, a, r, new_s))
-
 
     def canReplay(self):
         return len(self.memories) >= self.batch_size
@@ -29,7 +30,10 @@ class ExpReplay(object):
 class Bot(object):
     num_NNbots = 0
     num_Greedybots = 0
-    expReplayer = ExpReplay()
+
+    @classmethod
+    def init_exp_replayer(cls, parameters):
+        cls.expReplayer = ExpReplay(parameters)
 
     def __init__(self, player, field, type, trainMode, learningAlg):
         self.learningAlg = None
@@ -81,11 +85,7 @@ class Bot(object):
         self.cumulativeReward += self.getReward() if self.lastMass else 0
         self.lastReward = self.cumulativeReward
 
-        if self.player.getIsAlive() and self.lastReward is not None:
-            self.rewardAvgOfEpisode = (self.rewardAvgOfEpisode * self.rewardLenOfEpisode + self.lastReward) \
-                                     / (self.rewardLenOfEpisode + 1)
-            self.rewardLenOfEpisode += 1
-
+    # Returns true if we skip this frame
     def updateFrameSkip(self):
         # Do not train if we are skipping this frame
         if self.skipFrames > 0:
@@ -96,7 +96,7 @@ class Bot(object):
                 return True
         return False
 
-    def updateValues(self, newActionIdx, newAction, newState, newLastMemory):
+    def updateValues(self, newActionIdx, newAction, newState, newLastMemory = None):
         if newLastMemory is not None:
             self.lastMemory = newLastMemory
         # Reset frame skipping variables
@@ -106,38 +106,50 @@ class Bot(object):
         self.currentAction = newAction
         self.currentActionIdx = newActionIdx
 
+    def learn_and_move_NN(self):
+        newState = self.getStateRepresentation()
+        currentlySkipping = False
+        if self.currentAction is not None:
+            self.updateRewards()
+            currentlySkipping = self.updateFrameSkip()
+        if not currentlySkipping:
+            # Learn
+            if self.trainMode and self.expReplayer.canReplay():
+                # Train
+                # nlm, naIdx, na = self.learningAlg.learn(self, newState)
+                action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
+                self.expReplayer.remember(self.oldState, action, self.lastReward, newState)
+                batch = self.expReplayer.sample()
+                self.learningAlg.learn(batch)
+
+            # Move
+            if self.player.getIsAlive():
+                if self.learningAlg.discrete:
+                    new_action_idx, new_action = self.learningAlg.decideMove(newState, self.player)
+                else:
+                    new_action = self.learningAlg.decideMove(newState)
+                    new_action_idx = None
+
+            self.updateValues(new_action_idx, new_action, newState)
+
+            if self.player.getIsAlive():
+                self.lastMass = self.player.getTotalMass()
+            else:
+                self.reset()
+                self.learningAlg.reset()
+
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
-            newState = self.getStateRepresentation()
-            currentlySkipping = False
-            if self.currentAction is not None:
-                self.updateRewards()
-                currentlySkipping = self.updateFrameSkip()
-            if not currentlySkipping:
-                if self.trainMode:
-                    # Train
-                    nlm, naIdx, na = self.learningAlg.learn(self, newState)
-                else:
-                    nlm = None
-                    # Test without training
-                    naIdx, na = self.learningAlg.decideMove(newState, self.player, self.player.getIsAlive())
-                self.updateValues(naIdx, na, newState, nlm)
+            self.learn_and_move_NN()
 
-                if self.player.getIsAlive():
-                    self.lastMass = self.player.getTotalMass()
-                else:
-                    print(self.player, " died.")
-                    print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
-                    self.reset()
-                    self.learningAlg.reset()
-                return
+        if not self.player.getIsAlive():
+            return
 
-        elif self.type == "Greedy":
+        if self.type == "Greedy":
             self.make_greedy_bot_move()
 
-        if self.player.getIsAlive():
-            self.set_command_point(self.currentAction)
+        self.set_command_point(self.currentAction)
 
 
     def getStateRepresentation(self):
@@ -316,8 +328,6 @@ class Bot(object):
         self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
     def make_greedy_bot_move(self):
-        if not self.player.getIsAlive():
-            return
         midPoint = self.player.getFovPos()
         size = self.player.getFovSize()
         x = int(midPoint[0])
