@@ -11,16 +11,18 @@ class ExpReplay():
         self.max = parameters.MEMORY_CAPACITY
         self.batch_size = parameters.MEMORY_BATCH_LEN
 
-    def remember(self, old_s, a, r, new_s):
+    def remember(self, new_exp):
         if len(self.memories) >= self.max:
             del self.memories[0]
-        self.memories.append((old_s, a, r, new_s))
+        self.memories.append(new_exp)
+
 
     def canReplay(self):
         return len(self.memories) >= self.batch_size
 
     def sample(self):
-        return numpy.random.choice(self.memories, self.batch_size)
+        randIdxs = numpy.random.randint(0, len(self.memories) - 1, self.batch_size)
+        return [self.memories[idx] for idx in randIdxs]
 
     def getMemories(self):
         return self.memories
@@ -35,22 +37,14 @@ class Bot(object):
     def init_exp_replayer(cls, parameters):
         cls.expReplayer = ExpReplay(parameters)
 
-    def __init__(self, player, field, type, trainMode, learningAlg):
-        self.learningAlg = None
+    def __init__(self, player, field, type, trainMode, learningAlg, parameters, modelName = None):
         self.trainMode = None
+        self.parameters = parameters
+        self.modelName = modelName
         if learningAlg is not None:
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
             self.trainMode = trainMode
-            # If just testing, set exploration to 0
-            if trainMode == False:
-                self.learningAlg.getNetwork().setEpsilon(0)
-                self.learningAlg.getNetwork().setFrameSkipRate(0)
-            self.gridSquaresPerFov = self.learningAlg.getNetwork().getParameters().GRID_SQUARES_PER_FOV
-            self.expRepEnabled = self.learningAlg.getNetwork().getParameters().EXP_REPLAY_ENABLED
-            self.gridViewEnabled = self.learningAlg.getNetwork().getParameters().GRID_VIEW_ENABLED
-            self.temporalDifference = self.learningAlg.getNetwork().getParameters().TD
-            self.frameSkipRate = self.learningAlg.getNetwork().getFrameSkipRate()
 
         self.type = type
         self.player = player
@@ -61,6 +55,11 @@ class Bot(object):
         self.totalMasses = []
         self.memories = []
         self.reset()
+
+        self.learningAlg.load(modelName)
+
+    def saveModel(self, path):
+        self.learningAlg.save(path)
 
     def reset(self):
         self.lastMass = None
@@ -101,25 +100,30 @@ class Bot(object):
             self.lastMemory = newLastMemory
         # Reset frame skipping variables
         self.cumulativeReward = 0
-        self.skipFrames = self.frameSkipRate
+        self.skipFrames = self.parameters.FRAME_SKIP_RATE
         self.oldState = newState
         self.currentAction = newAction
         self.currentActionIdx = newActionIdx
 
     def learn_and_move_NN(self):
         newState = self.getStateRepresentation()
+        newState = numpy.array([newState]) if newState is not None else None
         currentlySkipping = False
         if self.currentAction is not None:
             self.updateRewards()
             currentlySkipping = self.updateFrameSkip()
         if not currentlySkipping:
             # Learn
-            if self.trainMode and self.expReplayer.canReplay():
+            if self.trainMode and self.oldState is not None:
                 # Train
-                # nlm, naIdx, na = self.learningAlg.learn(self, newState)
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
-                self.expReplayer.remember(self.oldState, action, self.lastReward, newState)
-                batch = self.expReplayer.sample()
+                currentExperience = (self.oldState, action, self.lastReward, newState)
+                self.expReplayer.remember(currentExperience)
+                if self.expReplayer.canReplay() and self.learningAlg.parameters.EXP_REPLAY_ENABLED:
+                    batch = self.expReplayer.sample()
+                else:
+                    batch = []
+                batch.append(currentExperience)
                 self.learningAlg.learn(batch)
 
             # Move
@@ -130,7 +134,7 @@ class Bot(object):
                     new_action = self.learningAlg.decideMove(newState)
                     new_action_idx = None
 
-            self.updateValues(new_action_idx, new_action, newState)
+                self.updateValues(new_action_idx, new_action, newState)
 
             if self.player.getIsAlive():
                 self.lastMass = self.player.getTotalMass()
@@ -155,7 +159,7 @@ class Bot(object):
     def getStateRepresentation(self):
         stateRepr = None
         if self.player.getIsAlive():
-            if self.gridViewEnabled:
+            if self.parameters.GRID_VIEW_ENABLED:
                 stateRepr =  self.getGridStateRepresentation()
             else:
                 stateRepr =  self.getSimpleStateRepresentation()
@@ -209,7 +213,7 @@ class Bot(object):
         left = x - fovSize / 2
         top = y - fovSize / 2
         # Initialize spatial hash tables:
-        gridSquaresPerFov = self.learningAlg.getNetwork().getGridSquaresPerFov()
+        gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
         pelletSHT = spatialHashTable(fovSize, gsSize, left, top) #SHT = spatial hash table
         enemySHT =  spatialHashTable(fovSize, gsSize, left, top)
@@ -449,7 +453,7 @@ class Bot(object):
         return self.lastMemory
 
     def getExpRepEnabled(self):
-        return self.expRepEnabled
+        return self.parameters.EXP_REPLAY_ENABLED
 
     def getGridSquaresPerFov(self):
-        return self.gridSquaresPerFov
+        return self.parameters.GRID_SQUARES_PER_FOV

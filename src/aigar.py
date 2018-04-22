@@ -90,7 +90,7 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, parameters, algorithm = None, network = None):
+def createBots(number, model, type, parameters, algorithm = None, network = None, modelName = None):
     if algorithm == 2:
         learningAlg = ActorCritic(parameters)
     if type == "NN":
@@ -102,9 +102,10 @@ def createBots(number, model, type, parameters, algorithm = None, network = None
             elif algorithm == 1:
                 learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
             else:
-                print("Please enter a valid algorithm.\n")
-                quit()
-            model.createBot(type, learningAlg)
+                pass
+                #print("Please enter a valid algorithm.\n")
+                #quit()
+            model.createBot(type, learningAlg, parameters, modelName)
     elif type == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
@@ -207,7 +208,7 @@ if __name__ == '__main__':
         model.setTrainingEnabled(enableTrainMode == 1)
         network = Network(enableTrainMode, modelName)
         Bot.init_exp_replayer(parameters)
-        createBots(numberOfNNBots, model, "NN", parameters, algorithm, network)
+        createBots(numberOfNNBots, model, "NN", parameters, algorithm, network, modelName)
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 
