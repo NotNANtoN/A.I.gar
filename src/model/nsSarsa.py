@@ -91,19 +91,19 @@ class nsSarsa(object):
                 break
         return newLastMemory, newActionIdx, newAction
 
-    def train(self, newState, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
-        input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx,
-                                                                             newState, player, True)
+    def train(self, state_1, state_0, currentActionIdx, alive, player, memories=None, lastMemory=None):
+        input, target, td_error, q_value_action = self.createInputOutputPair(state_0, currentActionIdx,
+                                                                             state_1, player, True)
         newLastMemory = None
         if memories is not None:
-            newLastMemory = self.experienceReplay(oldState, newState, td_error, currentActionIdx, alive,
+            newLastMemory = self.experienceReplay(state_0, state_1, td_error, currentActionIdx, alive,
                                                   player, memories, lastMemory)
         # Fit value network using only the current experience
         else:
             self.network.valueNetwork.train_on_batch(input, target)
 
-        if  __debug__ and player.getSelected():
-            updatedQvalueOfAction = self.network.valueNetwork.predict(numpy.array([oldState]))[0][
+        if __debug__ and player.getSelected():
+            updatedQvalueOfAction = self.network.valueNetwork.predict(numpy.array([state_0]))[0][
                 currentActionIdx]
             print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
             print("(also after experience replay, so last shown action is not necessarily this action )")
@@ -145,16 +145,16 @@ class nsSarsa(object):
             return newActionIdx, newAction
         return None, None
 
-    def createInputOutputPair(self, oldState, actionIdx, newState, player, verbose=False):
-        state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
-        target = self.calculateTarget(newState)
+    def createInputOutputPair(self, state_0, actionIdx, state_1, player, verbose=False):
+        state_Q_values = self.network.getValueNetwork().predict(numpy.array([state_0]))[0]
+        target = self.calculateTarget(state_1)
         q_value_of_action = state_Q_values[actionIdx]
         td_error = target - q_value_of_action
         if __debug__ and player.getSelected() and verbose:
             print("")
             # print("State to be updated: ", oldState)
             print("Action: ", self.network.getActions()[actionIdx])
-            print("Reward: ", round(reward, 2))
+            print("G: ", round(sum(self.rewards), 2))
             # print("S\': ", newState)
             print("Qvalue of action before training: ", round(state_Q_values[actionIdx], 4))
             print("Target Qvalue of that action: ", round(target, 4))
@@ -165,9 +165,9 @@ class nsSarsa(object):
             state_Q_values[actionIdx] = target
         else:
             state_Q_values[actionIdx] = td_error
-        return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
+        return numpy.array([state_0]), numpy.array([state_Q_values]), td_error, q_value_of_action
 
-    def calculateTarget(self, newState):
+    def calculateTarget(self, state_1):
         targetNetworkEnabled = True
         target = 0
         for i in range(self.tau + 1, min(self.tau + self.n, self.terminalTime)):
@@ -176,9 +176,9 @@ class nsSarsa(object):
         if self.tau + self.n < self.terminalTime:
             # The target is the reward plus the discounted prediction of the value network
             if targetNetworkEnabled:
-                action_Q_values = self.network.getTargetNetwork().predict(numpy.array([newState]))[0]
+                action_Q_values = self.network.getTargetNetwork().predict(numpy.array([state_1]))[0]
             else:
-                action_Q_values = self.network.getValueNetwork().predict(numpy.array([newState]))[0]
+                action_Q_values = self.network.getValueNetwork().predict(numpy.array([state_1]))[0]
             newActionIdx = numpy.argmax(action_Q_values)
             target += math.pow(self.discount, self.n) * action_Q_values[newActionIdx]
         return target

@@ -179,7 +179,7 @@ if __name__ == '__main__':
             parameters = importlib.import_module('.networkParameters', package=packageName)
             if parameters.ALGORITHM == "Q-learning":
                 algorithm = 0
-            elif parameters.ALGORITHM == "n-step Q-learning":
+            elif parameters.ALGORITHM == "n-step Sarsa":
                 algorithm = 1
             else:
                 print("ALGORITHM in networkParameters not found.\n")
