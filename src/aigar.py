@@ -90,22 +90,22 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, algorithm = None, network = None):
+def createBots(number, model, type, parameters, algorithm = None, network = None, modelName = None):
+    if algorithm == 2:
+        learningAlg = ActorCritic(parameters)
     if type == "NN":
         Bot.num_NNbots = number
         for i in range(number):
             # Create algorithm instance
-            learningAlg = None
             if algorithm == 0:
-                learningAlg = QLearn(numberOfNNBots, numberOfHumans, network)
+                learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
             elif algorithm == 1:
-                learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network)
-            elif algorithm == 2:
-                learningAlg = ActorCritic()
+                learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
             else:
-                print("Please enter a valid algorithm.\n")
-                quit()
-            model.createBot(type, learningAlg)
+                pass
+                #print("Please enter a valid algorithm.\n")
+                #quit()
+            model.createBot(type, learningAlg, parameters, modelName)
     elif type == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
@@ -183,6 +183,8 @@ if __name__ == '__main__':
                 algorithm = 1
             else:
                 print("ALGORITHM in networkParameters not found.\n")
+        else:
+            parameters = importlib.import_module('.networkParameters', package="model")
 
         if loadModel == 0:
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
@@ -205,7 +207,8 @@ if __name__ == '__main__':
             enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
         network = Network(enableTrainMode, modelName)
-        createBots(numberOfNNBots, model, "NN", algorithm, network)
+        Bot.init_exp_replayer(parameters)
+        createBots(numberOfNNBots, model, "NN", parameters, algorithm, network, modelName)
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 

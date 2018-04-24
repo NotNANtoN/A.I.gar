@@ -33,10 +33,6 @@ class Network(object):
 
         self.gpus = self.parameters.GPUS
 
-        # Experience replay:
-        self.memoryCapacity = self.parameters.MEMORY_CAPACITY
-        self.memoriesPerUpdate = self.parameters.MEMORIES_PER_UPDATE  # Must be divisible by 4 atm due to experience replay
-
         # Q-learning
         self.targetNetworkSteps = self.parameters.TARGET_NETWORK_STEPS
         self.targetNetworkMaxSteps = self.parameters.TARGET_NETWORK_MAX_STEPS
@@ -126,15 +122,21 @@ class Network(object):
 
 
         if modelName is not None:
-            path = "savedModels/" + modelName
-            packageName = "savedModels." + modelName
-            self.parameters = importlib.import_module('.networkParameters', package=packageName)
-            self.loadedModelName = modelName
-            self.valueNetwork = load_model(path + "/NN_model.h5")
-            self.targetNetwork = self.valueNetwork
+            self.load(modelName)
+
+    def load(self, modelName):
+        path = "savedModels/" + modelName
+        packageName = "savedModels." + modelName
+        self.parameters = importlib.import_module('.networkParameters', package=packageName)
+        self.loadedModelName = modelName
+        self.valueNetwork = load_model(path + "/NN_model.h5")
+        self.targetNetwork = self.valueNetwork
 
     def trainOnBatch(self, inputs, targets):
         self.valueNetwork.train_on_batch(inputs, targets)
+
+    def predict(self, state):
+        return self.valueNetwork.predict(numpy.array([state]))[0]
 
     def saveModel(self, path, bot):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())

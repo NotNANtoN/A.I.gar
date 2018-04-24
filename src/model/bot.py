@@ -4,22 +4,25 @@ import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
-class ExpReplay(object):
-    # TODO: extend with prioritized replay based on td_error
-    def __init(self, parameters):
+class ExpReplay():
+    # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
+    def __init__(self, parameters):
         self.memories = []
-        self.max = parameters.max_memories
-        self.batch_size = parameters.memory_batch_size
+        self.max = parameters.MEMORY_CAPACITY
+        self.batch_size = parameters.MEMORY_BATCH_LEN
 
-    def remember(self, old_s, a, r, new_s):
-        self.memories.append((old_s, a, r, new_s))
+    def remember(self, new_exp):
+        if len(self.memories) >= self.max:
+            del self.memories[0]
+        self.memories.append(new_exp)
 
 
     def canReplay(self):
         return len(self.memories) >= self.batch_size
 
     def sample(self):
-        return numpy.random.choice(self.memories, self.batch_size)
+        randIdxs = numpy.random.randint(0, len(self.memories) - 1, self.batch_size)
+        return [self.memories[idx] for idx in randIdxs]
 
     def getMemories(self):
         return self.memories
@@ -29,24 +32,19 @@ class ExpReplay(object):
 class Bot(object):
     num_NNbots = 0
     num_Greedybots = 0
-    expReplayer = ExpReplay()
 
-    def __init__(self, player, field, type, trainMode, learningAlg):
-        self.learningAlg = None
+    @classmethod
+    def init_exp_replayer(cls, parameters):
+        cls.expReplayer = ExpReplay(parameters)
+
+    def __init__(self, player, field, type, trainMode, learningAlg, parameters, modelName = None):
         self.trainMode = None
+        self.parameters = parameters
+        self.modelName = modelName
         if learningAlg is not None:
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
             self.trainMode = trainMode
-            # If just testing, set exploration to 0
-            if trainMode == False:
-                self.learningAlg.getNetwork().setEpsilon(0)
-                self.learningAlg.getNetwork().setFrameSkipRate(0)
-            self.gridSquaresPerFov = self.learningAlg.getNetwork().getParameters().GRID_SQUARES_PER_FOV
-            self.expRepEnabled = self.learningAlg.getNetwork().getParameters().EXP_REPLAY_ENABLED
-            self.gridViewEnabled = self.learningAlg.getNetwork().getParameters().GRID_VIEW_ENABLED
-            self.temporalDifference = self.learningAlg.getNetwork().getParameters().TD
-            self.frameSkipRate = self.learningAlg.getNetwork().getFrameSkipRate()
 
         self.type = type
         self.player = player
@@ -57,6 +55,11 @@ class Bot(object):
         self.totalMasses = []
         self.memories = []
         self.reset()
+
+        self.learningAlg.load(modelName)
+
+    def saveModel(self, path):
+        self.learningAlg.save(path)
 
     def reset(self):
         self.lastMass = None
@@ -81,11 +84,7 @@ class Bot(object):
         self.cumulativeReward += self.getReward() if self.lastMass else 0
         self.lastReward = self.cumulativeReward
 
-        if self.player.getIsAlive() and self.lastReward is not None:
-            self.rewardAvgOfEpisode = (self.rewardAvgOfEpisode * self.rewardLenOfEpisode + self.lastReward) \
-                                     / (self.rewardLenOfEpisode + 1)
-            self.rewardLenOfEpisode += 1
-
+    # Returns true if we skip this frame
     def updateFrameSkip(self):
         # Do not train if we are skipping this frame
         if self.skipFrames > 0:
@@ -96,54 +95,71 @@ class Bot(object):
                 return True
         return False
 
-    def updateValues(self, newActionIdx, newAction, newState, newLastMemory):
+    def updateValues(self, newActionIdx, newAction, newState, newLastMemory = None):
         if newLastMemory is not None:
             self.lastMemory = newLastMemory
         # Reset frame skipping variables
         self.cumulativeReward = 0
-        self.skipFrames = self.frameSkipRate
+        self.skipFrames = self.parameters.FRAME_SKIP_RATE
         self.oldState = newState
         self.currentAction = newAction
         self.currentActionIdx = newActionIdx
 
+    def learn_and_move_NN(self):
+        newState = self.getStateRepresentation()
+        newState = numpy.array([newState]) if newState is not None else None
+        currentlySkipping = False
+        if self.currentAction is not None:
+            self.updateRewards()
+            currentlySkipping = self.updateFrameSkip()
+        if not currentlySkipping:
+            # Learn
+            if self.trainMode and self.oldState is not None:
+                # Train
+                action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
+                currentExperience = (self.oldState, action, self.lastReward, newState)
+                self.expReplayer.remember(currentExperience)
+                if self.expReplayer.canReplay() and self.learningAlg.parameters.EXP_REPLAY_ENABLED:
+                    batch = self.expReplayer.sample()
+                else:
+                    batch = []
+                batch.append(currentExperience)
+                self.learningAlg.learn(batch)
+
+            # Move
+            if self.player.getIsAlive():
+                if self.learningAlg.discrete:
+                    new_action_idx, new_action = self.learningAlg.decideMove(newState, self.player)
+                else:
+                    new_action = self.learningAlg.decideMove(newState)
+                    new_action_idx = None
+
+                self.updateValues(new_action_idx, new_action, newState)
+
+            if self.player.getIsAlive():
+                self.lastMass = self.player.getTotalMass()
+            else:
+                self.reset()
+                self.learningAlg.reset()
+
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
-            newState = self.getStateRepresentation()
-            currentlySkipping = False
-            if self.currentAction is not None:
-                self.updateRewards()
-                currentlySkipping = self.updateFrameSkip()
-            if not currentlySkipping:
-                if self.trainMode:
-                    # Train
-                    nlm, naIdx, na = self.learningAlg.learn(self, newState)
-                else:
-                    nlm = None
-                    # Test without training
-                    naIdx, na = self.learningAlg.decideMove(newState, self.player, self.player.getIsAlive())
-                self.updateValues(naIdx, na, newState, nlm)
+            self.learn_and_move_NN()
 
-                if self.player.getIsAlive():
-                    self.lastMass = self.player.getTotalMass()
-                else:
-                    print(self.player, " died.")
-                    print("Average reward of ", self.player, " for this episode: ", self.rewardAvgOfEpisode)
-                    self.reset()
-                    self.learningAlg.reset()
-                return
+        if not self.player.getIsAlive():
+            return
 
-        elif self.type == "Greedy":
+        if self.type == "Greedy":
             self.make_greedy_bot_move()
 
-        if self.player.getIsAlive():
-            self.set_command_point(self.currentAction)
+        self.set_command_point(self.currentAction)
 
 
     def getStateRepresentation(self):
         stateRepr = None
         if self.player.getIsAlive():
-            if self.gridViewEnabled:
+            if self.parameters.GRID_VIEW_ENABLED:
                 stateRepr =  self.getGridStateRepresentation()
             else:
                 stateRepr =  self.getSimpleStateRepresentation()
@@ -197,7 +213,7 @@ class Bot(object):
         left = x - fovSize / 2
         top = y - fovSize / 2
         # Initialize spatial hash tables:
-        gridSquaresPerFov = self.learningAlg.getNetwork().getGridSquaresPerFov()
+        gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
         pelletSHT = spatialHashTable(fovSize, gsSize, left, top) #SHT = spatial hash table
         enemySHT =  spatialHashTable(fovSize, gsSize, left, top)
@@ -316,8 +332,6 @@ class Bot(object):
         self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
     def make_greedy_bot_move(self):
-        if not self.player.getIsAlive():
-            return
         midPoint = self.player.getFovPos()
         size = self.player.getFovSize()
         x = int(midPoint[0])
@@ -439,7 +453,7 @@ class Bot(object):
         return self.lastMemory
 
     def getExpRepEnabled(self):
-        return self.expRepEnabled
+        return self.parameters.EXP_REPLAY_ENABLED
 
     def getGridSquaresPerFov(self):
-        return self.gridSquaresPerFov
+        return self.parameters.GRID_SQUARES_PER_FOV

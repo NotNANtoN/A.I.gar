@@ -125,7 +125,7 @@ class Model(object):
             rewards = []
             for bot in self.bots:
                 if bot.getType() == "NN":
-                    if bot.getCurrentActionIdx() != None and bot.getLearningAlg().getTDError() != None:
+                    if bot.getCurrentAction() is not None and bot.getLearningAlg().getTDError() is not None:
                         reward = bot.getLastReward()
                         tdError = abs(bot.getLearningAlg().getTDError())
                         rewards.append(reward)
@@ -171,7 +171,7 @@ class Model(object):
         for bot in self.bots:
             botType = bot.getType()
             if botType != "Greedy" and botType not in savedTypes:
-                bot.getLearningAlg().getNetwork().saveModel(path, bot)
+                bot.saveModel(path)
                 savedTypes.append(botType)
         if end:
             path = path[:-1]
@@ -210,7 +210,7 @@ class Model(object):
         self.plotQValuesOverTime()
 
     def getRelevantModelData(self, bot, end = False):
-        network = bot.getLearningAlg().getNetwork()
+        parameters = bot.parameters
         data = ""
         #Simulation:
         data += "Simulation:\n"
@@ -227,27 +227,28 @@ class Model(object):
         data += "\n"
         # RL:
         data += "Reinforcement learning:\n"
-        data += "Epsilon - " + str(network.getEpsilon()) + "\n"
-        data += "Discount factor - " + str(network.getDiscount()) + "\n"
-        data += "Frame skip rate - " + str(network.getFrameSkipRate()) + "\n"
-        data += "State representation - " + ("Grid" if bot.gridViewEnabled else "Simple") + "\n"
-        if bot.gridViewEnabled:
-            data += "Grid - " + str(network.getGridSquaresPerFov()) + "x" +  str(network.getGridSquaresPerFov())  + "\n"
-        data += "Experience Replay - " + ("Enabled" if bot.expRepEnabled else "Disabled") + "\n"
-        data += "Target Network steps until update - " + str(network.getTargetNetworkMaxSteps()) + "\n"
-        data += "Name of model that was loaded - " + (network.getLoadedModelName() if network.getLoadedModelName() else "None") + "\n"
+        data += "Epsilon - " + str(parameters.EPSILON) + "\n"
+        data += "Discount factor - " + str(parameters.DISCOUNT) + "\n"
+        data += "Frame skip rate - " + str(parameters.FRAME_SKIP_RATE) + "\n"
+        data += "State representation - " + ("Grid" if parameters.GRID_VIEW_ENABLED else "Simple") + "\n"
+        if parameters.GRID_VIEW_ENABLED:
+            data += "Grid - " + str(parameters.GRID_SQUARES_PER_FOV) + "x" +  str(parameters.GRID_SQUARES_PER_FOV)  + "\n"
+        data += "Experience Replay - " + ("Enabled" if parameters.EXP_REPLAY_ENABLED else "Disabled") + "\n"
+        data += "Target Network steps until update - " + str(parameters.TARGET_NETWORK_MAX_STEPS) + "\n"
+
+        data += "Name of model that was loaded - " + (bot.modelName if bot.modelName else "None") + "\n"
         data += "\n"
         # ANN:
         data += "ANN:\n"
-        data += "Input layer neurons(stateReprLen) - " + str(network.getStateReprLen()) + "\n"
-        data += "First hidden layer neurons - " + str(network.getHiddenLayer1()) + "\n"
-        data += "Second hidden layer neurons - " + str(network.getHiddenLayer2()) + "\n"
-        data += "Third hidden layer neurons - " + str(network.getHiddenLayer3()) + "\n"
-        data += "Output layer neurons(number of actions) - " + str(network.getNumOfActions()) + "\n"
-        data += "Learning rate - " + str(network.getLearningRate()) + "\n"
-        data += "Activation function hidden layer(s) - " + network.getActivationFuncHidden() + "\n"
-        data += "Activation function output layer - " + network.getActivationFuncOutput() + "\n"
-        data += "Optimizer - " + str(network.getOptimizer()) + "\n"
+        data += "Input layer neurons(stateReprLen) - " + str(parameters.STATE_REPR_LEN) + "\n"
+        data += "First hidden layer neurons - " + str(parameters.HIDDEN_LAYER_1) + "\n"
+        data += "Second hidden layer neurons - " + str(parameters.HIDDEN_LAYER_2) + "\n"
+        data += "Third hidden layer neurons - " + str(parameters.HIDDEN_LAYER_3) + "\n"
+        data += "Output layer neurons(number of actions) - " + str() + "\n"
+        data += "Learning rate - " + str(parameters.ALPHA) + "\n"
+        data += "Activation function hidden layer(s) - " + parameters.ACTIVATION_FUNC_HIDDEN + "\n"
+        data += "Activation function output layer - " + parameters.ACTIVATION_FUNC_OUTPUT + "\n"
+        data += "Optimizer - " + str(parameters.OPTIMIZER) + "\n"
         return data
 
     def printBotMasses(self):
@@ -267,8 +268,10 @@ class Model(object):
             self.meanRewards.append(recentMeanReward)
             print(" ")
             print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
-            print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
-            print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
+            if len(self.rewards) > 0:
+                 print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
+            if len(self.tdErrors) > 0:
+                 print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
             print("Number of stored rewards: ", len(self.rewards))
             self.printBotMasses()
@@ -347,10 +350,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type, learningAlg = None):
+    def createBot(self, type, learningAlg = None, parameters = None, modelName = None):
         name = type + " " + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg)
+        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg, parameters, modelName)
         self.addBot(bot)
 
     def createHuman(self, name):

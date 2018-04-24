@@ -2,7 +2,7 @@ GPUS = 1
 ALGORITHM = "None"
 # Experience replay:
 MEMORY_CAPACITY = 75000
-MEMORIES_PER_UPDATE = 40 # Must be divisible by 4 atm due to experience replay
+MEMORY_BATCH_LEN = 40 # Must be divisible by 4 atm due to experience replay
 REPLAY_AFTER_X_STEPS = 0
 
 # Q-learning
@@ -14,15 +14,23 @@ TARGET_NETWORK_STEPS = 10000
 TARGET_NETWORK_MAX_STEPS = 10000 # 2000 performs worse than 5000. 20000 was a bit better than 5000. 20k was worse than 10k
 DISCOUNT = 0.90 # 0.9 seems best so far. Better than 0.995 and 0.9999 . 0.5 and below performs much worse. 0.925 performs worse than 0.9
 # Higher discount seems to lead to much more stable learning, less variance
-TD = 10
+TD = 0
 
 Exploration = True
-EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
+EPSILON = 0.4 if Exploration else 0 # Exploration rate. 0 == No Exploration
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
 EPSILON_DECREASE_RATE = 1
-FRAME_SKIP_RATE = 6 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+FRAME_SKIP_RATE = 7 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
+
+# Actor-critic:
+ALPHA_POLICY = 0.0075
+OPTIMIZER_POLICY = "Adam"
+ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
+HIDDEN_LAYER_1_POLICY = 50
+HIDDEN_LAYER_2_POLICY = 50
+HIDDEN_LAYER_3_POLICY = 0
 
 #ANN
 NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
