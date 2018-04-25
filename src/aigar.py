@@ -92,7 +92,7 @@ def createHumans(numberOfHumans, model1):
 
 def createBots(number, model, type, parameters, algorithm = None, network = None, modelName = None):
     if algorithm == 2:
-        learningAlg = ActorCritic(parameters)
+        learningAlg = ActorCritic(parameters, numberOfNNBots)
     if type == "NN":
         Bot.num_NNbots = number
         for i in range(number):

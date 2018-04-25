@@ -33,6 +33,10 @@ class ValueNetwork(object):
 
         num_outputs = 1  # value for state
 
+        if modelName is not None:
+            self.load(modelName)
+            return
+
         weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                        maxval=weight_initializer_range, seed=None)
@@ -95,23 +99,39 @@ class ValueNetwork(object):
                       , kernel_initializer=initializer))
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
-        self.model.compile(loss='mse', optimizer=optimizer)
 
+        self.target_model = keras.models.clone_model(self.model)
+        self.target_model.set_weights(self.model.get_weights())
+
+        self.model.compile(loss='mse', optimizer=optimizer)
+        self.target_model.compile(loss='mse', optimizer=optimizer)
+
+
+
+    def load(self, modelName = None):
         if modelName is not None:
             path = "savedModels/" + modelName
             packageName = "savedModels." + modelName
             self.parameters = importlib.import_module('.networkParameters', package=packageName)
             self.loadedModelName = modelName
             self.model = load_model(path + "/value_model.h5")
+            self.target_model = load_model(path + "/value_model.h5")
 
     def predict(self, state):
         return self.model.predict(state)[0]
+
+    def predict_target_model(self, state):
+        return self.target_model.predict(state)[0]
+
+    def update_target_model(self):
+        self.target_model.set_weights(self.model.get_weights())
 
     def train(self, inputs, targets):
         self.model.train_on_batch(inputs, targets)
 
     def save(self, path):
-        self.model.save(path + "value" + "_model.h5")
+        self.target_model.set_weights(self.model.get_weights())
+        self.target_model.save(path + "value_model.h5")
 
 
 class PolicyNetwork(object):
@@ -131,6 +151,10 @@ class PolicyNetwork(object):
         self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3_POLICY
 
         num_outputs = 4 # x, y, split, eject all continuous between 0 and 1
+
+        if modelName is not None:
+            self.load(modelName)
+            return
 
         weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
@@ -195,6 +219,8 @@ class PolicyNetwork(object):
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
         self.model.compile(loss='mse', optimizer=optimizer)
 
+
+    def load(self, modelName = None):
         if modelName is not None:
             path = "savedModels/" + modelName
             packageName = "savedModels." + modelName
@@ -218,7 +244,8 @@ class ActorCritic(object):
     def __repr__(self):
         return "AC"
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, num_bots):
+        self.num_bots = num_bots
         self.actor = PolicyNetwork(parameters)
         self.critic = ValueNetwork(parameters)
         self.parameters = parameters
@@ -230,17 +257,23 @@ class ActorCritic(object):
         self.lastTDE = None
         self.qValues = []
 
+    def adjust_std_dev(self):
+        if self.steps < self.parameters.STEPS_TO_MIN_NOISE:
+            self.parameters.std_dev = 1 - (1 - self.parameters.MINIMUM_NOISE) *\
+                                      (self.steps / self.parameters.STEPS_TO_MIN_NOISE)
+        else:
+            self.parameters.std_dev = self.parameters.MIN_NOISE
+
+    def updateCriticNetworks(self):
+        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+            self.critic.update_target_model()
 
     def learn(self, batch):
-        self.steps += 1
+        self.steps += 1 * self.parameters.FRAME_SKIP_RATE
+        self.adjust_std_dev()
         self.train_CACLA(batch)
-        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
-            pass
-            # TODO: update target value network. implement a target network for that
-            # TODO: take care that the number of steps reflects number of frames, and not number of frames * number of bots that use actor critic
+        self.updateCriticNetworks()
 
-    #def decideMove(self, state):
-    #    return self.actor.predict(state)[0]
 
     def decideMove(self, state):
         actions = self.actor.predict(state)
@@ -255,7 +288,7 @@ class ActorCritic(object):
         target = r
         if alive:
             # The target is the reward plus the discounted prediction of the value network
-            updated_prediction = self.critic.predict(new_s)
+            updated_prediction = self.critic.predict_target_model(new_s)
             target += self.parameters.DISCOUNT * updated_prediction
         td_error = target - old_state_value
         return target, td_error
@@ -312,9 +345,9 @@ class ActorCritic(object):
         # TODO: actor should not be included in the replays.. I think???
         # TODO: add target network for value net
         self.train_critic_CACLA(batch)
-        currentExp = batch[-1]
-        self.train_actor_CACLA(currentExp)
-        #self.train_actor_batch_CACLA(batch)
+        #currentExp = batch[-1]
+        #self.train_actor_CACLA(currentExp)
+        self.train_actor_batch_CACLA(batch)
 
 
 

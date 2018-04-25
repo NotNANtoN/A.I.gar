@@ -274,6 +274,7 @@ class Model(object):
                  print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
             print("Step: ", self.counter)
             print("Number of stored rewards: ", len(self.rewards))
+            self.printBotStds()
             self.printBotMasses()
             print(" ")
    
@@ -281,6 +282,12 @@ class Model(object):
         if self.counter != 0 and self.counter % 100000 == 0 and self.trainingEnabled:
             self.plotTDError()
             self.plotMassesOverTime()
+
+    def printBotStds(self):
+        for bot in self.bots:
+            if bot.getType() == "NN" and str(bot.getLearningAlg()) == "AC":
+                print("Std dev: " , bot.getLearningAlg().parameters.std_dev)
+                break
 
     def runningAvg(self, array, numberOfPoints):
         res = len(array) // numberOfPoints  # res: running error step

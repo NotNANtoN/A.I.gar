@@ -115,7 +115,6 @@ class Bot(object):
         if not currentlySkipping:
             # Learn
             if self.trainMode and self.oldState is not None:
-                # Train
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
                 currentExperience = (self.oldState, action, self.lastReward, newState)
                 self.expReplayer.remember(currentExperience)

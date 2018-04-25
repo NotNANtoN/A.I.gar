@@ -26,7 +26,6 @@ class QLearn(object):
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
-
         player = bot.getPlayer()
         return self.decideMove(newState, player)
 
@@ -34,13 +33,13 @@ class QLearn(object):
         target = reward
         if alive:
             # The target is the reward plus the discounted prediction of the value network
-            action_Q_values = self.network.getTargetNetwork().predict(newState)[0]
+            action_Q_values = self.network.predict_target_network(newState)
             newActionIdx = numpy.argmax(action_Q_values)
             target += self.network.getDiscount() * action_Q_values[newActionIdx]
         return target
 
     def learn(self, batch):
-        self.steps += 1
+        self.steps += 1 * self.parameters.FRAME_SKIP_RATE
         batch_len = len(batch)
         inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, self.output_len))
@@ -60,10 +59,11 @@ class QLearn(object):
 
         self.network.trainOnBatch(inputs, targets)
 
+        self.updateTargetModel()
+
+    def updateTargetModel(self):
         if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
             self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
-            # Added num_humans to the following line
-            self.network.targetNetworkSteps = self.network.targetNetworkMaxSteps * (self.num_NNbots + self.num_humans)
 
     def learn_messy(self, bot, newState):
         # Observe R_n, S_n+1
@@ -136,6 +136,10 @@ class QLearn(object):
                 player.setExploring(False)
         newAction = self.network.actions[newActionIdx]
         return newActionIdx, newAction
+
+    def save(self, path):
+        self.network.saveModel(path)
+
 
     def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, player, verbose=False):
         state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
