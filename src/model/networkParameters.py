@@ -13,6 +13,7 @@ GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 10000
 TARGET_NETWORK_MAX_STEPS = 10000 # 2000 performs worse than 5000. 20000 was a bit better than 5000. 20k was worse than 10k
 DISCOUNT = 0.9 # 0.9 seems best so far. Better than 0.995 and 0.9999 . 0.5 and below performs much worse. 0.925 performs worse than 0.9
+
 # Higher discount seems to lead to much more stable learning, less variance
 TD = 0
 

@@ -2,7 +2,7 @@ import numpy
 import heapq
 import math
 
-class nsSarsa(object):
+class ExpectedSarsa(object):
 
     def __init__(self, numOfNNbots, numOfHumans, network, parameters):
         self.network = network
@@ -21,8 +21,6 @@ class nsSarsa(object):
         self.tau = -self.n
         self.latestTDError = None
         self.qValues = []
-        self.discrete = True
-
 
     def reset(self):
         self.latestTDError = None
@@ -188,7 +186,14 @@ class nsSarsa(object):
             else:
                 action_Q_values = self.network.getValueNetwork().predict(numpy.array([state_1]))[0]
             newActionIdx = numpy.argmax(action_Q_values)
-            target += math.pow(self.discount, self.n) * action_Q_values[newActionIdx]
+            branchSum = 0
+            ndiscount = math.pow(self.discount, self.n)
+            actionExplProb = 0.1 * (1/len(self.network.getActions()))
+            mainChoiceProb = 0.9
+            for i in range(len(self.network.getActions())):
+                branchSum += actionExplProb * ndiscount * action_Q_values[i]
+            branchSum += mainChoiceProb * ndiscount * action_Q_values[newActionIdx]
+            target += branchSum
         return target
 
     def experienceReplay(self, oldState, newState, td_error, currentActionIdx, alive, player, memories, lastMemory):

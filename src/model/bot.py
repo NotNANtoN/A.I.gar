@@ -41,10 +41,12 @@ class Bot(object):
         self.trainMode = None
         self.parameters = parameters
         self.modelName = modelName
+        self.learningAlg = None
         if learningAlg is not None:
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
             self.trainMode = trainMode
+            self.learningAlg.load(modelName)
 
         self.type = type
         self.player = player
@@ -56,7 +58,6 @@ class Bot(object):
         self.memories = []
         self.reset()
 
-        self.learningAlg.load(modelName)
 
     def saveModel(self, path):
         self.learningAlg.save(path)

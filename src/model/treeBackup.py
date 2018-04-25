@@ -1,20 +1,40 @@
 import numpy
 import heapq
+import math
 
-class ExpectedSarsa(object):
+class TreeBackup(object):
 
-    def __init__(self, numOfNNbots, numOfHumans, network):
-        self.network = None
+    def __init__(self, numOfNNbots, numOfHumans, network, parameters):
+        self.network = network
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
-        self.name = "ExpectedSarsa"
-        self.network = network
-        self.temporalDifference = self.network.getParameters().TD
+        self.name = "nsSarsa"
+        self.parameters = parameters
+
+        self.discount = self.parameters.DISCOUNT
+        self.rewards = []
+        self.actionIdxHistory = []
+        self.stateHistory = []
+        self.time = 0
+        self.terminalTime = math.inf
+        self.n = self.parameters.TD + 1
+        self.tau = -self.n
         self.latestTDError = None
         self.qValues = []
 
     def reset(self):
-         self.latestTDError = None
+        self.latestTDError = None
+        self.time = 0
+        self.terminalTime = math.inf
+        self.tau = -self.n
+        self.stateHistory = []
+        self.actionIdxHistory = []
+        self.rewards = []
+        self.qValues = []
+
+    def load(self, modelName):
+        if modelName is not None:
+            self.network.load(modelName)
 
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
@@ -23,46 +43,73 @@ class ExpectedSarsa(object):
         return self.decideMove(newState, player)
 
     def learn(self, bot, newState):
-        # Observe R_n, S_n+1
-        newLastMemory = None
-        reward = bot.getCumulativeReward()
-        currentActionIdx = bot.getCurrentActionIdx()
         player = bot.getPlayer()
         alive = player.getIsAlive()
+        # self.actionIdxHistory.append(bot.getCurrentActionIdx())
+        if self.time == 0:
+            self.stateHistory.append(newState)
 
-        # Given S_n, A_n, R_n, and S_n+1 decide on A_n+1 and train
-        # Make sure it's not the first state of the episode
-        if len(bot.actionHistory) > self.temporalDifference:
-            # Only load memories if expReplay is enabled
-            oldState = bot.getStateHistory()
-            if False: #bot.getExpRepEnabled():
-                memories = bot.getMemories()
-                lastMemory = bot.getLastMemory()
-                td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
-                                                      currentActionIdx, alive, player, memories, lastMemory)
-            else:
-                td_error, q_value_action, newLastMemory = self.train(newState, reward, oldState,
-                                                      currentActionIdx, alive, player)
-            self.latestTDError = td_error
-            self.qValues.append(q_value_action)
-        # Decide on which new action A_n given S_n, only if the player is still alive
-        newActionIdx, newAction = self.decideMove(newState, player, alive)
+        newActionIdx = None
+        newAction = None
+        newLastMemory = None
+        while(self.tau < self.terminalTime -1):
+            if self.time < self.terminalTime:
 
+                # Observe R_n, S_n+1 (except at t == 0 where there is no R and S = S_initial)
+                if self.time > 0:
+                    newLastMemory = None
+                    # Take action A_n (bot just took it through model update)
+                    self.stateHistory.append(newState)
+                    self.rewards.append(bot.getCumulativeReward())
+                    if len(self.rewards) > self.n:
+                        del self.rewards[0]
+                        del self.stateHistory[0]
+                        del self.actionIdxHistory[0]
+
+                # If state is terminal
+                if not alive:
+                    self.terminalTime = self.time + 1
+                else:
+                    # Decide on which new action A_n given S_n, only if the player is still alive
+                    newActionIdx, newAction = self.decideMove(newState, player)
+                    self.actionIdxHistory.append(newActionIdx)
+
+            self.tau = self.time - self.n + 1
+
+            # Given S_n, A_n, R_n, and S_n+1 decide on A_n+1 and train
+            # Make sure it's not the first state of the episode
+            if self.tau >= 0:
+                # Only load memories if expReplay is enabled
+                if False: #bot.getExpRepEnabled():
+                    memories = bot.getMemories()
+                    lastMemory = bot.getLastMemory()
+
+                    td_error, q_value_action, newLastMemory = self.train(self.stateHistory[1], self.stateHistory[0],
+                                                          self.actionIdxHistory[0], alive, player, memories, lastMemory)
+                else:
+
+                    td_error, q_value_action, newLastMemory = self.train(self.stateHistory[1], self.stateHistory[0],
+                                                          self.actionIdxHistory[0], alive, player)
+                self.latestTDError = td_error
+                self.qValues.append(q_value_action)
+            self.time += 1
+            if alive:
+                break
         return newLastMemory, newActionIdx, newAction
 
-    def train(self, newState, reward, oldState, currentActionIdx, alive, player, memories=None, lastMemory=None):
-        input, target, td_error, q_value_action = self.createInputOutputPair(oldState, currentActionIdx, reward,
-                                                                             newState, alive, player, True)
+    def train(self, state_1, state_0, currentActionIdx, alive, player, memories=None, lastMemory=None):
+        input, target, td_error, q_value_action = self.createInputOutputPair(state_0, currentActionIdx,
+                                                                             state_1, player, True)
         newLastMemory = None
         if memories is not None:
-            newLastMemory = self.experienceReplay(reward, oldState, newState, td_error, currentActionIdx, alive,
+            newLastMemory = self.experienceReplay(state_0, state_1, td_error, currentActionIdx, alive,
                                                   player, memories, lastMemory)
         # Fit value network using only the current experience
         else:
             self.network.valueNetwork.train_on_batch(input, target)
 
-        if  __debug__ and player.getSelected():
-            updatedQvalueOfAction = self.network.valueNetwork.predict(numpy.array([oldState]))[0][
+        if __debug__ and player.getSelected():
+            updatedQvalueOfAction = self.network.valueNetwork.predict(numpy.array([state_0]))[0][
                 currentActionIdx]
             print("Qvalue of action after training: ", round(updatedQvalueOfAction, 4))
             print("(also after experience replay, so last shown action is not necessarily this action )")
@@ -78,15 +125,15 @@ class ExpectedSarsa(object):
 
         return td_error, q_value_action, newLastMemory
 
-    def decideMove(self, newState, player, alive):
-        if alive:
+    def decideMove(self, newState, player):
+        if player.getIsAlive():
             # Take random action with probability 1 - epsilon
             if numpy.random.random(1) < self.network.epsilon:
                 newActionIdx = numpy.random.randint(len(self.network.getActions()))
                 if __debug__:
                     player.setExploring(True)
             else:
-                if self.network.getParameters().USE_POLICY_NETWORK:
+                if self.parameters.USE_POLICY_NETWORK:
                     numpyNewState = numpy.array([newState])
                     qValues = self.network.valueNetwork.predict(numpyNewState)
                     qValueSum = sum(qValues)
@@ -104,45 +151,55 @@ class ExpectedSarsa(object):
             return newActionIdx, newAction
         return None, None
 
-    def createInputOutputPair(self, oldState, actionIdx, reward, newState, alive, player, verbose=False):
-        state_Q_values = self.network.getValueNetwork().predict(numpy.array([oldState]))[0]
-        target = self.calculateTarget(newState, reward, alive)
+    def createInputOutputPair(self, state_0, actionIdx, state_1, player, verbose=False):
+        state_Q_values = self.network.getValueNetwork().predict(numpy.array([state_0]))[0]
+        target = self.calculateTarget(state_1)
         q_value_of_action = state_Q_values[actionIdx]
         td_error = target - q_value_of_action
         if __debug__ and player.getSelected() and verbose:
             print("")
             # print("State to be updated: ", oldState)
             print("Action: ", self.network.getActions()[actionIdx])
-            print("Reward: ", round(reward, 2))
+            print("G: ", round(sum(self.rewards), 2))
             # print("S\': ", newState)
             print("Qvalue of action before training: ", round(state_Q_values[actionIdx], 4))
             print("Target Qvalue of that action: ", round(target, 4))
             print("All qvalues: ", numpy.round(state_Q_values, 3))
             print("Expected Q-value: ", round(max(state_Q_values), 3))
             print("TD-Error: ", td_error)
-        if self.network.getParameters().USE_TARGET:
+        if self.parameters.USE_TARGET:
             state_Q_values[actionIdx] = target
         else:
             state_Q_values[actionIdx] = td_error
-        return numpy.array([oldState]), numpy.array([state_Q_values]), td_error, q_value_of_action
+        return numpy.array([state_0]), numpy.array([state_Q_values]), td_error, q_value_of_action
 
-    def calculateTarget(self, newState, reward, alive):
+    def calculateTarget(self, state_1):
         targetNetworkEnabled = True
-        target = reward
-        if alive:
+        target = 0
+        for i in range(self.tau + 1, min(self.tau + self.n, self.terminalTime)):
+            idx = i - self.tau - 1
+            target += math.pow(self.discount, idx) * self.rewards[idx]
+        if self.tau + self.n < self.terminalTime:
             # The target is the reward plus the discounted prediction of the value network
             if targetNetworkEnabled:
-                action_Q_values = self.network.getTargetNetwork().predict(numpy.array([newState]))[0]
+                action_Q_values = self.network.getTargetNetwork().predict(numpy.array([state_1]))[0]
             else:
-                action_Q_values = self.network.getValueNetwork().predict(numpy.array([newState]))[0]
+                action_Q_values = self.network.getValueNetwork().predict(numpy.array([state_1]))[0]
             newActionIdx = numpy.argmax(action_Q_values)
-            target += self.network.getDiscount() * action_Q_values[newActionIdx]
+            branchSum = 0
+            ndiscount = math.pow(self.discount, self.n)
+            actionExplProb = 0.1 * (1/len(self.network.getActions()))
+            mainChoiceProb = 0.9
+            for i in range(len(self.network.getActions())):
+                branchSum += actionExplProb * ndiscount * action_Q_values[i]
+            branchSum += mainChoiceProb * ndiscount * action_Q_values[newActionIdx]
+            target += branchSum
         return target
 
-    def experienceReplay(self, reward, oldState, newState, td_error, currentActionIdx, alive, player, memories, lastMemory):
+    def experienceReplay(self, oldState, newState, td_error, currentActionIdx, alive, player, memories, lastMemory):
         newLastMemory = None
         if alive:
-            newLastMemory = self.storeInMemory(currentActionIdx, reward, oldState, newState, td_error, alive,
+            newLastMemory = self.storeInMemory(currentActionIdx, self.rewards, oldState, newState, td_error, alive,
                                        memories, lastMemory)
         self.train_on_experience(player, memories)
         return newLastMemory
@@ -150,7 +207,7 @@ class ExpectedSarsa(object):
     def storeInMemory(self, actionIdx, reward, oldState, newState, td_error, alive, memories, lastMemory):
         # Store current state, action, reward, state pair in memory
         # Delete oldest memory if memory is at full capacity
-        memoryCapacity = self.network.getMemoryCapacity()
+        memoryCapacity = self.parameters.MEMORY_CAPACITY
         if len(memories) > memoryCapacity:
             #if numpy.random.random() > 0.0:
             del memories[-1]
@@ -169,7 +226,7 @@ class ExpectedSarsa(object):
         len_memory = len(memories)
         if len_memory < self.network.getMemoriesPerUpdate():
             return
-        inputSize = self.network.getParameters().STATE_REPR_LEN
+        inputSize = self.parameters.STATE_REPR_LEN
         outputSize = self.network.getNumOfActions()
         batch_size = self.network.getMemoriesPerUpdate()
         # Initialize vectors
@@ -229,7 +286,7 @@ class ExpectedSarsa(object):
     def getNetwork(self):
         return self.network
 
-    def getQvalues(self):
+    def getQValues(self):
         return self.qValues
 
     def getTDError(self):

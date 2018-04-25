@@ -10,7 +10,8 @@ from model.model import *
 from model.network import *
 from model.qLearning import *
 from model.nsSarsa import *
-from model.ExpectedSarsa import *
+from model.expectedSarsa import *
+from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
 from view.startScreen import StartScreen
@@ -91,6 +92,7 @@ def createHumans(numberOfHumans, model1):
 
 
 def createBots(number, model, type, parameters, algorithm = None, network = None, modelName = None):
+    learningAlg = None
     if algorithm == 2:
         learningAlg = ActorCritic(parameters, numberOfNNBots)
     if type == "NN":
@@ -101,6 +103,10 @@ def createBots(number, model, type, parameters, algorithm = None, network = None
                 learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
             elif algorithm == 1:
                 learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
+            elif algorithm == 3:
+                learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, network, parameters)
+            elif algorithm == 4:
+                learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, network, parameters)
             else:
                 pass
                 #print("Please enter a valid algorithm.\n")
@@ -179,7 +185,7 @@ if __name__ == '__main__':
             parameters = importlib.import_module('.networkParameters', package=packageName)
             if parameters.ALGORITHM == "Q-learning":
                 algorithm = 0
-            elif parameters.ALGORITHM == "n-step Q-learning":
+            elif parameters.ALGORITHM == "n-step Sarsa":
                 algorithm = 1
             else:
                 print("ALGORITHM in networkParameters not found.\n")
@@ -188,19 +194,8 @@ if __name__ == '__main__':
 
         if loadModel == 0:
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
-            "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Continuous Actor-Critic' == 2\n"))
-
-        # #Create algorithm instance
-        # if algorithm == 0:
-        #     learningAlg = QLearn(numberOfNNBots, numberOfHumans)
-        # elif algorithm == 1:
-        #     pass
-        #     # learningAlg = NsQl(numberOfNNBots, numberOfHumans)
-        # elif algorithm == 2:
-        #     learningAlg = ActorCritic()
-        # else:
-        #     print("Please enter a valid algorithm.\n")
-        #     quit()
+            "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Continuous Actor-Critic' == 2,\n" + \
+            "'ExpectedSarsa' == 3, 'Tree Backup' == 4\n"))
 
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
