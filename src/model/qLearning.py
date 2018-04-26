@@ -11,7 +11,7 @@ class QLearn(object):
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
-        self.steps = 0
+        self.time = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.output_len = network.num_actions
         self.discrete = True
@@ -61,7 +61,7 @@ class QLearn(object):
 
 
     def learn(self, batch):
-        self.steps += 1 * self.parameters.FRAME_SKIP_RATE
+        self.time += 1 * self.parameters.FRAME_SKIP_RATE
 
         self.train(batch)
 
@@ -71,7 +71,7 @@ class QLearn(object):
         self.updateTargetModel()
 
     def updateTargetModel(self):
-        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+        if self.time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
             self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
 
     def decideMove(self, newState, player):

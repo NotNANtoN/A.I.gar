@@ -42,9 +42,35 @@ class nsSarsa(object):
         self.network.setEpsilon(0)
 
         player = bot.getPlayer()
-        return self.decideMove(newState, player)
+        return self.decideMove(newState, player, player.getIsAlive())
 
-    def learn(self, bot, newState):
+    def learn(self, batch):
+        self.steps += 1
+        batch_len = len(batch)
+        inputs = numpy.zeros((batch_len, self.input_len))
+        targets = numpy.zeros((batch_len, self.output_len))
+        for sample_idx, sample in enumerate(batch):
+            old_s, a, r, new_s = sample
+            old_s = old_s[0]
+            # No new state: dead
+            alive = (new_s is not None)
+            state_Q_values = self.network.predict(old_s)
+            target = self.calculateTarget(new_s, r, alive)
+            q_value_of_action = state_Q_values[a]
+            td_error = target - q_value_of_action
+            inputs[sample_idx] = old_s
+            targets[sample_idx] = target
+
+        self.latestTDerror = td_error
+
+        self.network.trainOnBatch(inputs, targets)
+
+        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+            self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
+            # Added num_humans to the following line
+            self.network.targetNetworkSteps = self.network.targetNetworkMaxSteps * (self.num_NNbots + self.num_humans)
+
+    def learn_messy(self, bot, newState):
         player = bot.getPlayer()
         alive = player.getIsAlive()
         # self.actionIdxHistory.append(bot.getCurrentActionIdx())
@@ -127,8 +153,8 @@ class nsSarsa(object):
 
         return td_error, q_value_action, newLastMemory
 
-    def decideMove(self, newState, player):
-        if player.getIsAlive():
+    def decideMove(self, newState, player, alive):
+        if alive:
             # Take random action with probability 1 - epsilon
             if numpy.random.random(1) < self.network.epsilon:
                 newActionIdx = numpy.random.randint(len(self.network.getActions()))
