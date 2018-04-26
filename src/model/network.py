@@ -10,7 +10,6 @@ from keras.models import load_model
 
 
 from .parameters import *
-from .spatialHashTable import spatialHashTable
 
 class Network(object):
 
@@ -22,7 +21,7 @@ class Network(object):
         # Filter out actions that do a split and eject at the same time
         # Also filter eject actions for now
         for action in self.actions[:]:
-            if action[2] and action[3] or action[3]:
+            if action[2] or action[3]:
                 self.actions.remove(action)
 
         self.num_actions = len(self.actions)
@@ -139,7 +138,7 @@ class Network(object):
         return self.valueNetwork.predict(numpy.array([state]))[0]
 
     def predict_target_network(self, state):
-        return self.targetNetwork.predict(state)[0]
+        return self.targetNetwork.predict(numpy.array([state]))[0]
 
     def saveModel(self, path):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())

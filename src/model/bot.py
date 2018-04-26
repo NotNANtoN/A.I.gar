@@ -108,7 +108,7 @@ class Bot(object):
 
     def learn_and_move_NN(self):
         newState = self.getStateRepresentation()
-        newState = numpy.array([newState]) if newState is not None else None
+        #newState = numpy.array([newState]) if newState is not None else None
         currentlySkipping = False
         if self.currentAction is not None:
             self.updateRewards()
