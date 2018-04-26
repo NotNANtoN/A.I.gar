@@ -77,8 +77,8 @@ class Model(object):
     def initialize(self):
         if self.trainingEnabled:
             self.createPath()
-            self.saveSpecs()
             self.copyParameters()
+            self.saveSpecs()
             for bot in self.bots:
                 if bot.getType() == "NN":
                     data = self.getRelevantModelData(bot)
@@ -202,13 +202,13 @@ class Model(object):
                     file.write("\n")
                     savedTypes.append(botType)
 
-        # name_of_file = self.path + "networkParameters.py"
-        # text = "ALGORITHM = " + str(self.bots[0].getLearningAlg)
-        # lines = open(name_of_file, 'r').readlines()
-        # lines[2] = text
-        # out = open(name_of_file, 'w')
-        # out.writelines(lines)
-        # out.close()
+        name_of_file = self.path + "networkParameters.py"
+        text = "ALGORITHM = \"" + str(self.bots[0].getLearningAlg()) + "\"\n"
+        lines = open(name_of_file, 'r').readlines()
+        lines[1] = text
+        out = open(name_of_file, 'w')
+        out.writelines(lines)
+        out.close()
 
 
     def save(self, end = False):
