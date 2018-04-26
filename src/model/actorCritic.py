@@ -245,7 +245,7 @@ class ActorCritic(object):
     def decideMove(self, state):
         actions = self.actor.predict(state)
         std_dev = self.parameters.std_dev
-        apply_normal_dist =  [numpy.random.normal(output, std_dev) for output in actions]
+        apply_normal_dist = [numpy.random.normal(output, std_dev) for output in actions]
         clipped = numpy.clip(apply_normal_dist, 0, 1)
 
         return clipped

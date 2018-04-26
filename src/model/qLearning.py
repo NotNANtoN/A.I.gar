@@ -12,7 +12,7 @@ class QLearn(object):
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
-        self.steps = 0
+        self.time = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.output_len = network.num_actions
         self.discrete = True
@@ -40,7 +40,7 @@ class QLearn(object):
         return target
 
     def learn(self, batch):
-        self.steps += 1
+        self.time += 1
         batch_len = len(batch)
         inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, self.output_len))
@@ -60,7 +60,7 @@ class QLearn(object):
 
         self.network.trainOnBatch(inputs, targets)
 
-        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+        if self.time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
             self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
             # Added num_humans to the following line
             self.network.targetNetworkSteps = self.network.targetNetworkMaxSteps * (self.num_NNbots + self.num_humans)
