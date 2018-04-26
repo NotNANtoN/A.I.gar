@@ -30,7 +30,7 @@ class QLearn(object):
         player = bot.getPlayer()
         return self.decideMove(newState, player)
 
-    def calculateTarget(self, newState, reward, alive):
+    def calculateTargetForAction(self, newState, reward, alive):
         target = reward
         if alive:
             # The target is the reward plus the discounted prediction of the value network
@@ -39,11 +39,18 @@ class QLearn(object):
             target += self.network.getDiscount() * action_Q_values[newActionIdx]
         return target
 
+    def calculateTarget(self, old_s, a, r, new_s):
+        old_q_values = self.network.predict(old_s)
+        alive = (new_s is not None)
+        updated_action_value = self.calculateTargetForAction(new_s, r, alive)
+        old_q_values[a] = updated_action_value
+        return old_q_values
+
     def calculateTDError(self, experience):
         old_s, a, r, new_s = experience
         alive = new_s is not None
         state_Q_values = self.network.predict(old_s)
-        target = self.calculateTarget(new_s, r, alive)
+        target = self.calculateTargetForAction(new_s, r, alive)
         q_value_of_action = state_Q_values[a]
         td_error = target - q_value_of_action
         return td_error
@@ -55,12 +62,9 @@ class QLearn(object):
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s = sample
             # No new state: dead
-            alive = (new_s is not None)
-            target = self.calculateTarget(new_s, r, alive)
             inputs[sample_idx] = old_s
-            targets[sample_idx] = target
+            targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
         self.network.trainOnBatch(inputs, targets)
-
 
     def learn(self, batch):
         self.time += 1 * self.parameters.FRAME_SKIP_RATE
@@ -68,7 +72,8 @@ class QLearn(object):
         self.train(batch)
 
         #Book keeping. batch[-1] is the current experience:
-        self.latestTDerror = self.calculateTDError(batch[-1])
+        currentExp = batch[-1]
+        self.latestTDerror = self.calculateTDError(currentExp)
 
         self.updateTargetModel()
 
@@ -81,6 +86,7 @@ class QLearn(object):
         if numpy.random.random(1) < self.network.epsilon:
             newActionIdx = numpy.random.randint(len(self.network.getActions()))
             if __debug__:
+                print("Explore")
                 player.setExploring(True)
         else:
             # Take action based on greediness towards Q values
@@ -90,6 +96,12 @@ class QLearn(object):
             self.qValues.append(q_Values[newActionIdx])
             if __debug__:
                 player.setExploring(False)
+        if __debug__:
+            q_values_of_state = self.network.predict(newState)
+            average_value = round(numpy.mean(q_values_of_state), 1)
+            q_value = round(q_values_of_state[newActionIdx], 1)
+            print("Expected Q-value: ", average_value, " Q(s,a) of current action: ", q_value)
+            print("")
         newAction = self.network.actions[newActionIdx]
         return newActionIdx, newAction
 

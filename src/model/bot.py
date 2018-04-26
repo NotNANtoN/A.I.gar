@@ -16,7 +16,6 @@ class ExpReplay():
             del self.memories[0]
         self.memories.append(new_exp)
 
-
     def canReplay(self):
         return len(self.memories) >= self.batch_size
 
@@ -58,7 +57,6 @@ class Bot(object):
         self.memories = []
         self.reset()
 
-
     def saveModel(self, path):
         self.learningAlg.save(path)
 
@@ -90,7 +88,7 @@ class Bot(object):
         # Do not train if we are skipping this frame
         if self.skipFrames > 0:
             self.skipFrames -= 1
-            self.currentAction[2:4] = [0, 0]
+            self.currentAction[2:4] = [0, 0] # Do not split/eject more than once in a row
             self.latestTDerror = None
             if self.player.getIsAlive():
                 return True
@@ -108,7 +106,6 @@ class Bot(object):
 
     def learn_and_move_NN(self):
         newState = self.getStateRepresentation()
-        #newState = numpy.array([newState]) if newState is not None else None
         currentlySkipping = False
         if self.currentAction is not None:
             self.updateRewards()

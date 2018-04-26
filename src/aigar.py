@@ -281,6 +281,7 @@ if __name__ == '__main__':
         if not humanTraining:
             enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
+
         Bot.init_exp_replayer(parameters)
         createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
     if numberOfNNBots == 0:
