@@ -77,8 +77,8 @@ class Model(object):
     def initialize(self):
         if self.trainingEnabled:
             self.createPath()
-            self.saveSpecs()
             self.copyParameters()
+            self.saveSpecs()
             for bot in self.bots:
                 if bot.getType() == "NN":
                     data = self.getRelevantModelData(bot)
@@ -202,6 +202,15 @@ class Model(object):
                     file.write("\n")
                     savedTypes.append(botType)
 
+        name_of_file = self.path + "networkParameters.py"
+        text = "ALGORITHM = \"" + str(self.bots[0].getLearningAlg()) + "\"\n"
+        lines = open(name_of_file, 'r').readlines()
+        lines[1] = text
+        out = open(name_of_file, 'w')
+        out.writelines(lines)
+        out.close()
+
+
     def save(self, end = False):
         self.saveModels(self.path, end)
         self.saveSpecs(end)
@@ -227,6 +236,7 @@ class Model(object):
         data += "\n"
         # RL:
         data += "Reinforcement learning:\n"
+        data += "Algorithm - " + str(bot.getLearningAlg()) + "\n"
         data += "Epsilon - " + str(parameters.EPSILON) + "\n"
         data += "Discount factor - " + str(parameters.DISCOUNT) + "\n"
         data += "Frame skip rate - " + str(parameters.FRAME_SKIP_RATE) + "\n"

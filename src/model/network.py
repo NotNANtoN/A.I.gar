@@ -124,8 +124,8 @@ class Network(object):
         packageName = "savedModels." + modelName
         self.parameters = importlib.import_module('.networkParameters', package=packageName)
         self.loadedModelName = modelName
-        self.valueNetwork = load_model(path + "/NN_model.h5")
-        self.targetNetwork = load_model(path + "/NN_model.h5")
+        self.valueNetwork = load_model(path + "/model.h5")
+        self.targetNetwork = load_model(path + "/model.h5")
 
     def trainOnBatch(self, inputs, targets):
         self.valueNetwork.train_on_batch(inputs, targets)

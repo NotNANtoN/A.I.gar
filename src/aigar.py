@@ -60,11 +60,45 @@ def fix_seeds():
     sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
     K.set_session(sess)
 
+def algorithmNumberToName(val):
+    if val == 0:
+        return "Q-Learning"
+    elif val == 1:
+        return "n-step Sarsa"
+    elif val == 2:
+        return "CACLA"
+    elif val == 3:
+        return "Discrete ACLA"
+    elif val == 4:
+        return "Expected Sarsa"
+    elif val == 5:
+        return "Tree Backup"
+    else:
+        print("Wrong algorithm selected...")
+        quit()
+
+def algorithmNameToNumber(name):
+    if name == "Q-learning":
+        return 0
+    elif name == "n-step Sarsa":
+        return 1
+    elif name == "ACLA":
+        return 2
+    elif name == "Discrete ACLA":
+        return 3
+    elif name == "Expected Sarsa":
+        return 4
+    elif name == "Tree Backup":
+        return 5
+    else:
+        print("ALGORITHM in networkParameters not found.\n")
+        quit()
 
 
 def modelMustHavePlayers():
     print("Model must have players")
     quit()
+
 
 def fitsLimitations(number, limit):
     if number < 0:
@@ -91,28 +125,32 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, parameters, algorithm = None, network = None, modelName = None):
+def createBots(number, model, type, parameters, algorithm = None, modelName = None):
     learningAlg = None
-    if algorithm == 2:
-        learningAlg = ActorCritic(parameters, numberOfNNBots, False, modelName)
-    if algorithm == 5:
-        learningAlg = ActorCritic(parameters, numberOfNNBots, True, modelName)
     if type == "NN":
         Bot.num_NNbots = number
+
+        network = Network(enableTrainMode, modelName)
         for i in range(number):
             # Create algorithm instance
+            #Discrete algorithms
             if algorithm == 0:
                 learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
             elif algorithm == 1:
                 learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
-            elif algorithm == 3:
-                learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, network, parameters)
             elif algorithm == 4:
+                learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, network, parameters)
+            elif algorithm == 5:
                 learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, network, parameters)
+
+            #AC algorithms
+            elif algorithm == 2:
+                learningAlg = ActorCritic(parameters, numberOfNNBots, False, modelName)
+            elif algorithm == 3:
+                learningAlg = ActorCritic(parameters, numberOfNNBots, True, modelName)
             else:
-                pass
-                #print("Please enter a valid algorithm.\n")
-                #quit()
+                print("Please enter a valid algorithm.\n")
+                quit()
             model.createBot(type, learningAlg, parameters, modelName)
     elif type == "Greedy":
         Bot.num_Greedybots = number
@@ -185,27 +223,22 @@ if __name__ == '__main__':
         if modelName is not None:
             packageName = "savedModels." + modelName
             parameters = importlib.import_module('.networkParameters', package=packageName)
-            if parameters.ALGORITHM == "Q-learning":
-                algorithm = 0
-            elif parameters.ALGORITHM == "n-step Sarsa":
-                algorithm = 1
-            else:
-                print("ALGORITHM in networkParameters not found.\n")
+            algorithm = algorithmNameToNumber(parameters.ALGORITHM)
         else:
             parameters = importlib.import_module('.networkParameters', package="model")
 
         if loadModel == 0:
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
             "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
-            "'ExpectedSarsa' == 3, 'Tree Backup' == 4, 'Discrete ACLA' == 5\n"))
+            "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
 
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
             enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
         model.setTrainingEnabled(enableTrainMode == 1)
-        network = Network(enableTrainMode, modelName, parameters)
+
         Bot.init_exp_replayer(parameters)
-        createBots(numberOfNNBots, model, "NN", parameters, algorithm, network, modelName)
+        createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 
@@ -227,7 +260,7 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
-        endEpsilon = network.getEpsilon()
+        endEpsilon = parameters.EPSILON
         startEpsilon = 1
         startEpsilon = 1
         smallPart = int(maxSteps / 200)
@@ -243,7 +276,6 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
-        parameters = network.getParameters()
         for bot in model.bots:
             player = bot.getPlayer()
             print("")
