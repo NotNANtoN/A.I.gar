@@ -1,5 +1,9 @@
 GPUS = 1
 ALGORITHM = "None"
+
+# Game
+PELLET_SPAWN = True
+
 # Experience replay:
 MEMORY_CAPACITY = 75000
 MEMORY_BATCH_LEN = 40 # Must be divisible by 4 atm due to experience replay

@@ -1,4 +1,5 @@
 import math
+from .networkParameters import *
 
 # General Parameters
 SCREEN_WIDTH = 900
@@ -16,7 +17,8 @@ HASH_BUCKET_SIZE = 20
 SIZE_INCREASE_PER_PLAYER = 130
 START_MASS = 10
 START_RADIUS = math.sqrt(START_MASS / math.pi)
-MAX_COLLECTIBLE_DENSITY = 0.015  # per unit area
+# per unit area
+MAX_COLLECTIBLE_DENSITY = 0.015 if PELLET_SPAWN else 0
 MAX_VIRUS_DENSITY = 0.0002
 VIRUS_BASE_SIZE = 100
 VIRUS_BASE_RADIUS = math.sqrt(VIRUS_BASE_SIZE / math.pi)

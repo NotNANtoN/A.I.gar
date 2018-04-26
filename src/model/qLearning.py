@@ -50,7 +50,6 @@ class QLearn(object):
         batch_len = len(batch)
         inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, self.output_len))
-        td_error = 0
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s = sample
             # No new state: dead
@@ -62,7 +61,7 @@ class QLearn(object):
 
 
     def learn(self, batch):
-        self.steps += 1 * self.parameters.FRAME_SKIP_RATE
+        self.time += 1 * self.parameters.FRAME_SKIP_RATE
 
         self.train(batch)
 
