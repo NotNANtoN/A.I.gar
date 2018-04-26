@@ -22,16 +22,16 @@ EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
 EPSILON_DECREASE_RATE = 1
 FRAME_SKIP_RATE = 7 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-GRID_SQUARES_PER_FOV = 7 #11 is pretty good so far.
+GRID_SQUARES_PER_FOV = 13 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 
 # Actor-critic:
-MINIMUM_NOISE = 0.05
-STEPS_TO_MIN_NOISE = 100000
-ALPHA_POLICY = 0.00025
+MINIMUM_NOISE = 0.01
+STEPS_TO_MIN_NOISE = 500000
+ALPHA_POLICY = 0.0005
 OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
-HIDDEN_LAYER_1_POLICY = 30
+HIDDEN_LAYER_1_POLICY = 75
 HIDDEN_LAYER_2_POLICY = 0
 HIDDEN_LAYER_3_POLICY = 0
 

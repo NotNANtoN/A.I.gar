@@ -336,7 +336,6 @@ class Model(object):
     def plotQValuesOverTime(self):
         for bot in self.bots:
             qValues = bot.getLearningAlg().getQValues()
-            print(qValues)
             qValues = self.runningAvg(qValues, 200)
             meanQValue = round(numpy.mean(qValues), 1)
             playerName = str(bot.getPlayer())
