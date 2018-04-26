@@ -28,9 +28,8 @@ TD = 0
 Exploration = True
 EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
-EPSILON_DECREASE_RATE = 1
 FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
+GRID_SQUARES_PER_FOV = 9 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 
 # Actor-critic:

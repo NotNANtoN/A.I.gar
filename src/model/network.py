@@ -13,7 +13,8 @@ from .parameters import *
 
 class Network(object):
 
-    def __init__(self, trainMode, modelName):
+    def __init__(self, trainMode, modelName, parameters):
+        self.parameters = parameters
         self.trainMode = trainMode
 
         self.actions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
@@ -25,7 +26,6 @@ class Network(object):
                 self.actions.remove(action)
 
         self.num_actions = len(self.actions)
-        self.parameters = importlib.import_module('.networkParameters', package="model")
         self.loadedModelName = None
 
         self.stateReprLen = self.parameters.STATE_REPR_LEN
@@ -105,11 +105,8 @@ class Network(object):
                 Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                       , kernel_initializer=initializer))
 
-
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-
-
 
         if self.optimizer == "Adam":
             optimizer = keras.optimizers.Adam(lr=self.learningRate)
@@ -118,7 +115,6 @@ class Network(object):
 
         self.valueNetwork.compile(loss='mse', optimizer=optimizer)
         self.targetNetwork.compile(loss='mse', optimizer=optimizer)
-
 
         if modelName is not None:
             self.load(modelName)

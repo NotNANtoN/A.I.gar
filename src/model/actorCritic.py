@@ -254,6 +254,7 @@ class PolicyNetwork(object):
 
     def getTarget(self, action, state):
         if self.discrete:
+            # todo: this does not work nicely yet. we want to slightly increase the p(s,a), not set it to 1
             target = numpy.zeros(self.num_actions)
             #target = self.model.predict(state)[0]
             target[action] = 1
@@ -300,6 +301,9 @@ class ActorCritic(object):
         self.updateCriticNetworks()
 
     def decideMove(self, state):
+        if __debug__:
+            print("V(s): ", self.critic.predict(state))
+
         actions = self.actor.predict(state)
         std_dev = self.parameters.std_dev
         apply_normal_dist = [numpy.random.normal(output, std_dev) for output in actions]
