@@ -3,12 +3,13 @@ import heapq
 import math
 
 class nsSarsa(object):
+    def __repr__(self):
+        return "n-step Sarsa"
 
     def __init__(self, numOfNNbots, numOfHumans, network, parameters):
         self.network = network
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
-        self.name = "nsSarsa"
         self.parameters = parameters
 
         self.discount = self.parameters.DISCOUNT

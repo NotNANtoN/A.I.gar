@@ -2,10 +2,12 @@ import numpy
 import heapq
 
 class QLearn(object):
+    def __repr__(self):
+        return "Q-learning"
+
     def __init__(self, numOfNNbots, numOfHumans, network, parameters):
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
-        self.name = "Q-learning"
         self.network = network
         self.temporalDifference = parameters.TD
         self.parameters = parameters
