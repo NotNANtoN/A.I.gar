@@ -55,6 +55,8 @@ class Model(object):
         self.virusEnabled = virusEnabled
         self.resetLimit = resetLimit
         self.trainingEnabled = True
+        self.path = None
+        self.startTime = None
 
         self.players = []
         self.bots = []
@@ -76,8 +78,8 @@ class Model(object):
 
     def initialize(self):
         if self.trainingEnabled:
-            self.createPath()
-            self.copyParameters()
+            # self.createPath()
+            # self.copyParameters()
             self.saveSpecs()
             for bot in self.bots:
                 if bot.getType() == "NN":
@@ -85,7 +87,12 @@ class Model(object):
                     print(data)
                     break
         self.field.initialize()
-        
+
+
+    def initModelFolder(self):
+        self.createPath()
+        self.copyParameters()
+
 
     def resetModel(self):
         print("Resetting field and players!")
