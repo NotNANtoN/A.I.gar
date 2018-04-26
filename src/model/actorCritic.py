@@ -159,15 +159,15 @@ class PolicyNetwork(object):
                 if action[2] or action[3]:
                     self.actions.remove(action)
             self.num_actions = len(self.actions)
-            num_outputs = self.num_actions
+            self.num_outputs = self.num_actions
         else:
-            num_outputs = 4 # x, y, split, eject all continuous between 0 and 1
+            self.num_outputs = 4 # x, y, split, eject all continuous between 0 and 1
 
         if modelName is not None:
             self.load(modelName)
             return
 
-        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
+        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + self.num_outputs))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                        maxval=weight_initializer_range, seed=None)
         if self.gpus > 1:
@@ -224,11 +224,11 @@ class PolicyNetwork(object):
                 # self.valueNetwork.add(Dropout(0.5))
             if discrete:
                 self.model.add(
-                    Dense(num_outputs, activation="softmax", bias_initializer=initializer
+                    Dense(self.num_outputs, activation="softmax", bias_initializer=initializer
                           , kernel_initializer=initializer))
             else:
                 self.model.add(
-                    Dense(num_outputs, activation=relu_max, bias_initializer=initializer
+                    Dense(self.num_outputs, activation=relu_max, bias_initializer=initializer
                           , kernel_initializer=initializer))
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
@@ -321,6 +321,7 @@ class ActorCritic(object):
             target += self.parameters.DISCOUNT * updated_prediction
         td_error = target - old_state_value
         return target, td_error
+
     def train_critic_CACLA(self, batch):
         len_batch = len(batch)
         inputs_critic = numpy.zeros((len_batch, self.input_len))
@@ -339,8 +340,6 @@ class ActorCritic(object):
         self.qValues.append(target)
         self.critic.train(inputs_critic, targets_critic)
 
-
-
     def train_actor_CACLA(self, currentExp):
         old_s, a, r, new_s = currentExp
         _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None)
@@ -351,8 +350,9 @@ class ActorCritic(object):
 
     def train_actor_batch_CACLA(self, batch):
         len_batch = len(batch)
+        len_output = self.actor.num_outputs
         inputs = numpy.zeros((len_batch, self.input_len))
-        targets = numpy.zeros((len_batch, 4))
+        targets = numpy.zeros((len_batch, len_output))
 
         # Calculate input and target for actor
         count = 0
@@ -363,7 +363,7 @@ class ActorCritic(object):
             _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive)
             if td_e > 0:
                 inputs[sample_idx] = old_s
-                targets[sample_idx] = a
+                targets[sample_idx] = self.actor.getTarget(a, old_s)
                 count += 1
         if count > 0:
             inputs = inputs[0:count]
@@ -371,11 +371,11 @@ class ActorCritic(object):
             self.actor.train(inputs, targets)
 
     def train_CACLA(self, batch):
-        # TODO: actor should not be included in the replays.. I think???
+        # TODO: actor should not be included in the replays.. I think??? Marco says this could be done
         self.train_critic_CACLA(batch)
-        currentExp = batch[-1]
-        self.train_actor_CACLA(currentExp)
-        #self.train_actor_batch_CACLA(batch)
+        #currentExp = batch[-1]
+        #self.train_actor_CACLA(currentExp)
+        self.train_actor_batch_CACLA(batch)
 
 
 
