@@ -12,7 +12,6 @@ from keras import backend as K
 def relu_max(x):
     return K.relu(x, max_value=1)
 
-
 class ValueNetwork(object):
     def __init__(self, parameters, modelName=None):
         self.parameters = parameters
@@ -32,6 +31,10 @@ class ValueNetwork(object):
         self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3
 
         num_outputs = 1  # value for state
+
+        if modelName is not None:
+            self.load(modelName)
+            return
 
         weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
@@ -95,27 +98,42 @@ class ValueNetwork(object):
                       , kernel_initializer=initializer))
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
-        self.model.compile(loss='mse', optimizer=optimizer)
 
+        self.target_model = keras.models.clone_model(self.model)
+        self.target_model.set_weights(self.model.get_weights())
+
+        self.model.compile(loss='mse', optimizer=optimizer)
+        self.target_model.compile(loss='mse', optimizer=optimizer)
+
+
+
+    def load(self, modelName = None):
         if modelName is not None:
             path = "savedModels/" + modelName
             packageName = "savedModels." + modelName
             self.parameters = importlib.import_module('.networkParameters', package=packageName)
             self.loadedModelName = modelName
             self.model = load_model(path + "/value_model.h5")
+            self.target_model = load_model(path + "/value_model.h5")
 
     def predict(self, state):
         return self.model.predict(state)[0]
+
+    def predict_target_model(self, state):
+        return self.target_model.predict(state)[0]
+
+    def update_target_model(self):
+        self.target_model.set_weights(self.model.get_weights())
 
     def train(self, inputs, targets):
         self.model.train_on_batch(inputs, targets)
 
     def save(self, path):
-        self.model.save(path + "value" + "_model.h5")
-
+        self.target_model.set_weights(self.model.get_weights())
+        self.target_model.save(path + "value_model.h5")
 
 class PolicyNetwork(object):
-    def __init__(self, parameters, modelName = None):
+    def __init__(self, parameters, discrete, modelName = None):
         self.parameters = parameters
         self.loadedModelName = None
 
@@ -130,7 +148,24 @@ class PolicyNetwork(object):
         self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2_POLICY
         self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3_POLICY
 
-        num_outputs = 4 # x, y, split, eject all continuous between 0 and 1
+        self.discrete = discrete
+
+        if discrete:
+            self.actions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
+                            eject in [0, 1]]
+            # Filter out actions that do a split and eject at the same time
+            # Filter eject and split actions for now
+            for action in self.actions[:]:
+                if action[2] or action[3]:
+                    self.actions.remove(action)
+            self.num_actions = len(self.actions)
+            num_outputs = self.num_actions
+        else:
+            num_outputs = 4 # x, y, split, eject all continuous between 0 and 1
+
+        if modelName is not None:
+            self.load(modelName)
+            return
 
         weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
         initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
@@ -187,14 +222,20 @@ class PolicyNetwork(object):
                                    bias_initializer=initializer, kernel_initializer=initializer)
                 self.model.add(hidden3)
                 # self.valueNetwork.add(Dropout(0.5))
-
-            self.model.add(
-                Dense(num_outputs, activation="sigmoid", bias_initializer=initializer
-                      , kernel_initializer=initializer))
+            if discrete:
+                self.model.add(
+                    Dense(num_outputs, activation="softmax", bias_initializer=initializer
+                          , kernel_initializer=initializer))
+            else:
+                self.model.add(
+                    Dense(num_outputs, activation=relu_max, bias_initializer=initializer
+                          , kernel_initializer=initializer))
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
         self.model.compile(loss='mse', optimizer=optimizer)
 
+
+    def load(self, modelName = None):
         if modelName is not None:
             path = "savedModels/" + modelName
             packageName = "savedModels." + modelName
@@ -211,55 +252,75 @@ class PolicyNetwork(object):
     def save(self, path):
         self.model.save(path + "actor"+ "_model.h5")
 
-    def load(self, path):
-        self.model = load_model(path)
+    def getTarget(self, action, state):
+        if self.discrete:
+            target = numpy.zeros(self.num_actions)
+            #target = self.model.predict(state)[0]
+            target[action] = 1
+        else:
+            target =  action
+        return numpy.array([target])
+
+    def getAction(self, action_idx):
+        return self.actions[action_idx]
+
 
 class ActorCritic(object):
     def __repr__(self):
         return "AC"
 
-    def __init__(self, parameters):
-        self.actor = PolicyNetwork(parameters)
-        self.critic = ValueNetwork(parameters)
+    def __init__(self, parameters, num_bots, discrete, modelName = None):
+        self.num_bots = num_bots
+        self.actor = PolicyNetwork(parameters, discrete, modelName)
+        self.critic = ValueNetwork(parameters, modelName)
         self.parameters = parameters
         self.parameters.std_dev = self.parameters.EPSILON
-        self.discrete = False
+        self.discrete = discrete
         self.steps = 0
         self.input_len = parameters.STATE_REPR_LEN
         # Bookkeeping:
         self.lastTDE = None
         self.qValues = []
 
+    def adjust_std_dev(self):
+        if self.steps < self.parameters.STEPS_TO_MIN_NOISE:
+            self.parameters.std_dev = 1 - (1 - self.parameters.MINIMUM_NOISE) *\
+                                      (self.steps / self.parameters.STEPS_TO_MIN_NOISE)
+        else:
+            self.parameters.std_dev = self.parameters.MINIMUM_NOISE
+
+    def updateCriticNetworks(self):
+        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+            self.critic.update_target_model()
 
     def learn(self, batch):
-        self.steps += 1
+        self.steps += 1 * self.parameters.FRAME_SKIP_RATE
+        self.adjust_std_dev()
         self.train_CACLA(batch)
-        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
-            pass
-            # TODO: update target value network. implement a target network for that
-            # TODO: take care that the number of steps reflects number of frames, and not number of frames * number of bots that use actor critic
-
-    #def decideMove(self, state):
-    #    return self.actor.predict(state)[0]
+        self.updateCriticNetworks()
 
     def decideMove(self, state):
         actions = self.actor.predict(state)
         std_dev = self.parameters.std_dev
         apply_normal_dist = [numpy.random.normal(output, std_dev) for output in actions]
         clipped = numpy.clip(apply_normal_dist, 0, 1)
-
-        return clipped
+        if self.discrete:
+            action_idx = numpy.argmax(clipped)
+            action = self.actor.getAction(action_idx)
+        else:
+            action_idx = None
+            action =  clipped
+        return action_idx, action
 
     def calculateTargetAndTDE(self, old_s, r, new_s, alive):
         old_state_value = self.critic.predict(old_s)
         target = r
         if alive:
             # The target is the reward plus the discounted prediction of the value network
-            updated_prediction = self.critic.predict(new_s)
+            updated_prediction = self.critic.predict_target_model(new_s)
             target += self.parameters.DISCOUNT * updated_prediction
         td_error = target - old_state_value
         return target, td_error
-
     def train_critic_CACLA(self, batch):
         len_batch = len(batch)
         inputs_critic = numpy.zeros((len_batch, self.input_len))
@@ -278,13 +339,14 @@ class ActorCritic(object):
         self.qValues.append(target)
         self.critic.train(inputs_critic, targets_critic)
 
+
+
     def train_actor_CACLA(self, currentExp):
         old_s, a, r, new_s = currentExp
-        a = numpy.array([a])
         _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None)
         if td_e > 0:
             input_actor = old_s
-            target_actor = a
+            target_actor = self.actor.getTarget(a, old_s)
             self.actor.train(input_actor, target_actor)
 
     def train_actor_batch_CACLA(self, batch):
@@ -310,7 +372,6 @@ class ActorCritic(object):
 
     def train_CACLA(self, batch):
         # TODO: actor should not be included in the replays.. I think???
-        # TODO: add target network for value net
         self.train_critic_CACLA(batch)
         currentExp = batch[-1]
         self.train_actor_CACLA(currentExp)

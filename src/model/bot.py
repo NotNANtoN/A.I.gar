@@ -116,7 +116,6 @@ class Bot(object):
         if not currentlySkipping:
             # Learn
             if self.trainMode and self.oldState is not None:
-                # Train
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
                 currentExperience = (self.oldState, action, self.lastReward, newState)
                 self.expReplayer.remember(currentExperience)
@@ -130,10 +129,12 @@ class Bot(object):
             # Move
             if self.player.getIsAlive():
                 if self.learningAlg.discrete:
-                    new_action_idx, new_action = self.learningAlg.decideMove(newState, self.player)
+                    if str(self.learningAlg) == "AC":
+                        new_action_idx, new_action = self.learningAlg.decideMove(newState)
+                    else:
+                        new_action_idx, new_action = self.learningAlg.decideMove(newState, self.player)
                 else:
-                    new_action = self.learningAlg.decideMove(newState)
-                    new_action_idx = None
+                    new_action_idx, new_action = self.learningAlg.decideMove(newState)
 
                 self.updateValues(new_action_idx, new_action, newState)
 

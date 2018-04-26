@@ -84,7 +84,8 @@ class View:
                     playerFovPos = player.getFovPos()
                     playerFovSize = player.getFovSize()
                     neededLines = bot.getGridSquaresPerFov() - 1
-                    distanceBetweenLines = self.modelToViewScaleRadius(playerFovSize / bot.gridSquaresPerFov, fovSize)
+                    distanceBetweenLines = self.modelToViewScaleRadius(playerFovSize /
+                                                                       bot.parameters.GRID_SQUARES_PER_FOV, fovSize)
                     scaledPos = self.modelToViewScaling(playerFovPos, fovPos, fovSize)
                     scaledSize = self.modelToViewScaleRadius(playerFovSize, fovSize)
                     left = scaledPos[0] - scaledSize / 2

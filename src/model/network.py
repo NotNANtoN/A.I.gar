@@ -114,7 +114,7 @@ class Network(object):
 
         if self.optimizer == "Adam":
             optimizer = keras.optimizers.Adam(lr=self.learningRate)
-        elif self.optimizer == "SGD":
+        else:
             optimizer = keras.optimizers.SGD(lr=self.learningRate)
 
         self.valueNetwork.compile(loss='mse', optimizer=optimizer)
@@ -130,7 +130,7 @@ class Network(object):
         self.parameters = importlib.import_module('.networkParameters', package=packageName)
         self.loadedModelName = modelName
         self.valueNetwork = load_model(path + "/NN_model.h5")
-        self.targetNetwork = self.valueNetwork
+        self.targetNetwork = load_model(path + "/NN_model.h5")
 
     def trainOnBatch(self, inputs, targets):
         self.valueNetwork.train_on_batch(inputs, targets)
@@ -138,9 +138,12 @@ class Network(object):
     def predict(self, state):
         return self.valueNetwork.predict(numpy.array([state]))[0]
 
-    def saveModel(self, path, bot):
+    def predict_target_network(self, state):
+        return self.targetNetwork.predict(state)[0]
+
+    def saveModel(self, path):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-        self.targetNetwork.save(path + bot.type + "_model.h5")
+        self.targetNetwork.save(path + "model.h5")
 
     def setEpsilon(self, val):
         self.epsilon = val

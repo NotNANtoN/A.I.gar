@@ -94,7 +94,9 @@ def createHumans(numberOfHumans, model1):
 def createBots(number, model, type, parameters, algorithm = None, network = None, modelName = None):
     learningAlg = None
     if algorithm == 2:
-        learningAlg = ActorCritic(parameters)
+        learningAlg = ActorCritic(parameters, numberOfNNBots, False, modelName)
+    if algorithm == 5:
+        learningAlg = ActorCritic(parameters, numberOfNNBots, True, modelName)
     if type == "NN":
         Bot.num_NNbots = number
         for i in range(number):
@@ -194,8 +196,8 @@ if __name__ == '__main__':
 
         if loadModel == 0:
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
-            "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Continuous Actor-Critic' == 2,\n" + \
-            "'ExpectedSarsa' == 3, 'Tree Backup' == 4\n"))
+            "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
+            "'ExpectedSarsa' == 3, 'Tree Backup' == 4, 'Discrete ACLA' == 5\n"))
 
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
