@@ -117,10 +117,10 @@ class ValueNetwork(object):
             self.target_model = load_model(path + "/value_model.h5")
 
     def predict(self, state):
-        return self.model.predict(state)[0]
+        return self.model.predict(numpy.array([state]))[0]
 
     def predict_target_model(self, state):
-        return self.target_model.predict(state)[0]
+        return self.target_model.predict(numpy.array([state]))[0]
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -244,7 +244,7 @@ class PolicyNetwork(object):
             self.model = load_model(path + "/actor_model.h5")
 
     def predict(self, state):
-        return self.model.predict(state)[0]
+        return self.model.predict(numpy.array([state]))[0]
 
     def train(self, inputs, targets):
         self.model.train_on_batch(inputs, targets)
