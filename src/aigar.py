@@ -1,9 +1,4 @@
-import matplotlib
-import sys
-import importlib
-import numpy
-
-from keras.models import load_model
+import os
 
 from controller.controller import Controller
 from model.model import *
@@ -93,6 +88,48 @@ def algorithmNameToNumber(name):
     else:
         print("ALGORITHM in networkParameters not found.\n")
         quit()
+
+
+def checkValidParameter(param):
+    name_of_file = "model/networkParameters.py"
+    lines = open(name_of_file, 'r').readlines()
+    for n in range(len(lines)):
+        name = ""
+        for char in lines[n]:
+            if char == " ":
+                break
+            name += char
+        if param == name:
+            print("FOUND")
+            return n
+    print("Parameter with name " + tweakedParameter + "not found.")
+    quit()
+
+
+def modifyParameterValue(val, model, lineNumber):
+    name_of_file = model.getPath() + "networkParameters.py"
+    lines = open(name_of_file, 'r').readlines()
+    text = ""
+    for char in lines[lineNumber]:
+        text += char
+        if char == "=":
+            break
+    text += " " + str(val) + "\n"
+    lines[lineNumber] = text
+    out = open(name_of_file, 'w')
+    out.writelines(lines)
+    out.close()
+
+
+def renameSavedModelFolder(array, model):
+    name = "$"
+    for i in range(len(array)):
+        if name != "$":
+            name += "&"
+        name += array[i][0] + "=" + str(array[i][1])
+    name += "_v0$"
+    print(name)
+    model.renameSavedModelFolder(name)
 
 
 def modelMustHavePlayers():
@@ -228,9 +265,25 @@ if __name__ == '__main__':
             parameters = importlib.import_module('.networkParameters', package="model")
 
         if loadModel == 0:
+            model.initModelFolder()
+            print(str( model.getPath()))
+
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
             "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
             "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
+            tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
+            if tweaking == 1:
+                tweakedTotal = []
+                while True:
+                    tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
+                    paramLineNumber = checkValidParameter(tweakedParameter)
+                    if paramLineNumber is not None:
+                        paramValue = str(input("Enter parameter value:\n"))
+                        modifyParameterValue(paramValue, model, paramLineNumber)
+                        tweakedTotal.append([tweakedParameter, paramValue])
+                    if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
+                        break
+                renameSavedModelFolder(tweakedTotal, model)
 
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
@@ -246,12 +299,11 @@ if __name__ == '__main__':
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
 
+    model.initialize()
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
     startScreen = StartScreen(model)
-
-    model.initialize()
 
     if guiEnabled:
         view = View(model, screenWidth, screenHeight)
