@@ -89,11 +89,6 @@ class Model(object):
         self.field.initialize()
 
 
-    def initModelFolder(self):
-        self.createPath()
-        self.copyParameters()
-
-
     def resetModel(self):
         print("Resetting field and players!")
         for bot in self.bots:
@@ -151,6 +146,47 @@ class Model(object):
     def resetBots(self):
         for bot in self.bots:
             bot.reset()
+
+
+    def initModelFolder(self):
+        self.createPath()
+        self.copyParameters()
+
+    def renameSavedModelFolder(self, name):
+        copyNumber = 0
+        collision = True
+        while collision:
+            collision = False
+            for fileName in os.listdir(os.getcwd() + "/savedModels/"):
+                # Get the existing file name without appended run info
+                flStart = "$"
+                for i in range(1,len(fileName)):
+                    # Stop at second "$" sign
+                    if fileName[i] != "$":
+                        flStart += fileName[i]
+                    else:
+                        flStart += fileName[i]
+                        break
+                # Check if file name already exists
+                if flStart == name:
+                    # If file name already exists with a "_v" extension, erase extension
+                    newStringLength = len(flStart) - 1 - len("_v") - len(str(copyNumber))
+                    nameTemp = ""
+                    for i in range(newStringLength):
+                       nameTemp += name[i]
+                    name = nameTemp
+                    # Add new version number extension
+                    name += "_v" + str(copyNumber) + "$"
+                    copyNumber += 1
+                    collision = True
+                    break
+        # Rename folder
+        originalName = os.getcwd() + "/" + self.path
+        newPath = "savedModels/" + name + "/"
+        newName = os.getcwd() + "/" + newPath
+        os.rename(originalName, newName)
+        self.path = newPath
+
 
     def createPath(self):
         basePath = "savedModels"

@@ -1,9 +1,4 @@
-import matplotlib
-import sys
-import importlib
-import numpy
-
-from keras.models import load_model
+import os
 
 from controller.controller import Controller
 from model.model import *
@@ -126,6 +121,17 @@ def modifyParameterValue(val, model, lineNumber):
     out.close()
 
 
+def renameSavedModelFolder(array, model):
+    name = "$"
+    for i in range(len(array)):
+        if name != "$":
+            name += "&"
+        name += array[i][0] + "=" + str(array[i][1])
+    name += "_v0$"
+    print(name)
+    model.renameSavedModelFolder(name)
+
+
 def modelMustHavePlayers():
     print("Model must have players")
     quit()
@@ -161,7 +167,7 @@ def createBots(number, model, type, parameters, algorithm = None, modelName = No
     if type == "NN":
         Bot.num_NNbots = number
 
-        network = Network(enableTrainMode, modelName)
+        network = Network(enableTrainMode, modelName, parameters)
         for i in range(number):
             # Create algorithm instance
             #Discrete algorithms
@@ -260,22 +266,24 @@ if __name__ == '__main__':
 
         if loadModel == 0:
             model.initModelFolder()
+            print(str( model.getPath()))
 
             algorithm = int(input("What learning algorithm do you want to use?\n" + \
             "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
             "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
             tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
             if tweaking == 1:
-                tweaked = 0
+                tweakedTotal = []
                 while True:
                     tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
                     paramLineNumber = checkValidParameter(tweakedParameter)
                     if paramLineNumber is not None:
                         paramValue = str(input("Enter parameter value:\n"))
                         modifyParameterValue(paramValue, model, paramLineNumber)
-                        tweaked += 1
+                        tweakedTotal.append([tweakedParameter, paramValue])
                     if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
                         break
+                renameSavedModelFolder(tweakedTotal, model)
 
         enableTrainMode = humanTraining if humanTraining != None else False
         if not humanTraining:
