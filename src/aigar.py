@@ -130,7 +130,7 @@ def createBots(number, model, type, parameters, algorithm = None, modelName = No
     if type == "NN":
         Bot.num_NNbots = number
 
-        network = Network(enableTrainMode, modelName)
+        network = Network(enableTrainMode, modelName, parameters)
         for i in range(number):
             # Create algorithm instance
             #Discrete algorithms
@@ -252,6 +252,7 @@ if __name__ == '__main__':
     startScreen = StartScreen(model)
 
     model.initialize()
+
     if guiEnabled:
         view = View(model, screenWidth, screenHeight)
         controller = Controller(model, viewEnabled, view, mouseEnabled)

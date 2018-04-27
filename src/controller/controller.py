@@ -144,7 +144,13 @@ class Controller:
                 if not humanList:
                     # Plot mean td errors and mean rewards
                     if event.key == pygame.K_t:
-                        self.model.saveSpecs()
+                        for bot in self.model.bots:
+                            if bot.getType() == "NN" and bot.learningAlg is not None:
+                                print("Before")
+                                print(bot.learningAlg.network.valueNetwork.get_weights()[0])
+                                bot.learningAlg.reset_weights()
+                                print("After")
+                                print( bot.learningAlg.network.valueNetwork.get_weights()[0])
 
                     if event.key == pygame.K_p:
                         self.model.plotTDError()

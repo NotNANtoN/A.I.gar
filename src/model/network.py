@@ -3,6 +3,7 @@ import keras
 import numpy
 import tensorflow as tf
 import importlib.util
+import keras.backend as K
 from keras.layers import Dense, LSTM, Softmax
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
@@ -113,11 +114,32 @@ class Network(object):
         else:
             optimizer = keras.optimizers.SGD(lr=self.learningRate)
 
+        self.optimizer = optimizer
+
         self.valueNetwork.compile(loss='mse', optimizer=optimizer)
         self.targetNetwork.compile(loss='mse', optimizer=optimizer)
 
         if modelName is not None:
             self.load(modelName)
+
+
+    def reset_general(self, model):
+        session = K.get_session()
+        for layer in model.layers:
+            for v in layer.__dict__:
+                v_arg = getattr(layer, v)
+                if hasattr(v_arg, 'initializer'):
+                    initializer_method = getattr(v_arg, 'initializer')
+                    initializer_method.run(session=session)
+                    print('reinitializing layer {}.{}'.format(layer.name, v))
+
+    def reset_weights(self):
+        self.reset_general(self.valueNetwork)
+        self.reset_general(self.targetNetwork)
+
+
+        #self.valueNetwork.compile(loss='mse', optimizer=self.optimizer)
+        #self.targetNetwork.compile(loss='mse', optimizer=self.optimizer)
 
     def load(self, modelName):
         path = "savedModels/" + modelName
