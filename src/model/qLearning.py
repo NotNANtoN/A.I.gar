@@ -28,6 +28,9 @@ class QLearn(object):
     def reset_weights(self):
         self.network.reset_weights()
 
+    def resetQValueList(self):
+        self.qValues = []
+
     def testNetwork(self, bot, newState):
         self.network.setEpsilon(0)
         player = bot.getPlayer()

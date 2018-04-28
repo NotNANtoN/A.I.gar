@@ -54,11 +54,14 @@ class Bot(object):
             self.splitLikelihood = numpy.random.randint(9950,10000)
             self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
         self.totalMasses = []
-        self.memories = []
+        # self.memories = []
         self.reset()
 
     def saveModel(self, path):
         self.learningAlg.save(path)
+
+    def resetMassList(self):
+        self.totalMasses = []
 
     def reset(self):
         self.lastMass = None
@@ -445,8 +448,8 @@ class Bot(object):
     def getCumulativeReward(self):
         return self.cumulativeReward
 
-    def getMemories(self):
-        return self.memories
+    # def getMemories(self):
+    #     return self.memories
 
     def getLastMemory(self):
         return self.lastMemory

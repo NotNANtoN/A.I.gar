@@ -128,8 +128,6 @@ def nameSavedModelFolder(array):
         if i != 0:
             name += "&"
         name += array[i][0] + "=" + str(array[i][1])
-    print(name)
-    # model.renameSavedModelFolder(name)
     return name
 
 
@@ -285,8 +283,7 @@ if __name__ == '__main__':
                         break
                 folderName = nameSavedModelFolder(tweakedTotal)
 
-            model.initModelFolder(folderName)
-            print(str(model.getPath()))
+            model.initModelFolder(numberOfNNBots, folderName)
             modifyParameterValue(tweakedTotal, model)
 
         enableTrainMode = humanTraining if humanTraining != None else False
@@ -296,6 +293,7 @@ if __name__ == '__main__':
 
         Bot.init_exp_replayer(parameters)
         createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
+
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
 
@@ -333,8 +331,9 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
-        for bot in model.bots:
-            player = bot.getPlayer()
+        bots = model.getBots()
+        for i in range(len(model.getBots())):
+            player = bots[i].getPlayer()
             print("")
             print("Network parameters for ", player, ":")
             attributes = dir(parameters)
@@ -343,10 +342,12 @@ if __name__ == '__main__':
                     print(attribute, " = ", getattr(parameters, attribute))
             print("")
             print("Mass Info for ", player, ":")
-            masses = bot.getMassOverTime()
-            mean = numpy.mean(masses)
-            median = numpy.median(masses)
-            variance = numpy.std(masses)
+            massListPath = model.getPath() + model.getDataFiles()["NN" + str(i) + "_mass"]
+            with open(massListPath, 'r') as f:
+                massList = list(map(float, f))
+            mean = numpy.mean(massList)
+            median = numpy.median(massList)
+            variance = numpy.std(massList)
             print("Median = ", median, " Mean = ", mean, " Std = ", variance)
             print("")
 
