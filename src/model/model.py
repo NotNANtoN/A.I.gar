@@ -148,44 +148,12 @@ class Model(object):
             bot.reset()
 
 
-    def initModelFolder(self):
-        self.createPath()
+    def initModelFolder(self, name = None):
+        if name == None:
+            self.createPath()
+        else:
+            self.createNamedPath(name)
         self.copyParameters()
-
-    def renameSavedModelFolder(self, name):
-        copyNumber = 0
-        collision = True
-        while collision:
-            collision = False
-            for fileName in os.listdir(os.getcwd() + "/savedModels/"):
-                # Get the existing file name without appended run info
-                flStart = "$"
-                for i in range(1,len(fileName)):
-                    # Stop at second "$" sign
-                    if fileName[i] != "$":
-                        flStart += fileName[i]
-                    else:
-                        flStart += fileName[i]
-                        break
-                # Check if file name already exists
-                if flStart == name:
-                    # If file name already exists with a "_v" extension, erase extension
-                    newStringLength = len(flStart) - 1 - len("_v") - len(str(copyNumber))
-                    nameTemp = ""
-                    for i in range(newStringLength):
-                       nameTemp += name[i]
-                    name = nameTemp
-                    # Add new version number extension
-                    name += "_v" + str(copyNumber) + "$"
-                    copyNumber += 1
-                    collision = True
-                    break
-        # Rename folder
-        originalName = os.getcwd() + "/" + self.path
-        newPath = "savedModels/" + name + "/"
-        newName = os.getcwd() + "/" + newPath
-        os.rename(originalName, newName)
-        self.path = newPath
 
 
     def createPath(self):
@@ -200,6 +168,29 @@ class Model(object):
         if os.path.exists(path):
             nowStr = now.strftime("%b-%d_%H:%M:%S")
             path = basePath + "/" + nowStr
+        os.makedirs(path)
+        path += "/"
+        self.path = path
+
+    def createNamedPath(self, name):
+        #Create savedModels folder
+        basePath = "savedModels"
+        if not os.path.exists(basePath):
+            os.makedirs(basePath)
+        #Create subFolder for given parameter tweaking
+        subPath = basePath + "/" + name
+        subName = os.getcwd() + "/" + subPath
+        if not os.path.exists(subPath):
+            os.makedirs(subPath)
+        #Create folder based on name
+        now = datetime.datetime.now()
+        self.startTime = now
+        nowStr = now.strftime("%b-%d_%H:%M")
+        path = subPath + "/" + nowStr
+        # Also display seconds in name if we already have a model this minute
+        if os.path.exists(path):
+            nowStr = now.strftime("%b-%d_%H:%M:%S")
+            path = subPath + "/" + nowStr
         os.makedirs(path)
         path += "/"
         self.path = path
