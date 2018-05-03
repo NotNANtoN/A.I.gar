@@ -44,4 +44,19 @@ Submitted batch job 1179603
 Submitted batch job 1179604
 [s2705338@peregrine src]$ sbatch z_EPS_02.sh
 Submitted batch job 1179605
+[s2705338@peregrine src]$ sbatch z_MBL_200.sh 
+Submitted batch job 1179610
+[s2705338@peregrine src]$ sbatch z_GreedyBot_1.sh 
+Submitted batch job 1179611
+[s2705338@peregrine src]$ sbatch z_GreedyBot_1_CPU.sh 
+Submitted batch job 1179612
+[s2705338@peregrine src]$ sbatch z_GreedyBot_2.sh 
+Submitted batch job 1179613
+[s2705338@peregrine src]$ sbatch z_GreedyBot_2.sh 
+Submitted batch job 1179614
+[s2705338@peregrine src]$ sbatch z_GreedyBot_3.sh 
+Submitted batch job 1179615
+[s2705338@peregrine src]$ sbatch z_MBL_200.sh 
+Submitted batch job 1179616
+[s2705338@peregrine src]$ 
 
