@@ -91,7 +91,7 @@ class QLearn(object):
                 new_states[i, j, :] = batch[i][j][3]
 
         #TODO: Why is len_batch needed? The shape seems to be 32, 10, 407 for some reason
-        print("Shape old_states: ", numpy.shape(old_states))
+        #print("Shape old_states: ", numpy.shape(old_states))
         target = self.network.predict(old_states, len_batch)
 
         #TODO: agent might have died so do not predict reward there with new State as new state is None then
@@ -116,8 +116,6 @@ class QLearn(object):
             target = self.calculateTarget(old_s, a, r, new_s)
             self.network.trainOnBatch(old_s, target)
 
-#TODO: when do the hidden states get reset?: after death and at reset (for online learning)
-#TODO: probably best to decide when taking a move. if no oldstate then reset if no new state then dead
 
     def learn(self, batch):
         self.time += 1 * self.parameters.FRAME_SKIP_RATE

@@ -123,7 +123,7 @@ class Network(object):
                     Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                           , kernel_initializer=initializer))
             elif self.parameters.NEURON_TYPE == "LSTM":
-                self.valueNetwork.add(LSTM(self.num_actions, activation=self.activationFuncLSTM,
+                self.valueNetwork.add(LSTM(self.num_actions, activation=self.activationFuncOutput,
                                    return_sequences=True, stateful=stateful_training, batch_size=self.batch_len))
 
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
@@ -159,7 +159,7 @@ class Network(object):
                                    bias_initializer=initializer, kernel_initializer=initializer,
                                    return_sequences=True, stateful=True, batch_size=self.batch_len)
                 self.lstm_move_value_network.add(hidden3)
-            self.lstm_move_value_network.add(LSTM(self.num_actions, activation=self.activationFuncLSTM,
+            self.lstm_move_value_network.add(LSTM(self.num_actions, activation=self.activationFuncOutput,
                                    return_sequences=False, stateful=True, batch_size=self.batch_len))
             self.lstm_move_value_network.compile(loss='mse', optimizer=optimizer)
 
@@ -184,9 +184,9 @@ class Network(object):
 
     def reset_hidden_states_prediction(self):
         if self.parameters.EXP_REPLAY_ENABLED:
-            self.valueNetwork.reset_states()
-        else:
             self.lstm_move_value_network.reset_states()
+        else:
+            self.valueNetwork.reset_states()
 
     def load(self, modelName):
         path = "savedModels/" + modelName
