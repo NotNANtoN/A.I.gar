@@ -81,6 +81,9 @@ class Bot(object):
     def saveModel(self, path):
         self.learningAlg.save(path)
 
+    def resetMassList(self):
+        self.totalMasses = []
+
     def reset(self):
         self.learningAlg.reset()
         self.lastMass = None
@@ -466,8 +469,8 @@ class Bot(object):
     def getCumulativeReward(self):
         return self.cumulativeReward
 
-    def getMemories(self):
-        return self.memories
+    # def getMemories(self):
+    #     return self.memories
 
     def getLastMemory(self):
         return self.lastMemory
