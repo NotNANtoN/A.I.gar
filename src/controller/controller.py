@@ -1,5 +1,6 @@
 from view.view import *
 import pygame
+from keras.utils import plot_model
 
 
 class Controller:
@@ -151,6 +152,13 @@ class Controller:
                                 bot.learningAlg.reset_weights()
                                 print("After")
                                 print( bot.learningAlg.network.valueNetwork.get_weights()[0])
+
+                    if event.key == pygame.K_n:
+                        for bot in self.model.bots:
+                            if bot.getType() == "NN" and bot.learningAlg is not None:
+                                model = bot.getLearningAlg().network.valueNetwork
+                                break
+                        plot_model(model, to_file='model.png', show_shapes=True)
 
                     if event.key == pygame.K_p:
                         self.model.plotTDError()

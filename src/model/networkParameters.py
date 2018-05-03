@@ -10,14 +10,14 @@ MEMORY_BATCH_LEN = 40 # Must be divisible by 4 atm due to experience replay
 REPLAY_AFTER_X_STEPS = 0
 
 # General RL:
-ENABLE_SPLIT = False
-ENABLE_EJECT = False
+ENABLE_SPLIT = False #TODO: these two do not have an effect yet, implement that they
+ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuous and discrete algorithms
 
 
 # Q-learning
 USE_POLICY_NETWORK = False
 USE_TARGET = True # Otherwise td-error is used in value network. Using td-error is not horrible, but worse than target
-EXP_REPLAY_ENABLED = True
+EXP_REPLAY_ENABLED = False
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 10000
 TARGET_NETWORK_MAX_STEPS = 10000 # 2000 performs worse than 5000. 20000 was a bit better than 5000. 20k was worse than 10k
@@ -42,11 +42,19 @@ HIDDEN_LAYER_1_POLICY = 75
 HIDDEN_LAYER_2_POLICY = 0
 HIDDEN_LAYER_3_POLICY = 0
 
+#LSTM
+NEURON_TYPE = "LSTM"
+ACTIVATION_FUNC_LSTM = "tanh"
+UPDATE_LSTM_MOVE_NETWORK = 1
+TRACE_MIN = 7 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
+MEMORY_TRACE_LEN = 10 # The length of memory traces retrieved via exp replay
+
+
 #ANN
-NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
-ALPHA = 0.00025 #Learning rate
+DROPOUT_RATE= 0 #TODO: not yet implemented at all, but might be interesting
+ALPHA = 0.00025 #Learning rate. Marco recommended to try lower learning rates too, decrease by factor of 10 or 100
 OPTIMIZER = "Adam" #SGD has much worse performance
-ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
+ACTIVATION_FUNC_HIDDEN = 'elu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
 ACTIVATION_FUNC_OUTPUT = 'linear'
 
 #Layer neurons

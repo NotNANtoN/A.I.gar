@@ -10,6 +10,7 @@ class ExpReplay():
         self.memories = []
         self.max = parameters.MEMORY_CAPACITY
         self.batch_size = parameters.MEMORY_BATCH_LEN
+        self.parameters = parameters
 
     def remember(self, new_exp):
         if len(self.memories) >= self.max:
@@ -20,13 +21,29 @@ class ExpReplay():
         return len(self.memories) >= self.batch_size
 
     def sample(self):
-        randIdxs = numpy.random.randint(0, len(self.memories) - 1, self.batch_size)
-        return [self.memories[idx] for idx in randIdxs]
+        if self.parameters.NEURON_TYPE == "MLP":
+            randIdxs = numpy.random.randint(0, len(self.memories), self.batch_size)
+            return [self.memories[idx] for idx in randIdxs]
+        elif self.parameters.NEURON_TYPE == "LSTM":
+            trace_len = self.parameters.MEMORY_TRACE_LEN
+
+            sampled_start_points = numpy.random.randint(0, len(self.memories) - trace_len, self.batch_size)
+            sampled_traces = []
+            for start_point in sampled_start_points:
+                # Check that the trace does not contain any states in which the bot is dead and no states which are directly before a reset
+                valid_start = False
+                while not valid_start:
+                    valid_start = True
+                    for candidate in range(start_point, start_point + trace_len - 1):
+                        if self.memories[candidate][-2] is None or self.memories[candidate][-1] == True:
+                            valid_start = False
+                    if not valid_start:
+                        start_point = numpy.random.randint(0, len(self.memories) - trace_len)
+                sampled_traces.append(self.memories[start_point:start_point + trace_len])
+            return sampled_traces
 
     def getMemories(self):
         return self.memories
-
-
 
 class Bot(object):
     num_NNbots = 0
@@ -55,12 +72,17 @@ class Bot(object):
             self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
         self.totalMasses = []
         self.memories = []
+        # If using lstm the memories have to be ordered correctly in time for this bot.
+        if self.parameters.NEURON_TYPE == "LSTM":
+            self.expReplayer = ExpReplay(parameters)
+
         self.reset()
 
     def saveModel(self, path):
         self.learningAlg.save(path)
 
     def reset(self):
+        self.learningAlg.reset()
         self.lastMass = None
         self.oldState = None
         # self.stateHistory = []
@@ -74,6 +96,9 @@ class Bot(object):
         if self.type == "NN":
             self.currentActionIdx = None
             self.currentAction = None
+            # Mark in the memory that here the episode ended
+            if len(self.memories) > 0:
+                self.memories[-1][-1] = True
             # self.actionIdxHistory = []
             # self.actionHistory =[]
         elif self.type == "Greedy":
@@ -114,10 +139,11 @@ class Bot(object):
             # Learn
             if self.trainMode and self.oldState is not None:
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
-                currentExperience = (self.oldState, action, self.lastReward, newState)
-                self.expReplayer.remember(currentExperience)
-                if self.expReplayer.canReplay() and self.learningAlg.parameters.EXP_REPLAY_ENABLED:
-                    batch = self.expReplayer.sample()
+                currentExperience = (self.oldState, action, self.lastReward, newState, False)
+                if self.parameters.EXP_REPLAY_ENABLED:
+                    self.expReplayer.remember(currentExperience)
+                    if self.expReplayer.canReplay():
+                        batch = self.expReplayer.sample()
                 else:
                     batch = []
                 batch.append(currentExperience)
@@ -125,21 +151,16 @@ class Bot(object):
 
             # Move
             if self.player.getIsAlive():
-                if self.learningAlg.discrete:
-                    if str(self.learningAlg) == "AC":
-                        new_action_idx, new_action = self.learningAlg.decideMove(newState)
-                    else:
-                        new_action_idx, new_action = self.learningAlg.decideMove(newState, self.player)
-                else:
-                    new_action_idx, new_action = self.learningAlg.decideMove(newState)
-
+                new_action_idx, new_action = self.learningAlg.decideMove(newState, self)
                 self.updateValues(new_action_idx, new_action, newState)
 
             if self.player.getIsAlive():
                 self.lastMass = self.player.getTotalMass()
             else:
                 self.reset()
-                self.learningAlg.reset()
+
+    def setExploring(self, val):
+        self.player.setExploring(val)
 
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())

@@ -56,6 +56,7 @@ class Model(object):
         self.resetLimit = resetLimit
         self.trainingEnabled = True
         self.path = None
+        self.superPath = None
         self.startTime = None
 
         self.players = []
