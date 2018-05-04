@@ -4,7 +4,6 @@ from .networkParameters import *
 # General Parameters
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 900
-MAXBOTS = 1000
 MAXHUMANPLAYERS = 3
 
 # Simulation Parameters

@@ -1,5 +1,5 @@
 import os
-
+import sys
 from controller.controller import Controller
 from model.model import *
 from model.network import *
@@ -9,8 +9,8 @@ from model.expectedSarsa import *
 from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
-from view.startScreen import StartScreen
 from view.view import View
+from modelCombiner import createCombinedModelGraphs
 
 import numpy as np
 import tensorflow as tf
@@ -204,6 +204,7 @@ if __name__ == '__main__':
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
     viewEnabled = False
+    maxSteps = 0
     if guiEnabled:
         viewEnabled = int(input("Display view?: (1 == yes)\n"))
         viewEnabled = (viewEnabled == 1)
@@ -212,14 +213,6 @@ if __name__ == '__main__':
     virusEnabled = int(input("Viruses enabled? (1==True)\n")) == 1
     resetSteps = int(input("Reset model after X steps (X==0 means no reset)\n"))
     model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps)
-
-    numberOfGreedyBots = int(input("Please enter the number of Greedy bots:\n"))
-    numberOfBots = numberOfGreedyBots
-    if fitsLimitations(numberOfBots, MAXBOTS):
-        createBots(numberOfGreedyBots, model, "Greedy", None)
-
-    numberOfNNBots = int(input("Please enter the number of NN bots:\n"))
-    numberOfBots += numberOfNNBots
 
     numberOfHumans = 0
     mouseEnabled = True
@@ -233,66 +226,75 @@ if __name__ == '__main__':
                 mouseEnabled = not humanTraining
             if numberOfHumans > 0 and not humanTraining:
                 mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
-        if numberOfBots + numberOfHumans == 0:
-            modelMustHavePlayers()
 
         if not model.hasHuman():
             spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
             if spectate == 1:
                 model.addPlayerSpectator()
 
-    if fitsLimitations(numberOfBots, MAXBOTS) and (numberOfNNBots > 0 or humanTraining):
-        modelName = None
-        algorithm = None
-        learningAlg = None
-        loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
-        if loadModel == 1:
-            while modelName == None:
-                modelName = input("Enter the model name (name of directory in savedModels): ")
-                path = "savedModels/" + modelName
-                if not os.path.exists(path):
-                    print("Invalid model name, no model found under ", path)
-                    modelName = None
 
-        if loadModel == 2:
-            modelName = "mostRecentAutosave"
-        if modelName is not None:
-            packageName = "savedModels." + modelName
-            parameters = importlib.import_module('.networkParameters', package=packageName)
-            algorithm = algorithmNameToNumber(parameters.ALGORITHM)
-        else:
-            parameters = importlib.import_module('.networkParameters', package="model")
+    modelName = None
+    algorithm = None
+    learningAlg = None
+    loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
+    if loadModel == 1:
+        while modelName == None:
+            modelName = input("Enter the model name (name of directory in savedModels): ")
+            path = "savedModels/" + modelName
+            if not os.path.exists(path):
+                print("Invalid model name, no model found under ", path)
+                modelName = None
 
-        if loadModel == 0:
+    if loadModel == 2:
+        modelName = "mostRecentAutosave"
+    if modelName is not None:
+        packageName = "savedModels." + modelName
+        parameters = importlib.import_module('.networkParameters', package=packageName)
+        algorithm = algorithmNameToNumber(parameters.ALGORITHM)
+    else:
+        parameters = importlib.import_module('.networkParameters', package="model")
 
+    if loadModel == 0:
 
-            algorithm = int(input("What learning algorithm do you want to use?\n" + \
-            "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
-            "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
-            tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
-            folderName = None
-            tweakedTotal = []
-            if tweaking == 1:
-                while True:
-                    tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
-                    paramLineNumber = checkValidParameter(tweakedParameter)
-                    if paramLineNumber is not None:
-                        paramValue = str(input("Enter parameter value:\n"))
-                        tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
-                    if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
-                        break
-                folderName = nameSavedModelFolder(tweakedTotal)
+        algorithm = int(input("What learning algorithm do you want to use?\n" + \
+        "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
+        "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
+        tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
+        folderName = None
+        tweakedTotal = []
+        if tweaking == 1:
+            while True:
+                tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
+                paramLineNumber = checkValidParameter(tweakedParameter)
+                if paramLineNumber is not None:
+                    paramValue = str(input("Enter parameter value:\n"))
+                    tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
+                if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
+                    break
+            folderName = nameSavedModelFolder(tweakedTotal)
 
-            model.initModelFolder(numberOfNNBots, folderName)
-            modifyParameterValue(tweakedTotal, model)
+        if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
+            folderName = str(input("Input folder name:\n"))
 
-        enableTrainMode = humanTraining if humanTraining != None else False
-        if not humanTraining:
-            enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
-        model.setTrainingEnabled(enableTrainMode == 1)
+        model.initModelFolder(folderName)
+        modifyParameterValue(tweakedTotal, model)
+    numberOfBots = 0
+    numberOfNNBots = parameters.NUM_NN_BOTS
+    numberOfBots += numberOfNNBots
+    model.addDataFilesToDictionary(numberOfNNBots)
 
-        Bot.init_exp_replayer(parameters)
-        createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
+    enableTrainMode = humanTraining if humanTraining is not None else False
+    if not humanTraining:
+        enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
+    model.setTrainingEnabled(enableTrainMode == 1)
+
+    Bot.init_exp_replayer(parameters)
+    createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
+
+    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
+    numberOfBots += numberOfGreedyBots
+    if fitsLimitations(numberOfGreedyBots, 1000):
+        createBots(numberOfGreedyBots, model, "Greedy", None)
 
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
@@ -305,7 +307,6 @@ if __name__ == '__main__':
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
-    startScreen = StartScreen(model)
 
     if guiEnabled:
         view = View(model, screenWidth, screenHeight)
@@ -331,6 +332,7 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
+        createCombinedModelGraphs(os.path.join(model.getPath(),"../"))
         bots = model.getBots()
         for i in range(len(model.getBots())):
             player = bots[i].getPlayer()
