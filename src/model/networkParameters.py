@@ -12,13 +12,11 @@ MEMORY_BATCH_LEN = 40 # Must be divisible by 4 atm due to experience replay
 REPLAY_AFTER_X_STEPS = 0
 
 # General RL:
-ENABLE_SPLIT = False
-ENABLE_EJECT = False
+ENABLE_SPLIT = False #TODO: these two do not have an effect yet, implement that they
+ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuous and discrete algorithms
 
 
 # Q-learning
-USE_POLICY_NETWORK = False
-USE_TARGET = True # Otherwise td-error is used in value network. Using td-error is not horrible, but worse than target
 EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 10000
@@ -31,7 +29,7 @@ Exploration = True
 EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
 FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-GRID_SQUARES_PER_FOV = 9 #11 is pretty good so far.
+GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 
 # Actor-critic:
@@ -44,16 +42,24 @@ HIDDEN_LAYER_1_POLICY = 75
 HIDDEN_LAYER_2_POLICY = 0
 HIDDEN_LAYER_3_POLICY = 0
 
+#LSTM
+NEURON_TYPE = "LSTM"
+ACTIVATION_FUNC_LSTM = "tanh"
+UPDATE_LSTM_MOVE_NETWORK = 1
+TRACE_MIN = 7 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
+MEMORY_TRACE_LEN = 10 # The length of memory traces retrieved via exp replay
+
+
 #ANN
-NEURON_TYPE = "MLP" #"LSTM" lstm does not work yet
-ALPHA = 0.00025 #Learning rate
+DROPOUT_RATE= 0 #TODO: not yet implemented at all, but might be interesting
+ALPHA = 0.00025 #Learning rate. Marco recommended to try lower learning rates too, decrease by factor of 10 or 100
 OPTIMIZER = "Adam" #SGD has much worse performance
-ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
+ACTIVATION_FUNC_HIDDEN = 'elu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
 ACTIVATION_FUNC_OUTPUT = 'linear'
 
 #Layer neurons
 STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + 2
-HIDDEN_LAYER_1 = 500
-HIDDEN_LAYER_2 = 500
-HIDDEN_LAYER_3 = 500
+HIDDEN_LAYER_1 = 100
+HIDDEN_LAYER_2 = 100
+HIDDEN_LAYER_3 = 100
 # More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation

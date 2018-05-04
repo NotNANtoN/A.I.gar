@@ -1,19 +1,11 @@
 1
-1
 0
 0
-0
-2
-0
-0
-0
+10000
 0
 1
-FRAME_SKIP_RATE
-6
-1
-GRID_SQUARES_PER_FOV
-10
+0
+0
 0
 1
 
