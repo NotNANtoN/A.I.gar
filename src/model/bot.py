@@ -401,9 +401,6 @@ class Bot(object):
     def getAvgReward(self):
         return self.rewardAvgOfEpisode
 
-    # def getRewardHistory(self):
-    #     return self.rewardHistory
-
     def getLastReward(self):
         return self.lastReward
 
@@ -431,8 +428,6 @@ class Bot(object):
             return -1 * self.lastMass
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
-        #if abs(reward) < 0.1:
-        #    reward -=  1
         return reward
 
     def getType(self):
@@ -447,9 +442,6 @@ class Bot(object):
     def getLearningAlg(self):
         return self.learningAlg
 
-    # def getStateHistory(self):
-    #     return self.stateHistory
-
     def getLastState(self):
         return self.oldState
 
@@ -459,17 +451,8 @@ class Bot(object):
     def getCurrentAction(self):
         return self.currentAction
 
-    # def getActionHistory(self):
-    #     return self.actionHistory
-
-    # def getActionIdxHistory(self):
-    #     return self.actionIdxHistory
-
     def getCumulativeReward(self):
         return self.cumulativeReward
-
-    # def getMemories(self):
-    #     return self.memories
 
     def getLastMemory(self):
         return self.lastMemory

@@ -3,6 +3,8 @@ ALGORITHM = "None"
 
 # Game
 PELLET_SPAWN = True
+NUM_GREEDY_BOTS = 0
+NUM_NN_BOTS = 1
 
 # Experience replay:
 MEMORY_CAPACITY = 75000

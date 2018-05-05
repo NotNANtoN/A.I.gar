@@ -12,7 +12,6 @@ from .player import Player
 
 import linecache
 import os
-import sys
 import shutil
 import tracemalloc
 
@@ -154,13 +153,12 @@ class Model(object):
             bot.reset()
 
 
-    def initModelFolder(self, numberNNbots, name = None):
-        if name == None:
+    def initModelFolder(self, name = None):
+        if name is None:
             self.createPath()
         else:
             self.createNamedPath(name)
         self.copyParameters()
-        self.addDataFilesToDictionary(numberNNbots)
 
 
     def createPath(self):
@@ -170,11 +168,11 @@ class Model(object):
         now = datetime.datetime.now()
         self.startTime = now
         nowStr = now.strftime("%b-%d_%H:%M")
-        path = basePath + "/" + nowStr
+        path = basePath + "/" + "$" + nowStr + "$"
         # Also display seconds in name if we already have a model this minute
         if os.path.exists(path):
             nowStr = now.strftime("%b-%d_%H:%M:%S")
-            path = basePath + "/" + nowStr
+            path = basePath + "/" + "$" + nowStr + "$"
         os.makedirs(path)
         path += "/"
         self.path = path
@@ -193,11 +191,11 @@ class Model(object):
         now = datetime.datetime.now()
         self.startTime = now
         nowStr = now.strftime("%b-%d_%H:%M")
-        path = subPath + "/" + nowStr
+        path = subPath + "/"  + "$" + nowStr + "$"
         # Also display seconds in name if we already have a model this minute
         if os.path.exists(path):
             nowStr = now.strftime("%b-%d_%H:%M:%S")
-            path = subPath + "/" + nowStr
+            path = subPath + "/" + "$" + nowStr + "$"
         os.makedirs(path)
         path += "/"
         self.path = path
@@ -264,8 +262,6 @@ class Model(object):
 
 
     def save(self, end = False):
-        # self.saveModels(self.path, end)
-        # self.saveSpecs(end)
         self.exportData()
         self.plotTDError()
         self.plotMassesOverTime()
@@ -303,41 +299,6 @@ class Model(object):
             learnAlg.resetQValueList()
             i += 1
 
-        # for bot in [bot for bot in self.bots if bot.getType() == "NN"]:
-        #     # Masses export
-        #     subPath = path + self.dataFiles["NN" + str(i) + "_mass"]
-        #     with open(subPath, "a") as f:
-        #         length = 100 if self.resetLimit == 0 else self.resetLimit / 2
-        #         sum = 0
-        #         masses = bot.getMassOverTime()
-        #         for i in range(len(masses)):
-        #             sum += masses[i]
-        #             if i % length == 0:
-        #                 value = sum / length
-        #                 f.write("%s\n" % value)
-        #             if i == len(masses) - 1:
-        #                 print(i % length)
-        #                 value = sum / (i % length)
-        #                 f.write("%s\n" % value)
-        #     bot.resetMassList()
-        #     # Qvalues export
-        #     subPath = path + self.dataFiles["NN" + str(i) + "_qValue"]
-        #     learnAlg = bot.getLearningAlg()
-        #     with open(subPath, "a") as f:
-        #         length = 100 if self.resetLimit == 0 else self.resetLimit / 2
-        #         sum = 0
-        #         qValues = learnAlg.getQValues()
-        #         for i in range(len(masses)):
-        #             sum += qValues[i]
-        #             if i % length == 0:
-        #                 value = sum / length
-        #                 f.write("%s\n" % value)
-        #             if i == len(qValues) - 1:
-        #                 print(i % length)
-        #                 value = sum / (i % length)
-        #                 f.write("%s\n" % value)
-        #     learnAlg.resetQValueList()
-        #     i += 1
 
     def getRelevantModelData(self, bot, end = False):
         parameters = bot.parameters
@@ -494,7 +455,7 @@ class Model(object):
         return newPlayer
 
     def createBot(self, type, learningAlg = None, parameters = None, modelName = None):
-        name = type + " " + str(len(self.bots))
+        name = type + str(len(self.bots))
         newPlayer = self.createPlayer(name)
         bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg, parameters, modelName)
         self.addBot(bot)
