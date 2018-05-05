@@ -191,7 +191,7 @@ def createBots(number, model, type, parameters, algorithm = None, modelName = No
     elif type == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
-            model.createBot(type)
+            model.createBot(type, None, parameters)
 
 
 if __name__ == '__main__':
@@ -278,10 +278,10 @@ if __name__ == '__main__':
 
         model.initModelFolder(folderName)
         modifyParameterValue(tweakedTotal, model)
-    numberOfBots = 0
     numberOfNNBots = parameters.NUM_NN_BOTS
-    numberOfBots += numberOfNNBots
-    model.addDataFilesToDictionary(numberOfNNBots)
+    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
+    numberOfBots = numberOfNNBots + numberOfGreedyBots
+
 
     enableTrainMode = humanTraining if humanTraining is not None else False
     if not humanTraining:
@@ -291,10 +291,10 @@ if __name__ == '__main__':
     Bot.init_exp_replayer(parameters)
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
 
-    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
-    numberOfBots += numberOfGreedyBots
     if fitsLimitations(numberOfGreedyBots, 1000):
-        createBots(numberOfGreedyBots, model, "Greedy", None)
+        createBots(numberOfGreedyBots, model, "Greedy", parameters)
+
+    model.addDataFilesToDictionary(model.getBots())
 
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
@@ -334,8 +334,8 @@ if __name__ == '__main__':
         model.save(True)
         createCombinedModelGraphs(os.path.join(model.getPath(),"../"))
         bots = model.getBots()
-        for i in range(len(model.getBots())):
-            player = bots[i].getPlayer()
+        for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
+            player = bot.getPlayer()
             print("")
             print("Network parameters for ", player, ":")
             attributes = dir(parameters)
@@ -344,7 +344,7 @@ if __name__ == '__main__':
                     print(attribute, " = ", getattr(parameters, attribute))
             print("")
             print("Mass Info for ", player, ":")
-            massListPath = model.getPath() + model.getDataFiles()["NN" + str(i) + "_mass"]
+            massListPath = model.getPath() + model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             mean = numpy.mean(massList)

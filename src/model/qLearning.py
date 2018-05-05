@@ -119,11 +119,11 @@ class QLearn(object):
                 a = numpy.argmax(target_val[i][j])
                 # TODO: target is reward if the agent died.
                 target[i][j][int(action[i][j])] = reward[i][j] + self.parameters.DISCOUNT * (target_val[i][j][a])
-        print("Weights before training:")
-        print(self.network.valueNetwork.get_weights()[0])
+        #print("Weights before training:")
+        #print(self.network.valueNetwork.get_weights()[0])
         self.network.trainOnBatch(old_states, target)
-        print("After training:")
-        print(self.network.valueNetwork.get_weights()[0])
+        #print("After training:")
+        #print(self.network.valueNetwork.get_weights()[0])
 
 
 #TODO: With lstm neurons we need one network python object per learning agent in the environment.
@@ -186,10 +186,12 @@ class QLearn(object):
         # Take random action with probability 1 - epsilon
         if numpy.random.random(1) < self.network.epsilon:
             newActionIdx = numpy.random.randint(len(self.network.getActions()))
+            explore = True
             if __debug__:
                 print("Explore")
                 bot.setExploring(True)
         else:
+            explore = False
             if bot.parameters.NEURON_TYPE == "MLP":
                 # Take action based on greediness towards Q values
                 q_Values = self.network.predict(newState)
@@ -205,13 +207,16 @@ class QLearn(object):
             if __debug__:
                 bot.setExploring(False)
 
-        if __debug__ and self.parameters.NEURON_TYPE == "MLP":
-            q_values_of_state = self.network.predict(newState)
-            average_value = round(numpy.mean(q_values_of_state), 1)
-            q_value = round(q_values_of_state[newActionIdx], 1)
+        if __debug__  and not explore:
+            average_value = round(numpy.mean(q_Values), 1)
+            q_value = round(q_Values[newActionIdx], 1)
             print("Expected Q-value: ", average_value, " Q(s,a) of current action: ", q_value)
             print("")
         newAction = self.network.actions[newActionIdx]
+
+        #TODO: remove following line, just debugging test:
+        #self.network.reset_hidden_states()
+
         return newActionIdx, newAction
 
     def save(self, path):

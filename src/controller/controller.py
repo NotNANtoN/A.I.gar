@@ -161,8 +161,7 @@ class Controller:
                         plot_model(model, to_file='model.png', show_shapes=True)
 
                     if event.key == pygame.K_p:
-                        self.model.plotTDError()
-                        self.model.plotMassesOverTime()
+                        self.model.save()
 
             # Handle player selection by clicking and view dis/enabling
             if not humanList:

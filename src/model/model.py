@@ -205,15 +205,16 @@ class Model(object):
         shutil.copy("model/networkParameters.py", self.path)
         shutil.copy("model/parameters.py", self.path)
 
-    def addDataFilesToDictionary(self, numberNNbots):
+    def addDataFilesToDictionary(self, bots):
         self.dataFiles.update({"Error": "tdErrors.txt", "Reward": "rewards.txt"})
         # Add files for each bot
-        for i in range(numberNNbots):
-            botName = "NN" + str(i)
-            massFileName = "meanMassOverTimeNN" + str(i) + ".txt"
-            self.dataFiles.update({botName + "_mass": massFileName})
-            qvalueFileName = "meanQValuesOverTimeNN" + str(i) + ".txt"
-            self.dataFiles.update({botName + "_qValue": qvalueFileName})
+        for bot_idx, bot in enumerate(bots):
+            botName = str(bot) + str(bot_idx)
+            massFileName = "meanMassOverTimeNN" + str(bot_idx) + ".txt"
+            print(botName + "_mass")
+            self.dataFiles.update({botName  + "_mass": massFileName})
+            qvalueFileName = "meanQValuesOverTimeNN" + str(bot_idx) + ".txt"
+            self.dataFiles.update({botName  + "_qValue": qvalueFileName})
 
 
     def saveModels(self, path, end = False):
@@ -282,22 +283,22 @@ class Model(object):
                 f.write("%s\n" % value)
         self.meanRewards = []
         # Bot exports
-        i = 0
-        for bot in [bot for bot in self.bots if bot.getType() == "NN"]:
+        for bot_idx, bot in enumerate([bot for bot in self.bots]):
             # Masses export
-            subPath = path + self.dataFiles["NN"+str(i)+"_mass"]
+            print(str(bot)+str(bot_idx)+"_mass")
+            subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_mass"]
             with open(subPath, "a") as f:
                 for value in bot.getMassOverTime():
                     f.write("%s\n" % value)
             bot.resetMassList()
             # Qvalues export
-            subPath = path + self.dataFiles["NN"+str(i)+"_qValue"]
-            learnAlg = bot.getLearningAlg()
-            with open(subPath, "a") as f:
-                for value in learnAlg.getQValues():
-                    f.write("%s\n" % value)
-            learnAlg.resetQValueList()
-            i += 1
+            if str(bot) == "NN":
+                subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_qValue"]
+                learnAlg = bot.getLearningAlg()
+                with open(subPath, "a") as f:
+                    for value in learnAlg.getQValues():
+                        f.write("%s\n" % value)
+                learnAlg.resetQValueList()
 
 
     def getRelevantModelData(self, bot, end = False):
@@ -412,8 +413,8 @@ class Model(object):
         plt.close()
 
     def plotMassesOverTime(self):
-        for i in range(len(self.bots)):
-            massListPath = self.path + self.dataFiles["NN" + str(i) + "_mass"]
+        for bot_idx, bot in enumerate([bot for bot in self.bots]):
+            massListPath = self.path + self.dataFiles[str(bot) + str(bot_idx) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             meanMass = round(numpy.mean(massList),1)
@@ -421,7 +422,7 @@ class Model(object):
             varianceMass = round(numpy.std(massList), 1)
             maxMass = round(max(massList), 1)
             len_masses = len(massList)
-            playerName = str(self.bots[i].getPlayer())
+            playerName = str(bot.getPlayer())
             plt.plot(range(len_masses), massList)
             plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass) + " Std: " +
                       str(varianceMass) + " Max: " + str(maxMass))
@@ -431,12 +432,12 @@ class Model(object):
             plt.close()
 
     def plotQValuesOverTime(self):
-        for i in range(len(self.bots)):
-            qValueListPath = self.path + self.dataFiles["NN" + str(i) + "_qValue"]
+        for bot_idx, bot in enumerate([bot for bot in self.bots if bot.getType() == "NN"]):
+            qValueListPath = self.path + self.dataFiles["NN" + str(bot_idx) + "_qValue"]
             with open(qValueListPath, 'r') as f:
                 qValueList = list(map(float, f))
             meanQValue = round(numpy.mean(qValueList), 1)
-            playerName = str(self.bots[i].getPlayer())
+            playerName = str(self.bots[bot_idx].getPlayer())
             plt.plot(range(len(qValueList)), qValueList)
             plt.title("Q-Values of " + playerName + "- Mean: " + str(meanQValue))
             plt.xlabel("Step")

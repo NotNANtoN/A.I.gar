@@ -3,7 +3,7 @@ ALGORITHM = "None"
 
 # Game
 PELLET_SPAWN = True
-NUM_GREEDY_BOTS = 0
+NUM_GREEDY_BOTS = 1
 NUM_NN_BOTS = 1
 
 # Experience replay:
@@ -17,7 +17,7 @@ ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuou
 
 
 # Q-learning
-EXP_REPLAY_ENABLED = False
+EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 10000
 TARGET_NETWORK_MAX_STEPS = 10000 # 2000 performs worse than 5000. 20000 was a bit better than 5000. 20k was worse than 10k
@@ -43,7 +43,7 @@ HIDDEN_LAYER_2_POLICY = 0
 HIDDEN_LAYER_3_POLICY = 0
 
 #LSTM
-NEURON_TYPE = "LSTM"
+NEURON_TYPE = "MLP"
 ACTIVATION_FUNC_LSTM = "tanh"
 UPDATE_LSTM_MOVE_NETWORK = 1
 TRACE_MIN = 7 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
