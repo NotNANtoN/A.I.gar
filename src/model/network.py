@@ -88,9 +88,7 @@ class Network(object):
                                           bias_initializer=initializer, kernel_initializer=initializer)
             elif self.parameters.NEURON_TYPE == "LSTM":
                 hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm,
-                               activation=self.activationFuncLSTM,
-                                bias_initializer=initializer, kernel_initializer=initializer
-                                , return_sequences = True, stateful= stateful_training, batch_size=self.batch_len)
+                               return_sequences = True, stateful= stateful_training, batch_size=self.batch_len)
 
             self.valueNetwork.add(hidden1)
             #self.valueNetwork.add(Dropout(0.5))
@@ -100,9 +98,7 @@ class Network(object):
                     hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)
                 elif self.parameters.NEURON_TYPE == "LSTM":
-                    hidden2 = LSTM(self.hiddenLayer2, activation=self.activationFuncLSTM,
-                                   bias_initializer=initializer, kernel_initializer=initializer,
-                                   return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                    hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
                 self.valueNetwork.add(hidden2)
                 #self.valueNetwork.add(Dropout(0.5))
 
@@ -112,13 +108,11 @@ class Network(object):
                     hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)
                 elif self.parameters.NEURON_TYPE == "LSTM":
-                    hidden3 = LSTM(self.hiddenLayer3, activation=self.activationFuncLSTM,
-                                   bias_initializer=initializer, kernel_initializer=initializer,
-                                   return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                    hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
                 self.valueNetwork.add(hidden3)
                 #self.valueNetwork.add(Dropout(0.5))
 
-            if self.parameters.NEURON_TYPE == "MLP":
+            if self.parameters.NEURON_TYPE == "MLP": #or self.parameters.NEURON_TYPE == "LSTM":
                 self.valueNetwork.add(
                     Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                           , kernel_initializer=initializer))
@@ -128,6 +122,8 @@ class Network(object):
 
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
+
+
 
         if self.optimizer == "Adam":
             optimizer = keras.optimizers.Adam(lr=self.learningRate)
@@ -139,29 +135,23 @@ class Network(object):
         self.valueNetwork.compile(loss='mse', optimizer=optimizer)
         self.targetNetwork.compile(loss='mse', optimizer=optimizer)
 
-        if self.parameters.NEURON_TYPE == "LSTM" and self.parameters.EXP_REPLAY_ENABLED == True:
+        if self.parameters.NEURON_TYPE == "LSTM":
             # We predict using only one state
             input_shape_lstm = (1, self.stateReprLen)
-            self.lstm_move_value_network = Sequential()
+            self.actionNetwork = Sequential()
             hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm,
-                           activation=self.activationFuncLSTM,
-                           bias_initializer=initializer, kernel_initializer=initializer
-                           , return_sequences=True, stateful=True, batch_size=1)
-            self.lstm_move_value_network.add(hidden1)
+                            return_sequences=True, stateful=True, batch_size=1)
+            self.actionNetwork.add(hidden1)
 
             if self.hiddenLayer2 > 0:
-                hidden2 = LSTM(self.hiddenLayer2, activation=self.activationFuncLSTM,
-                                   bias_initializer=initializer, kernel_initializer=initializer,
-                                   return_sequences=True, stateful=True, batch_size=self.batch_len)
-                self.lstm_move_value_network.add(hidden2)
+                hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=True, batch_size=self.batch_len)
+                self.actionNetwork.add(hidden2)
             if self.hiddenLayer3 > 0:
-                hidden3 = LSTM(self.hiddenLayer3, activation=self.activationFuncLSTM,
-                                   bias_initializer=initializer, kernel_initializer=initializer,
-                                   return_sequences=True, stateful=True, batch_size=self.batch_len)
-                self.lstm_move_value_network.add(hidden3)
-            self.lstm_move_value_network.add(LSTM(self.num_actions, activation=self.activationFuncOutput,
-                                   return_sequences=False, stateful=True, batch_size=self.batch_len))
-            self.lstm_move_value_network.compile(loss='mse', optimizer=optimizer)
+                hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=True, batch_size=self.batch_len)
+                self.actionNetwork.add(hidden3)
+            self.actionNetwork.add(LSTM(self.num_actions, activation=self.activationFuncOutput,
+                                        return_sequences=False, stateful=True, batch_size=self.batch_len))
+            self.actionNetwork.compile(loss='mse', optimizer=optimizer)
 
         if modelName is not None:
             self.load(modelName)
@@ -182,11 +172,10 @@ class Network(object):
         self.reset_general(self.valueNetwork)
         self.reset_general(self.targetNetwork)
 
-    def reset_hidden_states_prediction(self):
-        if self.parameters.EXP_REPLAY_ENABLED:
-            self.lstm_move_value_network.reset_states()
-        else:
-            self.valueNetwork.reset_states()
+    def reset_hidden_states(self):
+        self.actionNetwork.reset_states()
+        self.valueNetwork.reset_states()
+        self.targetNetwork.reset_states()
 
     def load(self, modelName):
         path = "savedModels/" + modelName
@@ -199,11 +188,11 @@ class Network(object):
     def trainOnBatch(self, inputs, targets):
         if self.parameters.NEURON_TYPE == "LSTM":
             if self.parameters.EXP_REPLAY_ENABLED:
-                self.valueNetwork.train_on_batch(inputs, targets)
+                return self.valueNetwork.train_on_batch(inputs, targets)
             else:
-                self.valueNetwork.train_on_batch(numpy.array([numpy.array([inputs])]), numpy.array([numpy.array([targets])]))
+                return self.valueNetwork.train_on_batch(numpy.array([numpy.array([inputs])]), numpy.array([numpy.array([targets])]))
         else:
-            self.valueNetwork.train_on_batch(inputs, targets)
+            return self.valueNetwork.train_on_batch(inputs, targets)
 
     def predict(self, state, batch_len = 1):
         if self.parameters.NEURON_TYPE == "LSTM":
@@ -223,8 +212,8 @@ class Network(object):
 
     def predict_single_trace_LSTM(self, trace, update_weights = True):
         if update_weights:
-            self.lstm_move_value_network.set_weights(self.valueNetwork.get_weights())
-        return self.lstm_move_value_network.predict(numpy.array([numpy.array([trace])]))[0]
+            self.actionNetwork.set_weights(self.valueNetwork.get_weights())
+        return self.actionNetwork.predict(numpy.array([numpy.array([trace])]))[0]
 
     def saveModel(self, path):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())

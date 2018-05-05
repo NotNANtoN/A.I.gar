@@ -25,7 +25,7 @@ class QLearn(object):
     def reset(self):
         self.latestTDerror = None
         if self.parameters.NEURON_TYPE == "LSTM":
-            self.network.reset_hidden_states_prediction()
+            self.network.reset_hidden_states()
 
     def reset_weights(self):
         self.network.reset_weights()
@@ -59,6 +59,23 @@ class QLearn(object):
         alive = new_s is not None
         state_Q_values = self.network.predict(old_s)
         target = self.calculateTargetForAction(new_s, r, alive)
+        q_value_of_action = state_Q_values[a]
+        td_error = target - q_value_of_action
+        return td_error
+
+    def calculateTDError_ExpRep_Lstm(self, exp):
+        old_s, a, r, new_s, _ = exp
+        alive = new_s is not None
+        state_Q_values = self.network.predict_single_trace_LSTM(old_s, False)
+        target = r
+        if alive:
+            # The target is the reward plus the discounted prediction of the value network
+            action_Q_values = self.network.predict_single_trace_LSTM(new_s, False)
+
+            # TODO: Maybe this is not so smart at all! The hidden state of this prediction will be passed on, so it might lead to weird hidden states if we train twice on one?
+
+            newActionIdx = numpy.argmax(action_Q_values)
+            target += self.network.getDiscount() * action_Q_values[newActionIdx]
         q_value_of_action = state_Q_values[a]
         td_error = target - q_value_of_action
         return td_error
@@ -101,10 +118,16 @@ class QLearn(object):
             for j in range(self.parameters.TRACE_MIN, len_trace):
                 a = numpy.argmax(target_val[i][j])
                 # TODO: target is reward if the agent died.
-
                 target[i][j][int(action[i][j])] = reward[i][j] + self.parameters.DISCOUNT * (target_val[i][j][a])
-
+        print("Weights before training:")
+        print(self.network.valueNetwork.get_weights()[0])
         self.network.trainOnBatch(old_states, target)
+        print("After training:")
+        print(self.network.valueNetwork.get_weights()[0])
+
+
+#TODO: With lstm neurons we need one network python object per learning agent in the environment.
+#TODO: !! important if at some point we want to train multiple lstm agents
 
     def train_LSTM(self, batch):
         if self.parameters.EXP_REPLAY_ENABLED:
@@ -113,8 +136,26 @@ class QLearn(object):
                 self.train_LSTM_batch(batch[:-1])
         else:
             old_s, a, r, new_s, reset = batch[-1]
-            target = self.calculateTarget(old_s, a, r, new_s)
-            self.network.trainOnBatch(old_s, target)
+
+            target = self.network.predict(old_s)
+            # Debug: print predicted q values:
+            average_value = round(numpy.mean(target), 2)
+            q_value = round(target[a], 2)
+            print("Expected Q-value: ", average_value, " Q(s,a) of current action: ", q_value)
+
+            # Calculate target for action that we took:
+            alive = (new_s is not None)
+            target_for_action = self.calculateTargetForAction(new_s, r, alive)
+            self.latestTDerror = target_for_action - target[a] # BookKeeping
+            target[a] = target_for_action
+            print("Reward: ", round(r, 2))
+            print("Target for action: ", round(target_for_action, 2))
+            print("TD-Error: ", self.latestTDerror)
+            loss = self.network.trainOnBatch(old_s, target)
+            print("Loss: ", loss)
+            print("")
+
+#TODO: Get loss from all trainOnBatch calls, store them in an array and plot them
 
 
     def learn(self, batch):
@@ -126,15 +167,20 @@ class QLearn(object):
             self.train(batch)
 
         #Book keeping. batch[-1] is the current experience:
-        if __debug__ and self.parameters.NEURON_TYPE == "MLP":
+        if __debug__ and not self.parameters.NEURON_TYPE == "LSTM":
             currentExp = batch[-1]
-            self.latestTDerror = self.calculateTDError(currentExp)
+            if self.parameters.NEURON_TYPE == "MLP" or not self.parameters.EXP_REPLAY_ENABLED:
+                self.latestTDerror = self.calculateTDError(currentExp)
+            else:
+                self.latestTDerror = self.calculateTDError_ExpRep_Lstm(currentExp)
 
         self.updateTargetModel()
+
 
     def updateTargetModel(self):
         if self.time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
             self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
+
 
     def decideMove(self, newState, bot):
         # Take random action with probability 1 - epsilon
@@ -144,11 +190,11 @@ class QLearn(object):
                 print("Explore")
                 bot.setExploring(True)
         else:
-            if bot.parameters.NEURON_TYPE == "MLP" or not bot.parameters.EXP_REPLAY_ENABLED:
+            if bot.parameters.NEURON_TYPE == "MLP":
                 # Take action based on greediness towards Q values
                 q_Values = self.network.predict(newState)
             else:
-                if self.time % self.parameters.UPDATE_LSTM_MOVE_NETWORK:
+                if self.time % self.parameters.UPDATE_LSTM_MOVE_NETWORK == 0:
                     update = True
                 else:
                     update = False

@@ -133,14 +133,16 @@ class Model(object):
         rewards = []
         for bot in self.bots:
             if bot.getType() == "NN":
-                if bot.getCurrentAction() is not None and bot.getLearningAlg().getTDError() is not None:
+                if bot.getCurrentAction() is not None:
                     reward = bot.getLastReward()
-                    tdError = abs(bot.getLearningAlg().getTDError())
                     rewards.append(reward)
+                if bot.getLearningAlg().getTDError() is not None:
+                    tdError = abs(bot.getLearningAlg().getTDError())
                     errors.append(tdError)
         # Save the mean td error and reward for the bots per update
         if len(rewards) > 0:
             self.rewards.append(numpy.mean(rewards))
+        if len(errors) > 0:
             self.tdErrors.append(numpy.mean(errors))
 
     def takeBotActions(self):
