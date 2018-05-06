@@ -3,12 +3,11 @@
 0
 400
 0
-3
-0
 0
 1
-EPSILON
-0.25
+MEMORY_BATCH_LEN
+80
+0
 0
 1
 
