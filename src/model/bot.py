@@ -20,6 +20,9 @@ class ExpReplay():
     def canReplay(self):
         return len(self.memories) >= self.batch_size
 
+    def generateTrace(self, experience):
+        pass
+
     def sample(self):
         if self.parameters.NEURON_TYPE == "MLP":
             randIdxs = numpy.random.randint(0, len(self.memories), self.batch_size)
@@ -53,11 +56,15 @@ class Bot(object):
     def init_exp_replayer(cls, parameters):
         cls.expReplayer = ExpReplay(parameters)
 
+    def __repr__(self):
+        return self.type
+
     def __init__(self, player, field, type, trainMode, learningAlg, parameters, modelName = None):
         self.trainMode = None
         self.parameters = parameters
         self.modelName = modelName
         self.learningAlg = None
+        self.lastMass = None
         if learningAlg is not None:
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
@@ -85,7 +92,8 @@ class Bot(object):
         self.totalMasses = []
 
     def reset(self):
-        self.learningAlg.reset()
+        if self.learningAlg is not None:
+            self.learningAlg.reset()
         self.lastMass = None
         self.oldState = None
         # self.stateHistory = []

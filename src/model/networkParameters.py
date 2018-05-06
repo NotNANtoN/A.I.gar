@@ -3,7 +3,7 @@ ALGORITHM = "None"
 
 # Game
 PELLET_SPAWN = True
-NUM_GREEDY_BOTS = 0
+NUM_GREEDY_BOTS = 1
 NUM_NN_BOTS = 1
 
 # Experience replay:
@@ -43,7 +43,7 @@ HIDDEN_LAYER_2_POLICY = 0
 HIDDEN_LAYER_3_POLICY = 0
 
 #LSTM
-NEURON_TYPE = "LSTM"
+NEURON_TYPE = "MLP"
 ACTIVATION_FUNC_LSTM = "tanh"
 UPDATE_LSTM_MOVE_NETWORK = 1
 TRACE_MIN = 7 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
@@ -60,6 +60,6 @@ ACTIVATION_FUNC_OUTPUT = 'linear'
 #Layer neurons
 STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + 2
 HIDDEN_LAYER_1 = 100
-HIDDEN_LAYER_2 = 100
-HIDDEN_LAYER_3 = 100
+HIDDEN_LAYER_2 = 0
+HIDDEN_LAYER_3 = 0
 # More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation
