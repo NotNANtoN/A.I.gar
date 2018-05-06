@@ -211,7 +211,6 @@ class Model(object):
         for bot_idx, bot in enumerate(bots):
             botName = str(bot) + str(bot_idx)
             massFileName = "meanMassOverTimeNN" + str(bot_idx) + ".txt"
-            print(botName + "_mass")
             self.dataFiles.update({botName  + "_mass": massFileName})
             qvalueFileName = "meanQValuesOverTimeNN" + str(bot_idx) + ".txt"
             self.dataFiles.update({botName  + "_qValue": qvalueFileName})
@@ -285,7 +284,6 @@ class Model(object):
         # Bot exports
         for bot_idx, bot in enumerate([bot for bot in self.bots]):
             # Masses export
-            print(str(bot)+str(bot_idx)+"_mass")
             subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_mass"]
             with open(subPath, "a") as f:
                 for value in bot.getMassOverTime():
@@ -376,7 +374,7 @@ class Model(object):
     def printBotStds(self):
         for bot in self.bots:
             if bot.getType() == "NN" and str(bot.getLearningAlg()) == "AC":
-                print("Std dev: " , bot.getLearningAlg().parameters.std_dev)
+                print("Std dev: " , bot.getLearningAlg().std)
                 break
 
     def runningAvg(self, array, numberOfPoints):

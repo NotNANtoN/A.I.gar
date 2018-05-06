@@ -3,12 +3,12 @@ ALGORITHM = "None"
 
 # Game
 PELLET_SPAWN = True
-NUM_GREEDY_BOTS = 1
+NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
 
 # Experience replay:
 MEMORY_CAPACITY = 75000
-MEMORY_BATCH_LEN = 40 # Must be divisible by 4 atm due to experience replay
+MEMORY_BATCH_LEN = 40
 REPLAY_AFTER_X_STEPS = 0
 
 # General RL:
@@ -26,21 +26,23 @@ DISCOUNT = 0.9 # 0.9 seems best so far. Better than 0.995 and 0.9999 . 0.5 and b
 # Higher discount seems to lead to much more stable learning, less variance
 TD = 0
 Exploration = True
-EPSILON = 0.1 if Exploration else 0 # Exploration rate. 0 == No Exploration
+EPSILON = 0.025 if Exploration else 0 # Exploration rate. 0 == No Exploration
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
-FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+FRAME_SKIP_RATE = 8 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 
 # Actor-critic:
-MINIMUM_NOISE = 0.01
-STEPS_TO_MIN_NOISE = 500000
+
+ACTOR_CRITIC_TYPE = "CACLA" # "Standard"
+GAUSSIAN_NOISE = 1 # Initial noise
+NOISE_DECAY = 0.999995 # Noise decay. with start noise of 1 and decay of 0.999995 it decays slowly to 0 over 1M steps
 ALPHA_POLICY = 0.0005
 OPTIMIZER_POLICY = "Adam"
-ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
-HIDDEN_LAYER_1_POLICY = 75
-HIDDEN_LAYER_2_POLICY = 0
-HIDDEN_LAYER_3_POLICY = 0
+ACTIVATION_FUNC_HIDDEN_POLICY = "elu"
+HIDDEN_LAYER_1_POLICY = 100
+HIDDEN_LAYER_2_POLICY = 100
+HIDDEN_LAYER_3_POLICY = 100
 
 #LSTM
 NEURON_TYPE = "MLP"
@@ -59,7 +61,7 @@ ACTIVATION_FUNC_OUTPUT = 'linear'
 
 #Layer neurons
 STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + 2
-HIDDEN_LAYER_1 = 100
-HIDDEN_LAYER_2 = 0
-HIDDEN_LAYER_3 = 0
+HIDDEN_LAYER_1 = 500
+HIDDEN_LAYER_2 = 500
+HIDDEN_LAYER_3 = 500
 # More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation

@@ -4,6 +4,7 @@ import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
+
 class ExpReplay():
     # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
     def __init__(self, parameters):
@@ -48,6 +49,7 @@ class ExpReplay():
     def getMemories(self):
         return self.memories
 
+
 class Bot(object):
     num_NNbots = 0
     num_Greedybots = 0
@@ -59,7 +61,7 @@ class Bot(object):
     def __repr__(self):
         return self.type
 
-    def __init__(self, player, field, type, trainMode, learningAlg, parameters, modelName = None):
+    def __init__(self, player, field, type, trainMode, learningAlg, parameters, modelName=None):
         self.trainMode = None
         self.parameters = parameters
         self.modelName = modelName
@@ -75,8 +77,8 @@ class Bot(object):
         self.player = player
         self.field = field
         if self.type == "Greedy":
-            self.splitLikelihood = numpy.random.randint(9950,10000)
-            self.ejectLikelihood = 100000 #numpy.random.randint(9990,10000)
+            self.splitLikelihood = numpy.random.randint(9950, 10000)
+            self.ejectLikelihood = 100000  # numpy.random.randint(9990,10000)
         self.totalMasses = []
         self.memories = []
         # If using lstm the memories have to be ordered correctly in time for this bot.
@@ -104,6 +106,7 @@ class Bot(object):
         # self.rewardHistory = []
         self.rewardAvgOfEpisode = 0
         self.rewardLenOfEpisode = 0
+        self.currentlySkipping = False
         if self.type == "NN":
             self.currentActionIdx = None
             self.currentAction = None
@@ -124,13 +127,12 @@ class Bot(object):
         # Do not train if we are skipping this frame
         if self.skipFrames > 0:
             self.skipFrames -= 1
-            self.currentAction[2:4] = [0, 0] # Do not split/eject more than once in a row
             self.latestTDerror = None
             if self.player.getIsAlive():
                 return True
         return False
 
-    def updateValues(self, newActionIdx, newAction, newState, newLastMemory = None):
+    def updateValues(self, newActionIdx, newAction, newState, newLastMemory=None):
         if newLastMemory is not None:
             self.lastMemory = newLastMemory
         # Reset frame skipping variables
@@ -142,11 +144,12 @@ class Bot(object):
 
     def learn_and_move_NN(self):
         newState = self.getStateRepresentation()
-        currentlySkipping = False
+        self.currentlySkipping = False
         if self.currentAction is not None:
             self.updateRewards()
-            currentlySkipping = self.updateFrameSkip()
-        if not currentlySkipping:
+            self.currentlySkipping = self.updateFrameSkip()
+
+        if not self.currentlySkipping:
             # Learn
             if self.trainMode and self.oldState is not None:
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
@@ -183,16 +186,22 @@ class Bot(object):
         if self.type == "Greedy":
             self.make_greedy_bot_move()
 
-        self.set_command_point(self.currentAction)
+
+        action_taken = list(self.currentAction)
+        if self.currentlySkipping:
+            action_taken[2:] = [0, 0]
+        self.set_command_point(action_taken)
+
+
 
 
     def getStateRepresentation(self):
         stateRepr = None
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
-                stateRepr =  self.getGridStateRepresentation()
+                stateRepr = self.getGridStateRepresentation()
             else:
-                stateRepr =  self.getSimpleStateRepresentation()
+                stateRepr = self.getSimpleStateRepresentation()
         return stateRepr
 
     def getSimpleStateRepresentation(self):
@@ -245,18 +254,18 @@ class Bot(object):
         # Initialize spatial hash tables:
         gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
-        pelletSHT = spatialHashTable(fovSize, gsSize, left, top) #SHT = spatial hash table
-        enemySHT =  spatialHashTable(fovSize, gsSize, left, top)
-        virusSHT =  spatialHashTable(fovSize, gsSize, left, top)
+        pelletSHT = spatialHashTable(fovSize, gsSize, left, top)  # SHT = spatial hash table
+        enemySHT = spatialHashTable(fovSize, gsSize, left, top)
+        virusSHT = spatialHashTable(fovSize, gsSize, left, top)
         playerSHT = spatialHashTable(fovSize, gsSize, left, top)
         totalPellets = self.field.getPelletsInFov(fovPos, fovSize)
         pelletSHT.insertAllFloatingPointObjects(totalPellets)
         if __debug__ and self.player.getSelected():
-            print("Total pellets: ",len(totalPellets))
+            print("Total pellets: ", len(totalPellets))
             print("pellet view: ")
             buckets = pelletSHT.getBuckets()
             for idx in range(len(buckets)):
-                print(len(buckets[idx]), end = " ")
+                print(len(buckets[idx]), end=" ")
                 if idx != 0 and (idx + 1) % gridSquaresPerFov == 0:
                     print(" ")
         playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
@@ -267,9 +276,9 @@ class Bot(object):
         virusSHT.insertAllFloatingPointObjects(virusCells)
 
         # Mass vision grid related
-        #enemyCellsCount = len(enemyCells)
-        #allCellsInFov = playerCells + enemyCells + virusCells
-        #biggestMassInFov = max(allCellsInFov, key = lambda cell: cell.getMass()).getMass() if allCellsInFov else None
+        # enemyCellsCount = len(enemyCells)
+        # allCellsInFov = playerCells + enemyCells + virusCells
+        # biggestMassInFov = max(allCellsInFov, key = lambda cell: cell.getMass()).getMass() if allCellsInFov else None
 
         # Initialize grid squares with zeros:
         gridNumberSquared = gridSquaresPerFov * gridSquaresPerFov
@@ -279,14 +288,14 @@ class Bot(object):
         gsVirus = numpy.zeros(gridNumberSquared)
         gsPelletProportion = numpy.zeros(gridNumberSquared)
         # gsMidPoint is adjusted in the loops
-        gsMidPoint = [left + gsSize / 2, top + gsSize/ 2]
+        gsMidPoint = [left + gsSize / 2, top + gsSize / 2]
         pelletcount = 0
         for c in range(gridSquaresPerFov):
             for r in range(gridSquaresPerFov):
                 count = r + c * gridSquaresPerFov
 
                 # Only check for cells if the grid square fov is within the playing field
-                if not(gsMidPoint[0] + gsSize / 2 < 0 or gsMidPoint[0] - gsSize / 2 > fieldSize or
+                if not (gsMidPoint[0] + gsSize / 2 < 0 or gsMidPoint[0] - gsSize / 2 > fieldSize or
                         gsMidPoint[1] + gsSize / 2 < 0 or gsMidPoint[1] - gsSize / 2 > fieldSize):
                     # Create pellet representation
                     # Make the visionGrid's pellet count a percentage so that the network doesn't have to
@@ -306,7 +315,7 @@ class Bot(object):
                     # in proportion to the biggest enemy cell's mass in each grid square.
                     enemiesInGS = enemySHT.getBucketContent(count)
                     if enemiesInGS:
-                        biggestEnemyInCell = max(enemiesInGS, key = lambda cell: cell.getMass())
+                        biggestEnemyInCell = max(enemiesInGS, key=lambda cell: cell.getMass())
                         gsBiggestEnemyCellMassProportion[count] = biggestEnemyInCell.getMass()
 
                     # Create Own Cell mass representation
@@ -320,13 +329,13 @@ class Bot(object):
                     if self.field.getVirusEnabled():
                         virusesInGS = virusSHT.getBucketContent(count)
                         if virusesInGS:
-                            biggestVirus = max(virusesInGS, key = lambda virus: virus.getRadius()).getMass()
+                            biggestVirus = max(virusesInGS, key=lambda virus: virus.getRadius()).getMass()
                             gsVirus[count] = biggestVirus
 
                 # Create Wall representation
                 # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
-                if gsMidPoint[0] - gsSize/2 < 0 or gsMidPoint[0] + gsSize/2 > fieldSize or \
-                        gsMidPoint[1] - gsSize/2 < 0 or gsMidPoint[1] + gsSize/2 > fieldSize:
+                if gsMidPoint[0] - gsSize / 2 < 0 or gsMidPoint[0] + gsSize / 2 > fieldSize or \
+                        gsMidPoint[1] - gsSize / 2 < 0 or gsMidPoint[1] + gsSize / 2 > fieldSize:
                     gsWalls[count] = 1
                 # Increment grid square position horizontally
                 gsMidPoint[0] += gsSize
@@ -344,7 +353,6 @@ class Bot(object):
         totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
 
         return totalInfo
-
 
     def set_command_point(self, action):
         midPoint = self.player.getFovPos()
@@ -427,7 +435,7 @@ class Bot(object):
         cells = self.player.getCells()
         totalCells = len(cells)
         return [self.isRelativeCellData(cells[idx], left, top, size) if idx < totalCells else [0, 0, 0]
-                     for idx in range(1)]
+                for idx in range(1)]
 
     def getReward(self):
         if self.lastMass is None:
