@@ -348,6 +348,9 @@ class ActorCritic(object):
             self.qValues.append(target)
         self.critic.train(inputs_critic, targets_critic)
 
+#TODO: check critic training, the resulting values are weirdly negative for mass 200
+
+
     def train_actor_CACLA(self, currentExp):
         old_s, a, r, new_s, _ = currentExp
         _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None)
@@ -364,7 +367,7 @@ class ActorCritic(object):
         elif self.acType == "Standard":
             mu_s = self.actor.predict(old_s)
             target = mu_s + td_e * (a - mu_s) / self.std ** 2
-        # TODO: Do we need to clip targets to 0-1 range???
+        # TODO: Do we need to clip targets to 0-1 range??? How does backprop work if it wants to tune the network to attain unachievable results?
 
         return target
 

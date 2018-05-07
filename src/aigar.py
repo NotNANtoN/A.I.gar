@@ -316,17 +316,9 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
-        endEpsilon = parameters.EPSILON
-        startEpsilon = 1
-        startEpsilon = 1
         smallPart = int(maxSteps / 200)
         for step in range(maxSteps):
             model.update()
-            if step < maxSteps / 2:
-                epsilon = startEpsilon - (1 - endEpsilon) * step / (maxSteps / 4)
-            else:
-                epsilon = endEpsilon
-            model.setEpsilon(epsilon)
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
 
