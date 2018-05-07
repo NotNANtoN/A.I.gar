@@ -77,8 +77,8 @@ class Model(object):
 
         tracemalloc.start()
 
-    def initialize(self):
-        if self.trainingEnabled:
+    def initialize(self, modelHasBeenLoaded):
+        if self.trainingEnabled and not modelHasBeenLoaded:
             self.saveSpecs()
             for bot in self.bots:
                 if bot.getType() == "NN":
@@ -87,6 +87,10 @@ class Model(object):
                     break
         self.field.initialize()
 
+    def loadModel(self, path):
+        self.setPath(path)
+        now = datetime.datetime.now()
+        self.startTime = now
 
     def resetModel(self):
         print("Resetting field and players!")
@@ -183,7 +187,7 @@ class Model(object):
         if not os.path.exists(basePath):
             os.makedirs(basePath)
         #Create subFolder for given parameter tweaking
-        subPath = basePath + "/" + name
+        subPath = name
         subName = os.getcwd() + "/" + subPath
         if not os.path.exists(subPath):
             os.makedirs(subPath)
@@ -241,7 +245,7 @@ class Model(object):
 
     def saveSpecs(self, end = False):
         # Save any additional info on this training
-        name_of_file = self.path + "model_specifications.txt"
+        name_of_file = self.path + "/model_specifications.txt"
         savedTypes = []
         with open(name_of_file, "w") as file:
              for bot in self.bots:
@@ -271,6 +275,7 @@ class Model(object):
         path = self.path
         # Mean TD error export
         subPath = path + self.dataFiles["Error"]
+        print(self.meanErrors)
         with open(subPath, "a") as f:
             for value in self.meanErrors:
                 f.write("%s\n" % value)
@@ -391,7 +396,7 @@ class Model(object):
 
     def plotTDError(self):
         path = self.path
-        numberOfPoints = 200
+        numberOfPoints = 2000
         errorListPath = self.path + self.dataFiles["Error"]
         with open(errorListPath, 'r') as f:
             errorList = list(map(float, f))
@@ -476,6 +481,9 @@ class Model(object):
     def addPlayerSpectator(self):
         self.playerSpectator = True
         self.setSpectatedPlayer(self.players[0])
+
+    def setPath(self, path):
+        self.path = path
 
     def setSpectatedPlayer(self, player):
         self.spectatedPlayer = player

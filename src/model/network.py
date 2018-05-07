@@ -178,10 +178,9 @@ class Network(object):
         self.targetNetwork.reset_states()
 
     def load(self, modelName):
-        path = "savedModels/" + modelName
-        packageName = "savedModels." + modelName
-        self.parameters = importlib.import_module('.networkParameters', package=packageName)
+        path = modelName
         self.loadedModelName = modelName
+        print(path, self.loadedModelName)
         self.valueNetwork = load_model(path + "/model.h5")
         self.targetNetwork = load_model(path + "/model.h5")
 

@@ -109,9 +109,7 @@ class ValueNetwork(object):
 
     def load(self, modelName=None):
         if modelName is not None:
-            path = "savedModels/" + modelName
-            packageName = "savedModels." + modelName
-            self.parameters = importlib.import_module('.networkParameters', package=packageName)
+            path = modelName
             self.loadedModelName = modelName
             self.model = load_model(path + "/value_model.h5")
             self.target_model = load_model(path + "/value_model.h5")
@@ -237,11 +235,9 @@ class PolicyNetwork(object):
 
     def load(self, modelName=None):
         if modelName is not None:
-            path = "savedModels/" + modelName
-            packageName = "savedModels." + modelName
-            self.parameters = importlib.import_module('.networkParameters', package=packageName)
+            path = modelName
             self.loadedModelName = modelName
-            self.model = load_model(path + "/actor_model.h5")
+            self.model = load_model(path + "/actor_model.h5", custom_objects={"relu_max": relu_max})
 
     def predict(self, state):
         return self.model.predict(numpy.array([state]))[0]
@@ -268,7 +264,7 @@ class PolicyNetwork(object):
 
 class ActorCritic(object):
     def __repr__(self):
-        return "AC"
+        return "ACLA"
 
     def __init__(self, parameters, num_bots, discrete, modelName=None):
         self.acType = parameters.ACTOR_CRITIC_TYPE
@@ -437,11 +433,9 @@ class ActorCritic(object):
 
     def load(self, modelName):
         if modelName is not None:
-            path = "savedModels/" + modelName
-            packageName = "savedModels." + modelName
-            self.parameters = importlib.import_module('.networkParameters', package=packageName)
-            self.critic.load(path + "/critic_model.h5")
-            self.actor.load(path + "/actor_model.h5")
+            path = modelName
+            self.critic.load(path)
+            self.actor.load(path)
 
     def save(self, path):
         self.actor.save(path)

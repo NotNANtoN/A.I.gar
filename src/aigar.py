@@ -161,33 +161,34 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, parameters, algorithm = None, modelName = None):
+def createBots(number, model, type, parameters, algorithm = None, loadedModelName = None):
     learningAlg = None
     if type == "NN":
         Bot.num_NNbots = number
 
-        network = Network(enableTrainMode, modelName, parameters)
         for i in range(number):
             # Create algorithm instance
             #Discrete algorithms
-            if algorithm == 0:
-                learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
-            elif algorithm == 1:
-                learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
-            elif algorithm == 4:
-                learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, network, parameters)
-            elif algorithm == 5:
-                learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, network, parameters)
+            if algorithm in [0,1,4,5]:
+                network = Network(enableTrainMode, loadedModelName, parameters)
+                if algorithm == 0:
+                    learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
+                elif algorithm == 1:
+                    learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
+                elif algorithm == 4:
+                    learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, network, parameters)
+                elif algorithm == 5:
+                    learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, network, parameters)
 
             #AC algorithms
             elif algorithm == 2:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, False, modelName)
+                learningAlg = ActorCritic(parameters, numberOfNNBots, False, loadedModelName)
             elif algorithm == 3:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, True, modelName)
+                learningAlg = ActorCritic(parameters, numberOfNNBots, True, loadedModelName)
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
-            model.createBot(type, learningAlg, parameters, modelName)
+            model.createBot(type, learningAlg, parameters, loadedModelName)
     elif type == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
@@ -236,32 +237,62 @@ if __name__ == '__main__':
     modelName = None
     algorithm = None
     learningAlg = None
-    loadModel = int(input("Do you want to load a model? (1 == yes) (2=load model from last autosave)\n"))
-    if loadModel == 1:
-        while modelName == None:
-            modelName = input("Enter the model name (name of directory in savedModels): ")
+    loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
+    loadModel = (loadModel == 1)
+    folderName = None
+    packageName = None
+    if loadModel:
+        while packageName is None:
+            packageName = None
+            print("#########################################")
+            print("Saved Models: \n")
+            for folder in [i for i in os.listdir("savedModels/")]:
+                print(folder)
+            modelName = input("Enter the model name (name of directory in savedModels): (Empty string == break) \n")
+            if str(modelName) == "":
+                loadModel = False
+                break
             path = "savedModels/" + modelName
             if not os.path.exists(path):
                 print("Invalid model name, no model found under ", path)
+                continue
+            folderName = modelName
+            if str(modelName)[0] != "$":
+                while packageName is None:
+                    print("------------------------------------")
+                    print("Folder Submodels: \n")
+                    for folder in [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]:
+                        print(folder)
+                    subModelName = input("Enter the submodel name: (Empty string == break)\n")
+                    if str(subModelName) == "":
+                        break
+                    subPath = path + "/" + subModelName
+                    if not os.path.exists(subPath):
+                        print("Invalid model name, no model found under ", subPath)
+                        packageName = None
+                        continue
+                    packageName = "savedModels." + modelName + "." + subModelName
+                    loadedModelName = subPath
+                    modelName = path
+                if packageName is None:
+                    continue
+            if packageName is None:
+                packageName = "savedModels." + modelName
+                loadedModelName = path
                 modelName = None
+        if packageName is not None:
+            parameters = importlib.import_module('.networkParameters', package=packageName)
+            algorithm = algorithmNameToNumber(parameters.ALGORITHM)
+            # model.setPath(modelName)
 
-    if loadModel == 2:
-        modelName = "mostRecentAutosave"
-    if modelName is not None:
-        packageName = "savedModels." + modelName
-        parameters = importlib.import_module('.networkParameters', package=packageName)
-        algorithm = algorithmNameToNumber(parameters.ALGORITHM)
-    else:
+    tweakedTotal = []
+    if not loadModel:
         parameters = importlib.import_module('.networkParameters', package="model")
-
-    if loadModel == 0:
 
         algorithm = int(input("What learning algorithm do you want to use?\n" + \
         "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
         "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
         tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
-        folderName = None
-        tweakedTotal = []
         if tweaking == 1:
             while True:
                 tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
@@ -271,13 +302,16 @@ if __name__ == '__main__':
                     tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
                 if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
                     break
-            folderName = nameSavedModelFolder(tweakedTotal)
+            modelName = nameSavedModelFolder(tweakedTotal)
 
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
-            folderName = str(input("Input folder name:\n"))
+            modelName = str(input("Input folder name:\n"))
 
-        model.initModelFolder(folderName)
+    print(modelName)
+    model.initModelFolder(modelName)
+    if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
+
     numberOfNNBots = parameters.NUM_NN_BOTS
     numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
     numberOfBots = numberOfNNBots + numberOfGreedyBots
@@ -289,7 +323,7 @@ if __name__ == '__main__':
     model.setTrainingEnabled(enableTrainMode == 1)
 
     Bot.init_exp_replayer(parameters)
-    createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
+    createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadedModelName)
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
@@ -303,7 +337,7 @@ if __name__ == '__main__':
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
 
-    model.initialize()
+    model.initialize(loadModel)
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
     model.setScreenSize(screenWidth, screenHeight)
