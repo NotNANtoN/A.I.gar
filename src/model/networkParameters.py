@@ -1,6 +1,8 @@
 GPUS = 1
 ALGORITHM = "None"
 
+Default = False
+
 # Game
 PELLET_SPAWN = True
 NUM_GREEDY_BOTS = 0
@@ -26,17 +28,18 @@ DISCOUNT = 0.9 # 0.9 seems best so far. Better than 0.995 and 0.9999 . 0.5 and b
 # Higher discount seems to lead to much more stable learning, less variance
 TD = 0
 Exploration = True
-EPSILON = 0.025 if Exploration else 0 # Exploration rate. 0 == No Exploration
-# epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout the non-gui training
-FRAME_SKIP_RATE = 8 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
+EPSILON_DECAY = 0.99995
+# epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout training
+FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 
 # Actor-critic:
 
-ACTOR_CRITIC_TYPE = "CACLA" # "Standard"
+ACTOR_CRITIC_TYPE = "CACLA" # "Standard" Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
 GAUSSIAN_NOISE = 1 # Initial noise
-NOISE_DECAY = 0.999995 # Noise decay. with start noise of 1 and decay of 0.999995 it decays slowly to 0 over 1M steps
+NOISE_DECAY = 0.99995 # Noise decay. with start noise of 1 and decay of 0.999995 it decays slowly to 0 over 1M steps for FSR of 0. For FSR of 9: 0.99995. For FSR of 4: 0.99998
 ALPHA_POLICY = 0.0005
 OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "elu"

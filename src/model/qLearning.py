@@ -17,6 +17,7 @@ class QLearn(object):
         self.input_len = parameters.STATE_REPR_LEN
         self.output_len = network.num_actions
         self.discrete = True
+        self.epsilon = parameters.EPSILON
 
     def load(self, modelName):
         if modelName is not None:
@@ -160,6 +161,7 @@ class QLearn(object):
 
     def learn(self, batch):
         self.time += 1 * self.parameters.FRAME_SKIP_RATE
+        self.epsilon *= self.parameters.EPSILON_DECAY
 
         if self.parameters.NEURON_TYPE == "LSTM":
             self.train_LSTM(batch)
@@ -184,7 +186,7 @@ class QLearn(object):
 
     def decideMove(self, newState, bot):
         # Take random action with probability 1 - epsilon
-        if numpy.random.random(1) < self.network.epsilon:
+        if numpy.random.random(1) < self.epsilon:
             newActionIdx = numpy.random.randint(len(self.network.getActions()))
             explore = True
             if __debug__:
