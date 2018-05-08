@@ -1,0 +1,74 @@
+Lmod has detected the following error: These module(s) exist but cannot be
+loaded as requested: "foss/2018a"
+
+   Try: "module spider foss/2018a" to see how to load the module(s).
+
+
+
+
+
+
+The following have been reloaded with a version change:
+  1) GMP/6.1.1-foss-2016a => GMP/6.1.0-foss-2016a
+  2) Python/3.5.2-foss-2016a => Python/3.5.1-foss-2016a
+  3) SQLite/3.13.0-foss-2016a => SQLite/3.9.2-foss-2016a
+  4) Tcl/8.6.5-foss-2016a => Tcl/8.6.4-foss-2016a
+  5) Tk/8.6.5-foss-2016a => Tk/8.6.4-foss-2016a-no-X11
+
+Using TensorFlow backend.
+Traceback (most recent call last):
+  File "./aigar.py", line 3, in <module>
+    from controller.controller import Controller
+  File "/home/s2705338/A.I.gar/src/controller/controller.py", line 3, in <module>
+    from keras.utils import plot_model
+  File "/home/s2705338/.local/lib/python3.5/site-packages/keras/__init__.py", line 3, in <module>
+    from . import utils
+  File "/home/s2705338/.local/lib/python3.5/site-packages/keras/utils/__init__.py", line 6, in <module>
+    from . import conv_utils
+  File "/home/s2705338/.local/lib/python3.5/site-packages/keras/utils/conv_utils.py", line 9, in <module>
+    from .. import backend as K
+  File "/home/s2705338/.local/lib/python3.5/site-packages/keras/backend/__init__.py", line 84, in <module>
+    from .tensorflow_backend import *
+  File "/home/s2705338/.local/lib/python3.5/site-packages/keras/backend/tensorflow_backend.py", line 5, in <module>
+    import tensorflow as tf
+ImportError: No module named 'tensorflow'
+srun: error: pg-node063: task 0: Exited with exit code 1
+srun: Terminating job step 1217479.0
+
+
+###############################################################################
+Peregrine Cluster
+Job 1217479 for user 's2705338'
+Finished at: Tue May  8 19:07:27 CEST 2018
+
+Job details:
+============
+
+Name                : z_NN_3.sh
+User                : s2705338
+Partition           : regular
+Nodes               : pg-node063
+Cores               : 1
+State               : FAILED
+Submit              : 2018-05-08T18:55:49
+Start               : 2018-05-08T19:07:18
+End                 : 2018-05-08T19:07:27
+Reserved walltime   : 2-23:00:00
+Used walltime       :   00:00:09
+Used CPU time       :   00:00:03 (efficiency: 36.14%)
+% User (Computation): 65.85%
+% System (I/O)      : 34.15%
+Mem reserved        : 20000M/node
+Max Mem used        : 0.00  (pg-node063)
+Max Disk Write      : 0.00  (pg-node063)
+Max Disk Read       : 0.00  (pg-node063)
+
+
+Acknowledgements:
+=================
+
+Please see this page if you want to acknowledge Peregrine in your publications:
+
+https://redmine.hpc.rug.nl/redmine/projects/peregrine/wiki/ScientificOutput
+
+################################################################################
