@@ -5,8 +5,8 @@
 0
 0
 1
-NUM_GREEDY_BOTS
-2
+NUM_NN_BOTS
+3
 0
 0
 1
