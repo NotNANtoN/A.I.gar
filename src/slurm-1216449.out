@@ -1,0 +1,75 @@
+Lmod has detected the following error: These module(s) exist but cannot be
+loaded as requested: "GCCcore/4.9.3"
+
+   Try: "module spider GCCcore/4.9.3" to see how to load the module(s).
+
+
+
+
+
+Lmod has detected the following error: These module(s) exist but cannot be
+loaded as requested: "GCCcore/4.9.3"
+
+   Try: "module spider GCCcore/4.9.3" to see how to load the module(s).
+
+
+
+
+
+Lmod has detected the following error: These module(s) exist but cannot be
+loaded as requested: "GCCcore/4.9.3"
+
+   Try: "module spider GCCcore/4.9.3" to see how to load the module(s).
+
+
+
+
+
+Traceback (most recent call last):
+  File "./aigar.py", line 3, in <module>
+    from controller.controller import Controller
+  File "/home/s2705338/A.I.gar/src/controller/controller.py", line 1, in <module>
+    from view.view import *
+  File "/home/s2705338/A.I.gar/src/view/view.py", line 1, in <module>
+    import pygame
+ModuleNotFoundError: No module named 'pygame'
+srun: error: pg-node056: task 0: Exited with exit code 1
+srun: Terminating job step 1216449.0
+
+
+###############################################################################
+Peregrine Cluster
+Job 1216449 for user 's2705338'
+Finished at: Tue May  8 17:44:24 CEST 2018
+
+Job details:
+============
+
+Name                : z_NN_3.sh
+User                : s2705338
+Partition           : regular
+Nodes               : pg-node056
+Cores               : 1
+State               : FAILED
+Submit              : 2018-05-08T17:44:04
+Start               : 2018-05-08T17:44:15
+End                 : 2018-05-08T17:44:24
+Reserved walltime   : 2-23:00:00
+Used walltime       :   00:00:09
+Used CPU time       :   00:00:02 (efficiency: 25.36%)
+% User (Computation): 71.56%
+% System (I/O)      : 28.44%
+Mem reserved        : 20000M/node
+Max Mem used        : 0.00  (pg-node056)
+Max Disk Write      : 0.00  (pg-node056)
+Max Disk Read       : 0.00  (pg-node056)
+
+
+Acknowledgements:
+=================
+
+Please see this page if you want to acknowledge Peregrine in your publications:
+
+https://redmine.hpc.rug.nl/redmine/projects/peregrine/wiki/ScientificOutput
+
+################################################################################
