@@ -121,7 +121,7 @@ class Model(object):
         if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
             self.saveSpecs()
             self.saveModels(self.path)
-            if self.counter % 50000 == 0:
+            if self.counter != 0 and self.counter % 50000 == 0:
                 self.save()
 
         # Store debug info and display progress
@@ -209,10 +209,10 @@ class Model(object):
         shutil.copy("model/networkParameters.py", self.path)
         shutil.copy("model/parameters.py", self.path)
 
-    def addDataFilesToDictionary(self, bots):
+    def addDataFilesToDictionary(self):
         self.dataFiles.update({"Error": "tdErrors.txt", "Reward": "rewards.txt"})
         # Add files for each bot
-        for bot_idx, bot in enumerate(bots):
+        for bot_idx, bot in enumerate([i for i in self.bots if str(i) == "NN"]):
             botName = str(bot) + str(bot_idx)
             massFileName = "meanMassOverTimeNN" + str(bot_idx) + ".txt"
             self.dataFiles.update({botName  + "_mass": massFileName})
@@ -275,7 +275,6 @@ class Model(object):
         path = self.path
         # Mean TD error export
         subPath = path + self.dataFiles["Error"]
-        print(self.meanErrors)
         with open(subPath, "a") as f:
             for value in self.meanErrors:
                 f.write("%s\n" % value)
@@ -287,7 +286,7 @@ class Model(object):
                 f.write("%s\n" % value)
         self.meanRewards = []
         # Bot exports
-        for bot_idx, bot in enumerate([bot for bot in self.bots]):
+        for bot_idx, bot in enumerate([bot for bot in self.bots if str(bot) == "NN"]):
             # Masses export
             subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_mass"]
             with open(subPath, "a") as f:
@@ -295,13 +294,12 @@ class Model(object):
                     f.write("%s\n" % value)
             bot.resetMassList()
             # Qvalues export
-            if str(bot) == "NN":
-                subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_qValue"]
-                learnAlg = bot.getLearningAlg()
-                with open(subPath, "a") as f:
-                    for value in learnAlg.getQValues():
-                        f.write("%s\n" % value)
-                learnAlg.resetQValueList()
+            subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_qValue"]
+            learnAlg = bot.getLearningAlg()
+            with open(subPath, "a") as f:
+                for value in learnAlg.getQValues():
+                    f.write("%s\n" % value)
+            learnAlg.resetQValueList()
 
 
     def getRelevantModelData(self, bot, end = False):
@@ -437,11 +435,19 @@ class Model(object):
     def plotQValuesOverTime(self):
         for bot_idx, bot in enumerate([bot for bot in self.bots if bot.getType() == "NN"]):
             qValueListPath = self.path + self.dataFiles["NN" + str(bot_idx) + "_qValue"]
-            with open(qValueListPath, 'r') as f:
-                qValueList = list(map(float, f))
+            f = open(qValueListPath, 'r')
+            q = f.readlines()
+            qValueList = []
+            timeAxis = []
+            for i in range(len(q)):
+                if q[i] != "nan\n":
+                    qValueList.append(float(q[i]))
+                    timeAxis.append(i)
+            f.close()
+            # qValueList_filtered = [i for i in qValueList if i != float("NaN")]
             meanQValue = round(numpy.mean(qValueList), 1)
             playerName = str(self.bots[bot_idx].getPlayer())
-            plt.plot(range(len(qValueList)), qValueList)
+            plt.plot(timeAxis, qValueList)
             plt.title("Q-Values of " + playerName + "- Mean: " + str(meanQValue))
             plt.xlabel("Step")
             plt.ylabel("Q-value of current action")

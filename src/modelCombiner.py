@@ -8,11 +8,14 @@ import math
 
 
 def createCombinedModelGraphs(path):
+    print("###############################")
+    print("Generating average plots:\n")
     plotTDErrorAndMean(path)
     plotMassesOverTime(path)
     plotQValuesOverTime(path)
-
+    print("###############################")
 def plotTDErrorAndMean(path):
+
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
 
     allErrorLists = []

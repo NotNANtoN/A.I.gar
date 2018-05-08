@@ -169,7 +169,7 @@ class QLearn(object):
             self.train(batch)
 
         #Book keeping. batch[-1] is the current experience:
-        if __debug__ and not self.parameters.NEURON_TYPE == "LSTM":
+        if not self.parameters.NEURON_TYPE == "LSTM":
             currentExp = batch[-1]
             if self.parameters.NEURON_TYPE == "MLP" or not self.parameters.EXP_REPLAY_ENABLED:
                 self.latestTDerror = self.calculateTDError(currentExp)
@@ -188,6 +188,7 @@ class QLearn(object):
         # Take random action with probability 1 - epsilon
         if numpy.random.random(1) < self.epsilon:
             newActionIdx = numpy.random.randint(len(self.network.getActions()))
+            self.qValues.append(float("NaN"))
             explore = True
             if __debug__:
                 print("Explore")

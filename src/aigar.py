@@ -235,12 +235,13 @@ if __name__ == '__main__':
 
 
     modelName = None
+    loadedModelName = None
     algorithm = None
     learningAlg = None
-    loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
-    loadModel = (loadModel == 1)
     folderName = None
     packageName = None
+    loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
+    loadModel = (loadModel == 1)
     if loadModel:
         while packageName is None:
             packageName = None
@@ -252,7 +253,7 @@ if __name__ == '__main__':
             if str(modelName) == "":
                 loadModel = False
                 break
-            path = "savedModels/" + modelName
+            path = "savedModels/" + modelName + "/"
             if not os.path.exists(path):
                 print("Invalid model name, no model found under ", path)
                 continue
@@ -266,7 +267,7 @@ if __name__ == '__main__':
                     subModelName = input("Enter the submodel name: (Empty string == break)\n")
                     if str(subModelName) == "":
                         break
-                    subPath = path + "/" + subModelName
+                    subPath = path + "/" + subModelName + "/"
                     if not os.path.exists(subPath):
                         print("Invalid model name, no model found under ", subPath)
                         packageName = None
@@ -302,12 +303,11 @@ if __name__ == '__main__':
                     tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
                 if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
                     break
-            modelName = nameSavedModelFolder(tweakedTotal)
+            modelName = "savedModels/" + nameSavedModelFolder(tweakedTotal)
 
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
             modelName = str(input("Input folder name:\n"))
 
-    print(modelName)
     model.initModelFolder(modelName)
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
@@ -328,7 +328,7 @@ if __name__ == '__main__':
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
 
-    model.addDataFilesToDictionary(model.getBots())
+    model.addDataFilesToDictionary()
 
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
@@ -358,7 +358,8 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
-        createCombinedModelGraphs(os.path.join(model.getPath(),"../"))
+        if tweakedTotal:
+            createCombinedModelGraphs(os.path.join(model.getPath()))
         bots = model.getBots()
         for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
             player = bot.getPlayer()
