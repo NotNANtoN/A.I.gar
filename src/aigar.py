@@ -170,7 +170,6 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
             # Create algorithm instance
             #Discrete algorithms
             if algorithm in [0,1,4,5]:
-                print(loadedModelName)
                 network = Network(enableTrainMode, loadedModelName, parameters)
                 if algorithm == 0:
                     learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
@@ -323,7 +322,6 @@ if __name__ == '__main__':
     model.setTrainingEnabled(enableTrainMode == 1)
 
     Bot.init_exp_replayer(parameters)
-    print(loadedModelName)
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadedModelName)
 
     if fitsLimitations(numberOfGreedyBots, 1000):
