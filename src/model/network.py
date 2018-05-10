@@ -180,8 +180,8 @@ class Network(object):
     def load(self, modelName):
         path = modelName
         self.loadedModelName = modelName
-        self.valueNetwork = load_model(path + "/model.h5")
-        self.targetNetwork = load_model(path + "/model.h5")
+        self.valueNetwork = load_model(path + "model.h5")
+        self.targetNetwork = load_model(path + "model.h5")
 
     def trainOnBatch(self, inputs, targets):
         if self.parameters.NEURON_TYPE == "LSTM":

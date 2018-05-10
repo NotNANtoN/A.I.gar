@@ -170,6 +170,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
             # Create algorithm instance
             #Discrete algorithms
             if algorithm in [0,1,4,5]:
+                print(loadedModelName)
                 network = Network(enableTrainMode, loadedModelName, parameters)
                 if algorithm == 0:
                     learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
@@ -256,6 +257,7 @@ if __name__ == '__main__':
             if not os.path.exists(path):
                 print("Invalid model name, no model found under ", path)
                 continue
+            # CHECK FOR SUBFOLDERS
             if str(modelName)[0] != "$":
                 while packageName is None:
                     print("------------------------------------")
@@ -265,7 +267,7 @@ if __name__ == '__main__':
                     subModelName = input("Enter the submodel name: (Empty string == break)\n")
                     if str(subModelName) == "":
                         break
-                    subPath = path + "/" + subModelName + "/"
+                    subPath = path + subModelName + "/"
                     if not os.path.exists(subPath):
                         print("Invalid model name, no model found under ", subPath)
                         packageName = None
@@ -275,6 +277,7 @@ if __name__ == '__main__':
                     modelName = path
                 if packageName is None:
                     continue
+
             if packageName is None:
                 packageName = "savedModels." + modelName
                 loadedModelName = path
@@ -305,7 +308,6 @@ if __name__ == '__main__':
 
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
             modelName = str(input("Input folder name:\n"))
-
     model.initModelFolder(modelName)
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
@@ -321,6 +323,7 @@ if __name__ == '__main__':
     model.setTrainingEnabled(enableTrainMode == 1)
 
     Bot.init_exp_replayer(parameters)
+    print(loadedModelName)
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadedModelName)
 
     if fitsLimitations(numberOfGreedyBots, 1000):
@@ -357,7 +360,8 @@ if __name__ == '__main__':
     if model.getTrainingEnabled():
         model.save(True)
         if tweakedTotal:
-            createCombinedModelGraphs(os.path.join(model.getPath()))
+            print(os.path.join(modelName))
+            createCombinedModelGraphs(os.path.join(modelName))
         bots = model.getBots()
         for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
             player = bot.getPlayer()
