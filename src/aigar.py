@@ -239,6 +239,7 @@ if __name__ == '__main__':
     algorithm = None
     learningAlg = None
     packageName = None
+    model_in_subfolder = False
     loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
     loadModel = (loadModel == 1)
     if loadModel:
@@ -274,12 +275,14 @@ if __name__ == '__main__':
                     packageName = "savedModels." + modelName + "." + subModelName
                     loadedModelName = subPath
                     modelName = path
+                    model_in_subfolder = True
                 if packageName is None:
                     continue
 
             if packageName is None:
                 packageName = "savedModels." + modelName
                 loadedModelName = path
+                # ModelName = None will autogenereate a name
                 modelName = None
         if packageName is not None:
             parameters = importlib.import_module('.networkParameters', package=packageName)
@@ -304,6 +307,8 @@ if __name__ == '__main__':
                 if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
                     break
             modelName = "savedModels/" + nameSavedModelFolder(tweakedTotal)
+            model_in_subfolder = True
+
 
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
             modelName = str(input("Input folder name:\n"))
@@ -357,7 +362,7 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
-        if tweakedTotal:
+        if model_in_subfolder:
             print(os.path.join(modelName))
             createCombinedModelGraphs(os.path.join(modelName))
         bots = model.getBots()
