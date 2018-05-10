@@ -30,7 +30,6 @@ class ExpReplay():
             return [self.memories[idx] for idx in randIdxs]
         elif self.parameters.NEURON_TYPE == "LSTM":
             trace_len = self.parameters.MEMORY_TRACE_LEN
-
             sampled_start_points = numpy.random.randint(0, len(self.memories) - trace_len, self.batch_size)
             sampled_traces = []
             for start_point in sampled_start_points:
@@ -76,6 +75,7 @@ class Bot(object):
         self.type = type
         self.player = player
         self.field = field
+        self.time = 0
         if self.type == "Greedy":
             self.splitLikelihood = numpy.random.randint(9950, 10000)
             self.ejectLikelihood = 100000  # numpy.random.randint(9990,10000)
@@ -152,6 +152,7 @@ class Bot(object):
         if not self.currentlySkipping:
             # Learn
             if self.trainMode and self.oldState is not None:
+                self.time += 1
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
                 currentExperience = (self.oldState, action, self.lastReward, newState, False)
                 batch = []
@@ -160,7 +161,11 @@ class Bot(object):
                     if self.expReplayer.canReplay():
                         batch = self.expReplayer.sample()
                 batch.append(currentExperience)
-                self.learningAlg.learn(batch)
+
+                self.learningAlg.updateNoise()
+                if self.time % self.parameters.TRAINING_WAIT_TIME == 0:
+                    self.learningAlg.learn(batch)
+                self.learningAlg.updateNetworks(self.time)
 
             # Move
             if self.player.getIsAlive():

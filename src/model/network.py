@@ -192,6 +192,12 @@ class Network(object):
         else:
             return self.valueNetwork.train_on_batch(inputs, targets)
 
+    def updateActionNetwork(self):
+        self.actionNetwork.set_weights(self.valueNetwork.get_weights())
+
+    def updateTargetNetwork(self):
+        self.targetNetwork.set_weights(self.valueNetwork.get_weights())
+
     def predict(self, state, batch_len = 1):
         if self.parameters.NEURON_TYPE == "LSTM":
             if self.parameters.EXP_REPLAY_ENABLED:
@@ -208,9 +214,7 @@ class Network(object):
                 return self.targetNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
         return self.targetNetwork.predict(numpy.array([state]))[0]
 
-    def predict_single_trace_LSTM(self, trace, update_weights = True):
-        if update_weights:
-            self.actionNetwork.set_weights(self.valueNetwork.get_weights())
+    def predict_action_network(self, trace):
         return self.actionNetwork.predict(numpy.array([numpy.array([trace])]))[0]
 
     def saveModel(self, path):

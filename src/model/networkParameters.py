@@ -10,10 +10,11 @@ NUM_NN_BOTS = 1
 
 # Experience replay:
 MEMORY_CAPACITY = 75000
-MEMORY_BATCH_LEN = 40
+MEMORY_BATCH_LEN = 32
 REPLAY_AFTER_X_STEPS = 0
 
 # General RL:
+TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False #TODO: these two do not have an effect yet, implement that they
 ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuous and discrete algorithms
 
