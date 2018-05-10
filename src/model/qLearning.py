@@ -13,7 +13,6 @@ class QLearn(object):
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
-        self.time = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.output_len = network.num_actions
         self.discrete = True
@@ -160,9 +159,6 @@ class QLearn(object):
 
 
     def learn(self, batch):
-        self.time += 1 * self.parameters.FRAME_SKIP_RATE
-        self.epsilon *= self.parameters.EPSILON_DECAY
-
         if self.parameters.NEURON_TYPE == "LSTM":
             self.train_LSTM(batch)
         else:
@@ -176,12 +172,20 @@ class QLearn(object):
             else:
                 self.latestTDerror = self.calculateTDError_ExpRep_Lstm(currentExp)
 
-        self.updateTargetModel()
+    def updateNoise(self):
+        self.epsilon *= self.parameters.EPSILON_DECAY
 
+    def updateNetworks(self, time):
+        self.updateTargetModel(time)
+        self.updateActionModel(time)
 
-    def updateTargetModel(self):
-        if self.time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
-            self.network.targetNetwork.set_weights(self.network.valueNetwork.get_weights())
+    def updateTargetModel(self, time):
+        if time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+           self.network.updateTargetNetwork()
+
+    def updateActionModel(self, time):
+        if self.parameters.NEURON_TYPE == "LSTM" and time % self.parameters.UPDATE_LSTM_MOVE_NETWORK == 0:
+            self.network.updateActionNetwork()
 
 
     def decideMove(self, newState, bot):
@@ -199,11 +203,7 @@ class QLearn(object):
                 # Take action based on greediness towards Q values
                 q_Values = self.network.predict(newState)
             else:
-                if self.time % self.parameters.UPDATE_LSTM_MOVE_NETWORK == 0:
-                    update = True
-                else:
-                    update = False
-                q_Values = self.network.predict_single_trace_LSTM(newState, update)
+                q_Values = self.network.predict_action_network(newState)
             newActionIdx = numpy.argmax(q_Values)
             # Book keeping:
             self.qValues.append(q_Values[newActionIdx])
