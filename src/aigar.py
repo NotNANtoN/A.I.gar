@@ -362,6 +362,7 @@ if __name__ == '__main__':
 
     if model.getTrainingEnabled():
         model.save(True)
+        model.saveModels()
         if model_in_subfolder:
             print(os.path.join(modelName))
             createCombinedModelGraphs(os.path.join(modelName))

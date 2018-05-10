@@ -120,7 +120,7 @@ class Model(object):
         # Save the models occasionally in case the program crashes at some point
         if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
             self.saveSpecs()
-            self.saveModels(self.path)
+            self.saveModels()
             if self.counter != 0 and self.counter % 50000 == 0:
                 self.save()
 
@@ -220,15 +220,15 @@ class Model(object):
             self.dataFiles.update({botName  + "_qValue": qvalueFileName})
 
 
-    def saveModels(self, path, end = False):
+    def saveModels(self, end = False):
         savedTypes = []
         for bot in self.bots:
             botType = bot.getType()
             if botType != "Greedy" and botType not in savedTypes:
-                bot.saveModel(path)
+                bot.saveModel(self.path)
                 savedTypes.append(botType)
         if end:
-            path = path[:-1]
+            path = self.path[:-1]
             suffix = ""
             if self.counter >= 1000000000:
                 suffix = "B"
