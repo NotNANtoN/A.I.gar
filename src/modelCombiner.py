@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import fnmatch
 import math
-
+import numpy
 
 def createCombinedModelGraphs(path):
     print("###############################")
@@ -14,6 +14,7 @@ def createCombinedModelGraphs(path):
     plotMassesOverTime(path)
     plotQValuesOverTime(path)
     print("###############################")
+
 def plotTDErrorAndMean(path):
 
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
@@ -185,9 +186,11 @@ def plot(ylist, maxLength, labels, y2list=None, labels2=None):
         title += " & " + labels2["title"]
         path += "_and_" + labels2["subPath"]
 
+    meanY = numpy.mean(y)
+    meanSigma = numpy.std(y)
     ax.legend(loc='upper left')
     ax.set_ylabel(yLabel)
-    ax.set_title(title + " mean value $\pm$ $\sigma$ interval")
+    ax.set_title(title + " mean value (" + str(round(meanY,1)) + ") $\pm$ $\sigma$ interval")
     ax.grid()
     fig.savefig(path + ".pdf")
 
