@@ -77,7 +77,7 @@ def algorithmNameToNumber(name):
         return 0
     elif name == "n-step Sarsa":
         return 1
-    elif name == "ACLA":
+    elif name == "CACLA":
         return 2
     elif name == "Discrete ACLA":
         return 3
@@ -238,7 +238,6 @@ if __name__ == '__main__':
     loadedModelName = None
     algorithm = None
     learningAlg = None
-    folderName = None
     packageName = None
     loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
     loadModel = (loadModel == 1)
@@ -257,7 +256,6 @@ if __name__ == '__main__':
             if not os.path.exists(path):
                 print("Invalid model name, no model found under ", path)
                 continue
-            folderName = modelName
             if str(modelName)[0] != "$":
                 while packageName is None:
                     print("------------------------------------")
