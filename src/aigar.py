@@ -385,6 +385,7 @@ if __name__ == '__main__':
             variance = numpy.std(massList)
             print("Median = ", median, " Mean = ", mean, " Std = ", variance)
             print("")
+        print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 
 
 

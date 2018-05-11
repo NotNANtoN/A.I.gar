@@ -281,18 +281,18 @@ class ActorCritic(object):
         self.latestTDerror = None
         self.qValues = []
 
-    def adjust_std_dev(self):
+    def updateNoise(self):
         self.std *= self.noise_decay_factor
 
-    def updateCriticNetworks(self):
-        if self.steps % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+    def updateCriticNetworks(self, time):
+        if time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
             self.critic.update_target_model()
 
+    def updateNetworks(self, time):
+        self.updateCriticNetworks(time)
+
     def learn(self, batch):
-        self.steps += 1 * self.parameters.FRAME_SKIP_RATE
-        self.adjust_std_dev()
         self.train_CACLA(batch)
-        self.updateCriticNetworks()
 
     def decideMove(self, state, bot):
         actions = self.actor.predict(state)
@@ -328,7 +328,6 @@ class ActorCritic(object):
         len_batch = len(batch)
         inputs_critic = numpy.zeros((len_batch, self.input_len))
         targets_critic = numpy.zeros((len_batch, 1))
-
         # Calculate input and target for critic
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
@@ -400,9 +399,12 @@ class ActorCritic(object):
     def train_CACLA(self, batch):
         # TODO: actor should not be included in the replays.. I think??? Marco says this can be done
         self.train_critic_CACLA(batch)
-        # currentExp = batch[-1]
-        # self.train_actor_CACLA(currentExp)
-        self.train_actor_batch(batch)
+        if self.parameters.ACTOR_REPLAY_ENABLED:
+            self.train_actor_batch(batch)
+        else:
+            currentExp = batch[-1]
+            self.train_actor_CACLA(currentExp)
+
 
     # This is deprecated:
     def train(self, batch):

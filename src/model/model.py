@@ -200,6 +200,9 @@ class Model(object):
         if os.path.exists(path):
             nowStr = now.strftime("%b-%d_%H:%M:%S")
             path = subPath + "/" + "$" + nowStr + "$"
+            if os.path.exists(path):
+                nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
+                path = subPath + "/" + "$" + nowStr + "$"
         os.makedirs(path)
         path += "/"
         self.path = path
