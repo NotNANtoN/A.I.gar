@@ -11,7 +11,6 @@ NUM_NN_BOTS = 1
 # Experience replay:
 MEMORY_CAPACITY = 75000
 MEMORY_BATCH_LEN = 32
-REPLAY_AFTER_X_STEPS = 0
 
 # General RL:
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
@@ -37,7 +36,7 @@ GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 
 # Actor-critic:
-ACTOR_CRITIC_TYPE = "CACLA" # "Standard" Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
+ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
 ACTOR_REPLAY_ENABLED = True
 GAUSSIAN_NOISE = 1 # Initial noise
 NOISE_DECAY = 0.99995 # Noise decay. with start noise of 1 and decay of 0.999995 it decays slowly to 0 over 1M steps for FSR of 0. For FSR of 9: 0.99995. For FSR of 4: 0.99998

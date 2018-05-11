@@ -2,7 +2,6 @@ import keras
 import numpy
 import math
 import tensorflow as tf
-import importlib
 from keras.layers import Dense, LSTM, Softmax
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
@@ -264,7 +263,7 @@ class PolicyNetwork(object):
 
 class ActorCritic(object):
     def __repr__(self):
-        return "ACLA"
+        return "AC"
 
     def __init__(self, parameters, num_bots, discrete, modelName=None):
         self.acType = parameters.ACTOR_CRITIC_TYPE
@@ -292,7 +291,13 @@ class ActorCritic(object):
         self.updateCriticNetworks(time)
 
     def learn(self, batch):
-        self.train_CACLA(batch)
+        # TODO: actor should not be included in the replays.. I think??? Marco says this can be done
+        self.train_critic(batch)
+        if self.parameters.ACTOR_REPLAY_ENABLED:
+            self.train_actor_batch(batch)
+        else:
+            currentExp = batch[-1]
+            self.train_actor(currentExp)
 
     def decideMove(self, state, bot):
         actions = self.actor.predict(state)
@@ -324,7 +329,7 @@ class ActorCritic(object):
         td_error = target - old_state_value
         return target, td_error
 
-    def train_critic_CACLA(self, batch):
+    def train_critic(self, batch):
         len_batch = len(batch)
         inputs_critic = numpy.zeros((len_batch, self.input_len))
         targets_critic = numpy.zeros((len_batch, 1))
@@ -346,7 +351,7 @@ class ActorCritic(object):
 #TODO: check critic training, the resulting values are weirdly negative for mass 200
 
 
-    def train_actor_CACLA(self, currentExp):
+    def train_actor(self, currentExp):
         old_s, a, r, new_s, _ = currentExp
         _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None)
         target = self.calculateTarget_Actor(old_s, a, td_e)
@@ -395,16 +400,6 @@ class ActorCritic(object):
             self.actor.train(inputs, targets)
             if __debug__:
                 print("Predicted action after training:\t", numpy.round(self.actor.predict(inputs[-1]), 2))
-
-    def train_CACLA(self, batch):
-        # TODO: actor should not be included in the replays.. I think??? Marco says this can be done
-        self.train_critic_CACLA(batch)
-        if self.parameters.ACTOR_REPLAY_ENABLED:
-            self.train_actor_batch(batch)
-        else:
-            currentExp = batch[-1]
-            self.train_actor_CACLA(currentExp)
-
 
     # This is deprecated:
     def train(self, batch):

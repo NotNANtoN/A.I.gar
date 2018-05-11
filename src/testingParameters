@@ -1,0 +1,46 @@
+testing:
+
+Default: Avg - 308.4 + 311.7 + 309.2 + 308 + 312: 309.86
+	 Max - 602   + 644   + 653   + 628 + 645: max- 653
+
+All 1M steps
+
+q-learning:
+
+	1 gpu training - 1 test
+
+	1 gpu training with wait time 10 - 1 test
+
+	q-learning relu - 3 tests - redo!
+
+	alpha 0.0001 - 3 tests
+
+	alpha 0.0005 - 3 tests
+
+Actor Critic:
+
+	AC standard - 5 tests -redo
+
+	Noise decay: 0.99992 - 3 tests 
+
+	Noise decay: 0.99997 - 3 tests
+
+	alpha actor 0.001 - 3 tests
+
+	alpha actor 0.00025 - 3 tests
+
+	hidden neurons: 200 all layers
+
+LSTM: - redo
+
+	lstm vs greedy - 3 tests
+
+	lstm trace min 2 - 3 tests
+
+	lstm trace min 9 - 3 tests
+
+	lstm memory trace len 12, trace min 9 - 3 tests
+
+	lstm memory trace len 20, trace min 17 - 3 tests
+
+

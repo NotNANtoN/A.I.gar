@@ -315,6 +315,7 @@ if __name__ == '__main__':
     model.initModelFolder(modelName)
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
+        parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
 
     numberOfNNBots = parameters.NUM_NN_BOTS
     numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
