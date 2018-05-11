@@ -21,6 +21,23 @@ q-learning:
 
 	alpha 0.0005 - 3 tests:
 
+	Nil:
+	FRAME_SKIP_RATE = 5 x4
+	FRAME_SKIP_RATE = 7 x4
+	FRAME_SKIP_RATE = 11 x4
+	GRID_SQUARES_PER_FOV = 9 x3
+	GRID_SQUARES_PER_FOV = 13 x3
+	EPSILON_DECAY = 0.99997 x3
+	EPSILON_DECAY = 0.99993 x3
+	DISCOUNT = 0.92 x3
+	DISCOUNT = 0.88 x3
+	MEMORY_CAPACITY = 10000 x3
+	MEMORY_CAPACITY = 1000 x3
+
+
+
+	
+
 Actor Critic:
 
 	CACLA no actor replay - 5 tests:
@@ -30,15 +47,16 @@ Actor Critic:
 	vs greedy - 3 tests:
 
 
-	Noise decay: 0.99992 
+	Nil:
+	Noise decay: 0.99993 x3
 
-	Noise decay: 0.99997 
+	Noise decay: 0.99997 x3
 
-	alpha actor 0.001 
+	alpha actor 0.001 x3
 
-	alpha actor 0.00025 
+	alpha actor 0.00025 x3
 
-	hidden neurons: 200 all layers
+	hidden neurons: 200 all layers x5
 
 LSTM: - 
 	lstm pure - 5 tests:
