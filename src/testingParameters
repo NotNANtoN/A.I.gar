@@ -7,40 +7,52 @@ All 1M steps
 
 q-learning:
 
-	1 gpu training - 1 test
+	1 gpu training
 
-	1 gpu training with wait time 10 - 1 test
+	1 gpu training with wait time 10 
 
-	q-learning relu - 3 tests - redo!
+        no exp rep - 5 tests:
 
-	alpha 0.0001 - 3 tests
+	relu - 5 tests:
 
-	alpha 0.0005 - 3 tests
+	vs greedy - 3 tests:
+
+	alpha 0.0001 - 3 tests:
+
+	alpha 0.0005 - 3 tests:
 
 Actor Critic:
 
-	AC standard - 5 tests -redo
+	CACLA no actor replay - 5 tests:
 
-	Noise decay: 0.99992 - 3 tests 
+	AC standard - 5 tests:
 
-	Noise decay: 0.99997 - 3 tests
+	vs greedy - 3 tests:
 
-	alpha actor 0.001 - 3 tests
 
-	alpha actor 0.00025 - 3 tests
+	Noise decay: 0.99992 
+
+	Noise decay: 0.99997 
+
+	alpha actor 0.001 
+
+	alpha actor 0.00025 
 
 	hidden neurons: 200 all layers
 
-LSTM: - redo
+LSTM: - 
+	lstm pure - 5 tests:
 
-	lstm vs greedy - 3 tests
+	lstm no exp rep - 3 tests:
 
-	lstm trace min 2 - 3 tests
+	lstm vs greedy - 3 tests:
 
-	lstm trace min 9 - 3 tests
+	lstm trace min 2 - 3 tests:
 
-	lstm memory trace len 12, trace min 9 - 3 tests
+	lstm trace min 9 - 3 tests:
 
-	lstm memory trace len 20, trace min 17 - 3 tests
+	lstm memory trace len 12, trace min 9 - 3 tests:
+
+	lstm memory trace len 20, trace min 17 - 3 tests:
 
 
