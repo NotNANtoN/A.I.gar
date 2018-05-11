@@ -1,0 +1,13 @@
+
+1 greedy bot x3
+2 greedy bot x3
+GSPF = 9 x4
+GSPF = 13 x4
+LSTM_GREEDY_1 x3
+LSTM_GREEDY_5 x3
+EXP_REP_F(1) x5
+FSR_7 x5
+FSR_11 x5
+FSR_5 x5
+
+
