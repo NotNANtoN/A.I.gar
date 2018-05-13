@@ -189,20 +189,27 @@ class Model(object):
         #Create subFolder for given parameter tweaking
         subPath = name
         subName = os.getcwd() + "/" + subPath
-        if not os.path.exists(subPath):
-            os.makedirs(subPath)
+        print(subName, subPath)
+        time.sleep(numpy.random.rand())
+        if not os.path.exists(subName):
+            os.makedirs(subName)
         #Create folder based on name
         now = datetime.datetime.now()
         self.startTime = now
-        nowStr = now.strftime("%b-%d_%H:%M")
+        nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
         path = subPath + "/"  + "$" + nowStr + "$"
+        time.sleep(numpy.random.rand())
         # Also display seconds in name if we already have a model this minute
+        #if os.path.exists(path):
+        #    nowStr = now.strftime("%b-%d_%H:%M:%S")
+        #    path = subPath + "/" + "$" + nowStr + "$"
+        #    if os.path.exists(path):
+        #        nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
+        #        path = subPath + "/" + "$" + nowStr + "$"
+
         if os.path.exists(path):
-            nowStr = now.strftime("%b-%d_%H:%M:%S")
-            path = subPath + "/" + "$" + nowStr + "$"
-            if os.path.exists(path):
-                nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
-                path = subPath + "/" + "$" + nowStr + "$"
+            randNum = numpy.random.randint(100000)
+            path = subPath + "/"  + "$" + nowStr + "-" + str(randNum) + "$"
         os.makedirs(path)
         path += "/"
         self.path = path
