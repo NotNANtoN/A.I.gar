@@ -1,19 +1,25 @@
 testing:
 
-Default: Avg - 308.4 + 311.7 + 309.2 + 308 + 312: 309.86
-	 Max - 602   + 644   + 653   + 628 + 645: max- 653
+Default: Avg - 308.4 + 311.7 + 309.2 + 308 + 312: 309.86meanMass (mM)
+	 Max - 602   + 644   + 653   + 628 + 645: max- 653maxMass
 
 All 1M steps
 
 q-learning:
 
-	1 gpu training
+	gpu node - 3x - 0.5s per update
 
-	1 gpu training with wait time 10 
+	gpu node with wait time 10 and batch size 320 -3x - 0.26s per update - 309.8mM
+
+	gpu node with wait time 100 and batch size 3200 - 1x -
+
+	gpu node with 2 gpus waitTime 100 and batch size 3200 - 1x-
 
         no exp rep - 5 tests:
 
-	relu - 5 tests:
+	relu - 5 tests: 312.4mM
+
+		relu - 5 more tests:
 
 	vs greedy_1 - 3 tests:
 
@@ -40,9 +46,15 @@ q-learning:
 
 Actor Critic:
 
+	New Actor (without divide by sigma squared and without split/eject): 5x - 
+
+	New Actor no actor replay: 5x - 
+
+	New Actor type standard: 5x -
+
 	CACLA no actor replay - 5 tests:
 
-	AC standard - 5 tests:
+	AC standard - 5 tests: 6.3mM
 
 	vs greedy - 3 tests:
 
@@ -61,11 +73,11 @@ Actor Critic:
 LSTM: - 
 	lstm pure - 5 tests:
 
-	lstm no exp rep - 3 tests:
+	lstm no exp rep - 3 tests: 13.3mM
 
 	lstm vs greedy - 3 tests:
 
-	lstm trace min 2 - 3 tests:
+	lstm trace min 2 - 3 tests - best preliminary tests so far!
 
 	lstm trace min 9 - 3 tests:
 

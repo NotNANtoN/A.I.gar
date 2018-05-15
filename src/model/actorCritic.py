@@ -159,7 +159,11 @@ class PolicyNetwork(object):
             self.num_actions = len(self.actions)
             self.num_outputs = self.num_actions
         else:
-            self.num_outputs = 4  # x, y, split, eject all continuous between 0 and 1
+            self.num_outputs = 2  #x, y, split, eject all continuous between 0 and 1
+            if self.parameters.ENABLE_SPLIT == True:
+                self.num_outputs += 1
+            if self.parameters.ENABLE_EJECT == True:
+                self.num_outputs += 1
 
         if modelName is not None:
             self.load(modelName)
@@ -183,7 +187,7 @@ class PolicyNetwork(object):
                         Dense(self.hiddenLayer3, activation=self.activationFuncHidden, bias_initializer=initializer
                               , kernel_initializer=initializer))
                 self.model.add(
-                    Dense(num_outputs, activation=relu_max, bias_initializer=initializer
+                    Dense(self.num_outputs, activation=relu_max, bias_initializer=initializer
                           , kernel_initializer=initializer))
                 self.model = multi_gpu_model(self.model, gpus=self.gpus)
         else:
@@ -242,7 +246,10 @@ class PolicyNetwork(object):
         return self.model.predict(numpy.array([state]))[0]
 
     def train(self, inputs, targets):
-        self.model.train_on_batch(inputs, targets)
+        if self.parameters.ACTOR_REPLAY_ENABLED:
+            self.model.train_on_batch(inputs, targets)
+        else:
+            self.model.train_on_batch(numpy.array([inputs]), numpy.array([targets]))
 
     def save(self, path):
         self.model.save(path + "actor" + "_model.h5")
@@ -363,10 +370,10 @@ class ActorCritic(object):
         if self.acType == "CACLA":
             if td_e > 0:
                 mu_s = self.actor.predict(old_s)
-                target = mu_s + (a - mu_s) / self.std ** 2
+                target = mu_s + (a - mu_s) #/ self.std ** 2
         elif self.acType == "Standard":
             mu_s = self.actor.predict(old_s)
-            target = mu_s + td_e * (a - mu_s) / self.std ** 2
+            target = mu_s + td_e * (a - mu_s) #/ self.std ** 2
         # TODO: Do we need to clip targets to 0-1 range??? How does backprop work if it wants to tune the network to attain unachievable results?
 
         return target

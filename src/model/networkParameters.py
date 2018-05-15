@@ -14,7 +14,7 @@ MEMORY_BATCH_LEN = 32
 
 # General RL:
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
-ENABLE_SPLIT = False #TODO: these two do not have an effect yet, implement that they
+ENABLE_SPLIT = False #TODO: these two only work  actor critic yet.
 ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuous and discrete algorithms
 NEURON_TYPE = "MLP"
 
@@ -50,7 +50,7 @@ HIDDEN_LAYER_3_POLICY = 100
 #LSTM
 ACTIVATION_FUNC_LSTM = "tanh"
 UPDATE_LSTM_MOVE_NETWORK = 1
-TRACE_MIN = 7 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
+TRACE_MIN = 4 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
 MEMORY_TRACE_LEN = 10 # The length of memory traces retrieved via exp replay
 
 

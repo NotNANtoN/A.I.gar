@@ -217,9 +217,6 @@ class QLearn(object):
             print("")
         newAction = self.network.actions[newActionIdx]
 
-        #TODO: remove following line, just debugging test:
-        #self.network.reset_hidden_states()
-
         return newActionIdx, newAction
 
     def save(self, path):

@@ -127,7 +127,7 @@ def nameSavedModelFolder(array):
     for i in range(len(array)):
         if i != 0:
             name += "&"
-        name += array[i][0] + "=" + str(array[i][1])
+        name += array[i][0] + "=" + str(array[i][1]).replace('.', '_')
     return name
 
 
@@ -311,7 +311,7 @@ if __name__ == '__main__':
 
 
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
-            modelName = str(input("Input folder name:\n"))
+            modelName = "savedModels/" + str(input("Input folder name:\n"))
     model.initModelFolder(modelName)
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)

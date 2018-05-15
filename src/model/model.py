@@ -222,11 +222,11 @@ class Model(object):
     def addDataFilesToDictionary(self):
         self.dataFiles.update({"Error": "tdErrors.txt", "Reward": "rewards.txt"})
         # Add files for each bot
-        for bot_idx, bot in enumerate([i for i in self.bots if str(i) == "NN"]):
-            botName = str(bot) + str(bot_idx)
-            massFileName = "meanMassOverTimeNN" + str(bot_idx) + ".txt"
+        for bot_idx, bot in enumerate(self.bots):
+            botName = str(bot)
+            massFileName = "meanMassOverTime" + botName + ".txt"
             self.dataFiles.update({botName  + "_mass": massFileName})
-            qvalueFileName = "meanQValuesOverTimeNN" + str(bot_idx) + ".txt"
+            qvalueFileName = "meanQValuesOverTime" + botName + ".txt"
             self.dataFiles.update({botName  + "_qValue": qvalueFileName})
 
 
@@ -296,20 +296,21 @@ class Model(object):
                 f.write("%s\n" % value)
         self.meanRewards = []
         # Bot exports
-        for bot_idx, bot in enumerate([bot for bot in self.bots if str(bot) == "NN"]):
+        for bot_idx, bot in enumerate(self.bots):
             # Masses export
-            subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_mass"]
+            subPath = path + self.dataFiles[str(bot)+"_mass"]
             with open(subPath, "a") as f:
                 for value in bot.getMassOverTime():
                     f.write("%s\n" % value)
             bot.resetMassList()
             # Qvalues export
-            subPath = path + self.dataFiles[str(bot)+str(bot_idx)+"_qValue"]
-            learnAlg = bot.getLearningAlg()
-            with open(subPath, "a") as f:
-                for value in learnAlg.getQValues():
-                    f.write("%s\n" % value)
-            learnAlg.resetQValueList()
+            if bot.type == "NN":
+                subPath = path + self.dataFiles[str(bot)+"_qValue"]
+                learnAlg = bot.getLearningAlg()
+                with open(subPath, "a") as f:
+                    for value in learnAlg.getQValues():
+                        f.write("%s\n" % value)
+                learnAlg.resetQValueList()
 
 
     def getRelevantModelData(self, bot, end = False):
@@ -425,7 +426,7 @@ class Model(object):
 
     def plotMassesOverTime(self):
         for bot_idx, bot in enumerate([bot for bot in self.bots]):
-            massListPath = self.path + self.dataFiles[str(bot) + str(bot_idx) + "_mass"]
+            massListPath = self.path + self.dataFiles[str(bot) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             meanMass = round(numpy.mean(massList),1)
@@ -444,7 +445,7 @@ class Model(object):
 
     def plotQValuesOverTime(self):
         for bot_idx, bot in enumerate([bot for bot in self.bots if bot.getType() == "NN"]):
-            qValueListPath = self.path + self.dataFiles["NN" + str(bot_idx) + "_qValue"]
+            qValueListPath = self.path + self.dataFiles[str(bot) + "_qValue"]
             f = open(qValueListPath, 'r')
             q = f.readlines()
             qValueList = []

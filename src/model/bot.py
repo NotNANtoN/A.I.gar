@@ -50,6 +50,8 @@ class ExpReplay():
 
 
 class Bot(object):
+    _greedyId = 0
+    _nnId = 0
     num_NNbots = 0
     num_Greedybots = 0
 
@@ -57,10 +59,32 @@ class Bot(object):
     def init_exp_replayer(cls, parameters):
         cls.expReplayer = ExpReplay(parameters)
 
-    def __repr__(self):
-        return self.type
+    @property
+    def greedyId(self):
+        return type(self)._greedyId
 
-    def __init__(self, player, field, type, trainMode, learningAlg, parameters, modelName=None):
+    @greedyId.setter
+    def greedyId(self, val):
+        type(self)._greedyId = val
+
+    @property
+    def nnId(self):
+        return type(self)._nnId
+
+    @nnId.setter
+    def nnId(self, val):
+        type(self)._nnId = val
+
+    def __repr__(self):
+        return self.type + str(self.id)
+
+    def __init__(self, player, field, bot_type, trainMode, learningAlg, parameters, modelName=None):
+        if bot_type == "Greedy":
+            self.id = self.greedyId
+            self.greedyId += 1
+        elif bot_type == "NN":
+            self.id = self.nnId
+            self.nnId += 1
         self.trainMode = None
         self.parameters = parameters
         self.modelName = modelName
@@ -72,7 +96,7 @@ class Bot(object):
             self.trainMode = trainMode
             self.learningAlg.load(modelName)
 
-        self.type = type
+        self.type = bot_type
         self.player = player
         self.field = field
         self.time = 0
@@ -369,8 +393,20 @@ class Bot(object):
         size = int(size)
         xChoice = left + action[0] * size
         yChoice = top + action[1] * size
-        splitChoice = True if action[2] > 0.5 else False
-        ejectChoice = True if action[3] > 0.5 else False
+        if len(action) > 2:
+            if len(action) == 3:
+                if self.parameters.ENABLE_SPLIT == True:
+                    ejectChoice = False
+                    splitChoice = True if action[2] > 0.5 else False
+                elif self.parameters.ENABLE_EJECT == True:
+                    ejectChoice = True if [3] > 0.5 else False
+                    splitChoice = False
+            else:
+                splitChoice = True if action[2] > 0.5 else False
+                ejectChoice = True if action[3] > 0.5 else False
+        else:
+            splitChoice = False
+            ejectChoice = False
 
         self.player.setCommands(xChoice, yChoice, splitChoice, ejectChoice)
 
