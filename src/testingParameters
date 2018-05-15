@@ -13,7 +13,12 @@ q-learning:
 
 	gpu node with wait time 100 and batch size 3200 - 1x -
 
+	gpu wt 1000 bs 32000 - 1x -
+
 	gpu node with 2 gpus waitTime 100 and batch size 3200 - 1x-
+
+	2 gpu wt 1000 bs 32000 - 1x - 
+
 
         no exp rep - 5 tests:
 
@@ -21,7 +26,7 @@ q-learning:
 
 		relu - 5 more tests:
 
-	vs greedy_1 - 3 tests:
+	vs 1 greedy - 3 tests:
 
 	alpha 0.0001 - 3 tests:
 
@@ -46,17 +51,24 @@ q-learning:
 
 Actor Critic:
 
-	New Actor (without divide by sigma squared and without split/eject): 5x - 
+	New Actor (without divide by sigma squared and without split/eject): 8x - 
 
 	New Actor no actor replay: 5x - 
 
 	New Actor type standard: 5x -
 
-	CACLA no actor replay - 5 tests:
+	New vs greedy: 3x - 
 
-	AC standard - 5 tests: 6.3mM
+	New alpha policy 0.00025 - 5x
 
-	vs greedy - 3 tests:
+	New alpha policy 0.001 - 5x
+
+	New noise decay 0.99994 - 5x
+
+	New noise decay 0.99996 - 5x
+
+	old AC standard - 5 tests: 6.3mM
+
 
 
 	Nil:
@@ -77,12 +89,12 @@ LSTM: -
 
 	lstm vs greedy - 3 tests:
 
-	lstm trace min 2 - 3 tests - best preliminary tests so far!
+	lstm trace length 15 - 5 tests:
 
-	lstm trace min 9 - 3 tests:
+	lstm trace length 15 minimum 10 - 5 tests -
 
-	lstm memory trace len 12, trace min 9 - 3 tests:
+	lstm ACTIVATION_FUNC_LSTM="sigmoid" - 5 tests -
 
-	lstm memory trace len 20, trace min 17 - 3 tests:
+	lstm act func lstm = "relu" - 5 tests -
 
 
