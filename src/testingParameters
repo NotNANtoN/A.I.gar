@@ -24,7 +24,7 @@ q-learning:
 
 	relu - 5 tests: 312.4mM
 
-		relu - 5 more tests:
+		relu - 5 more tests:310.2mM
 
 	vs 1 greedy - 3 tests:
 
@@ -51,21 +51,21 @@ q-learning:
 
 Actor Critic:
 
-	New Actor (without divide by sigma squared and without split/eject): 8x - 
+	New Actor (without divide by sigma squared and without split/eject): 8x - 143.9mM, 5/8 gave shitty result(mM of 20, rest has mM of around 280)
 
-	New Actor no actor replay: 5x - 
+	New Actor no actor replay: 5x - 6.3mM, all failed
 
-	New Actor type standard: 5x -
+	New Actor type standard: 5x - 6.2mM, all failed
 
-	New vs greedy: 3x - 
+	New vs greedy: 3x - 135+224+204=188mM, none seemed to fail
 
-	New alpha policy 0.00025 - 5x
+	New alpha policy 0.00025 - 5x - 170.8mM, 2/5 failed, 290mMsuccess, 6.2mM on fail
 
-	New alpha policy 0.001 - 5x
+	New alpha policy 0.001 - 5x - 60.6mM, 4/5 failed, 277mM success, 6.2mM on fail
 
-	New noise decay 0.99994 - 5x
+	New noise decay 0.99994 - 5x - 111.9mM, 3/5 failed, 270mM success, 6.2mM on fail
 
-	New noise decay 0.99996 - 5x
+	New noise decay 0.99996 - 5x - 112.mM, 3/5 failed, 262mM success, 6.x on fail
 
 	old AC standard - 5 tests: 6.3mM
 
@@ -83,18 +83,18 @@ Actor Critic:
 	hidden neurons: 200 all layers x5
 
 LSTM: - 
-	lstm pure - 5 tests:
+	lstm pure - 5 tests: 57.2mM
 
 	lstm no exp rep - 3 tests: 13.3mM
 
-	lstm vs greedy - 3 tests:
+	lstm vs greedy - 3 tests: 15mM
 
 	lstm trace length 15 - 5 tests:
 
 	lstm trace length 15 minimum 10 - 5 tests -
 
-	lstm ACTIVATION_FUNC_LSTM="sigmoid" - 5 tests -
+	lstm ACTIVATION_FUNC_LSTM="sigmoid" - 5 tests - 105.7mM
 
-	lstm act func lstm = "relu" - 5 tests -
+	lstm act func lstm = "elu" - 5 tests -135.6mM - it seems to learn much faster on elu, maybe sigmoid activation functions need more training time/steps to shine.
 
 
