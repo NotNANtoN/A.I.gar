@@ -75,7 +75,7 @@ def plotMassesOverTime(path):
         print(model)
         modelPath = path + "/" + model
         for file in os.listdir(modelPath):
-            if not fnmatch.fnmatch(file, 'meanMass*'):
+            if not fnmatch.fnmatch(file, 'meanMassOverTimeNN*'):
                 continue
             print(file)
             massListPath = modelPath + "/" + file
@@ -106,7 +106,7 @@ def plotQValuesOverTime(path):
         print(model)
         modelPath = path + "/" + model
         for file in os.listdir(modelPath):
-            if not fnmatch.fnmatch(file, 'meanQValues*'):
+            if not fnmatch.fnmatch(file, 'meanQValuesOverTimeNN*'):
                 continue
             print(file)
             massListPath = modelPath + "/" + file
