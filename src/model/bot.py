@@ -4,7 +4,6 @@ import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
-
 class ExpReplay():
     # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
     def __init__(self, parameters):
@@ -220,8 +219,6 @@ class Bot(object):
         if self.currentlySkipping:
             action_taken[2:] = [0, 0]
         self.set_command_point(action_taken)
-
-
 
 
     def getStateRepresentation(self):
