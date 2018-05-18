@@ -205,12 +205,10 @@ if __name__ == '__main__':
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
     viewEnabled = False
-    maxSteps = 0
     if guiEnabled:
         viewEnabled = int(input("Display view?: (1 == yes)\n"))
         viewEnabled = (viewEnabled == 1)
-    else:
-        maxSteps = int(input("For how many steps do you want to train?\n"))
+
     virusEnabled = int(input("Viruses enabled? (1==True)\n")) == 1
     resetSteps = int(input("Reset model after X steps (X==0 means no reset)\n"))
     model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps)
@@ -313,19 +311,25 @@ if __name__ == '__main__':
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
             modelName = "savedModels/" + str(input("Input folder name:\n"))
     model.initModelFolder(modelName)
-    if tweakedTotal:
-        modifyParameterValue(tweakedTotal, model)
-        parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
-
-    numberOfNNBots = parameters.NUM_NN_BOTS
-    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
-    numberOfBots = numberOfNNBots + numberOfGreedyBots
 
 
     enableTrainMode = humanTraining if humanTraining is not None else False
     if not humanTraining:
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
     model.setTrainingEnabled(enableTrainMode == 1)
+    if enableTrainMode:
+        maxTrainSteps = str(input("For how many steps do you want to train?\n"))
+        paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
+        modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
+    if tweakedTotal:
+        modifyParameterValue(tweakedTotal, model)
+
+    parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
+    numberOfNNBots = parameters.NUM_NN_BOTS
+    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
+    numberOfBots = numberOfNNBots + numberOfGreedyBots
+
+
 
     Bot.init_exp_replayer(parameters)
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadedModelName)
@@ -355,11 +359,11 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
-        smallPart = int(maxSteps / 200)
-        for step in range(maxSteps):
+        smallPart = int(parameters.MAX_SIMULATION_STEPS / 200)
+        for step in range(parameters.MAX_SIMULATION_STEPS):
             model.update()
             if step % smallPart == 0 and step != 0:
-                print("Trained: ", round(step / maxSteps * 100, 1), "%")
+                print("Trained: ", round(step / parameters.MAX_SIMULATION_STEPS * 100, 1), "%")
 
     if model.getTrainingEnabled():
         model.save(True)

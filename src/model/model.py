@@ -71,9 +71,8 @@ class Model(object):
         self.timings = []
         self.rewards = []
         self.tdErrors = []
-        self.meanErrors = []
-        self.meanRewards = []
         self.dataFiles = {}
+        self.pointAveraging = 200
 
         tracemalloc.start()
 
@@ -117,17 +116,17 @@ class Model(object):
         if self.humans:
             time.sleep(max( (1/FPS) - (time.time() - timeStart),0))
 
-        # Save the models occasionally in case the program crashes at some point
-        if self.trainingEnabled and self.counter != 0 and self.counter % 5000 == 0:
-            self.saveSpecs()
-            self.saveModels()
-            if self.counter != 0 and self.counter % 50000 == 0:
-                self.save()
-
         # Store debug info and display progress
         if self.trainingEnabled and "NN" in [bot.getType() for bot in self.bots]:
             self.storeRewardsAndTDError()
-            self.visualize(timeProcessStart)
+            self.timings.append(time.process_time() - timeProcessStart)
+
+        # Save the models occasionally in case the program crashes at some point
+        if self.trainingEnabled and self.counter != 0 and self.counter % self.resetLimit == 0:
+            self.saveSpecs()
+            self.saveModels()
+            if self.counter != 0 and self.counter % (self.resetLimit*5) == 0:
+                self.save()
 
         self.counter += 1
 
@@ -143,10 +142,20 @@ class Model(object):
                     tdError = abs(bot.getLearningAlg().getTDError())
                     errors.append(tdError)
         # Save the mean td error and reward for the bots per update
-        if len(rewards) > 0:
+        if len(rewards) > 0 and len(errors) > 0:
             self.rewards.append(numpy.mean(rewards))
-        if len(errors) > 0:
             self.tdErrors.append(numpy.mean(errors))
+
+
+    def resetStoredValues(self):
+        self.rewards = []
+        self.tdErrors = []
+        for bot in self.bots:
+            bot.resetMassList()
+            if bot.type == "NN":
+                learnAlg = bot.getLearningAlg()
+                learnAlg.resetQValueList()
+
 
     def takeBotActions(self):
         for bot in self.bots:
@@ -276,7 +285,9 @@ class Model(object):
 
 
     def save(self, end = False):
+        self.visualize()
         self.exportData()
+        self.resetStoredValues()
         self.plotTDError()
         self.plotMassesOverTime()
         self.plotQValuesOverTime()
@@ -286,31 +297,35 @@ class Model(object):
         # Mean TD error export
         subPath = path + self.dataFiles["Error"]
         with open(subPath, "a") as f:
-            for value in self.meanErrors:
-                f.write("%s\n" % value)
-        self.meanErrors = []
+            for value in range(0,len(self.tdErrors),self.pointAveraging):
+                meanError = numpy.mean(self.tdErrors[value:(value + self.pointAveraging)])
+                f.write("%s\n" % meanError)
+        # self.meanErrors = []
         # Mean Reward export
         subPath = path + self.dataFiles["Reward"]
         with open(subPath, "a") as f:
-            for value in self.meanRewards:
-                f.write("%s\n" % value)
-        self.meanRewards = []
+            for value in range(0,len(self.rewards),self.pointAveraging):
+                meanReward = numpy.mean(self.rewards[value:(value + self.pointAveraging)])
+                print(self.rewards[value:(value + self.pointAveraging)])
+                f.write("%s\n" % meanReward)
+        # self.meanRewards = []
         # Bot exports
         for bot_idx, bot in enumerate(self.bots):
             # Masses export
             subPath = path + self.dataFiles[str(bot)+"_mass"]
+            massList = bot.getMassOverTime()
             with open(subPath, "a") as f:
-                for value in bot.getMassOverTime():
-                    f.write("%s\n" % value)
-            bot.resetMassList()
+                for value in range(0, len(massList), self.pointAveraging):
+                    meanMass = numpy.mean(massList[value:(value + self.pointAveraging)])
+                    f.write("%s\n" % meanMass)
             # Qvalues export
             if bot.type == "NN":
                 subPath = path + self.dataFiles[str(bot)+"_qValue"]
-                learnAlg = bot.getLearningAlg()
+                qList = bot.getLearningAlg().getQValues()
                 with open(subPath, "a") as f:
-                    for value in learnAlg.getQValues():
-                        f.write("%s\n" % value)
-                learnAlg.resetQValueList()
+                    for value in range(0, len(qList), self.pointAveraging):
+                        meanQ = numpy.mean(qList[value:(value + self.pointAveraging)])
+                        f.write("%s\n" % meanQ)
 
 
     def getRelevantModelData(self, bot, end = False):
@@ -360,30 +375,22 @@ class Model(object):
         for bot in self.bots:
             mass = bot.getPlayer().getTotalMass()
             print("Mass of ", bot.getPlayer(), ":", end = " ")
-            print(round(mass,1) if mass != None else (bot.getPlayer, " is dead!"))
+            print(round(mass,1) if mass is not None else (bot.getPlayer, " is dead!"))
 
-    def visualize(self, timeStart):
-        stepsTillUpdate = 100
-        self.timings.append(time.process_time() - timeStart)
-        if self.counter % stepsTillUpdate == 0 and self.counter != 0:
-            avgOnset = -100 if len(self.rewards) >= 100 else -1 * len(self.rewards)
-            recentMeanReward = numpy.mean(self.rewards[avgOnset:])
-            recentMeanTDError = numpy.mean(self.tdErrors[avgOnset:])
-            self.meanErrors.append(recentMeanTDError)
-            self.meanRewards.append(recentMeanReward)
-            print(" ")
-            print("Avg time since update start for the last ", stepsTillUpdate, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - stepsTillUpdate:]),3)))
-            if len(self.rewards) > 0:
-                 print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
-            if len(self.tdErrors) > 0:
-                 print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
-            print("Step: ", self.counter)
-            print("Number of stored rewards: ", len(self.rewards))
-            self.printBotStds()
-            self.printBotMasses()
-            print(" ")
-            self.rewards = []
-            self.tdErrors = []
+    def visualize(self):
+        recentMeanReward = numpy.mean(self.rewards[-self.pointAveraging:])
+        recentMeanTDError = numpy.mean(self.tdErrors[-self.pointAveraging:])
+        print(" ")
+        print("Avg time since update start for the last ", self.pointAveraging, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - self.pointAveraging:]), 3)))
+        if len(self.rewards) > 0:
+             print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
+        if len(self.tdErrors) > 0:
+             print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
+        print("Step: ", self.counter)
+        print("Number of stored rewards: ", len(self.rewards))
+        self.printBotStds()
+        self.printBotMasses()
+        print(" ")
 
     def printBotStds(self):
         for bot in self.bots:
@@ -405,7 +412,6 @@ class Model(object):
 
     def plotTDError(self):
         path = self.path
-        numberOfPoints = 2000
         errorListPath = self.path + self.dataFiles["Error"]
         with open(errorListPath, 'r') as f:
             errorList = list(map(float, f))
@@ -413,7 +419,8 @@ class Model(object):
         rewardListPath = self.path + self.dataFiles["Reward"]
         with open(rewardListPath, 'r') as f:
             rewardList = list(map(float, f))
-        timeAxis = list(range(0, len(errorList)*numberOfPoints, numberOfPoints))
+        timeAxis = list(range(0, len(errorList) * self.pointAveraging, self.pointAveraging))
+        print(timeAxis, rewardList)
         plt.plot(timeAxis, errorList, label="Absolute TD-Error")
         plt.xlabel("Time")
         plt.ylabel("TD error averaged")
@@ -435,7 +442,9 @@ class Model(object):
             maxMass = round(max(massList), 1)
             len_masses = len(massList)
             playerName = str(bot.getPlayer())
-            plt.plot(range(len_masses), massList)
+            timeAxis = list(range(0, len_masses * self.pointAveraging, self.pointAveraging))
+
+            plt.plot(timeAxis, massList)
             plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass) + " Std: " +
                       str(varianceMass) + " Max: " + str(maxMass))
             plt.xlabel("Step")
@@ -458,6 +467,8 @@ class Model(object):
             # qValueList_filtered = [i for i in qValueList if i != float("NaN")]
             meanQValue = round(numpy.mean(qValueList), 1)
             playerName = str(self.bots[bot_idx].getPlayer())
+            timeAxis = list(range(0, len(qValueList) * self.pointAveraging, self.pointAveraging))
+
             plt.plot(timeAxis, qValueList)
             plt.title("Q-Values of " + playerName + "- Mean: " + str(meanQValue))
             plt.xlabel("Step")

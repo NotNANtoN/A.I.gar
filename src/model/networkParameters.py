@@ -7,7 +7,6 @@ Default = False
 PELLET_SPAWN = True
 NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
-
 # Experience replay:
 MEMORY_CAPACITY = 75000
 MEMORY_BATCH_LEN = 32
@@ -17,6 +16,11 @@ TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu 
 ENABLE_SPLIT = False #TODO: these two only work  actor critic yet.
 ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuous and discrete algorithms
 NEURON_TYPE = "MLP"
+FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
+NUM_OF_GRIDS = 5
+MAX_TRAINING_STEPS = 100000
+MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 
 # Q-learning
 EXP_REPLAY_ENABLED = True
@@ -31,9 +35,8 @@ Exploration = True
 EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EPSILON_DECAY = 0.99995
 # epsilon set to 0 performs best so far... (keep in mind that it declines from 1 to 0 throughout training
-FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
-NUM_OF_GRIDS = 5
+
+
 
 # Actor-critic:
 ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
