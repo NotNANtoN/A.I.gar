@@ -9,7 +9,7 @@ NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
 
 # Experience replay:
-MEMORY_CAPACITY = 75000
+MEMORY_CAPACITY = 75000 #10000 is worse
 MEMORY_BATCH_LEN = 32
 
 # General RL:
@@ -40,12 +40,13 @@ ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA". Standard multiplies gradient b
 ACTOR_REPLAY_ENABLED = True
 GAUSSIAN_NOISE = 1 # Initial noise
 NOISE_DECAY = 0.99995 # Noise decay. with start noise of 1 and decay of 0.999995 it decays slowly to 0 over 1M steps for FSR of 0. For FSR of 9: 0.99995. For FSR of 4: 0.99998
-ALPHA_POLICY = 0.0005
+ALPHA_POLICY = 0.00025
 OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "elu"
-HIDDEN_LAYER_1_POLICY = 100
-HIDDEN_LAYER_2_POLICY = 100
-HIDDEN_LAYER_3_POLICY = 100
+HIDDEN_ALL_POLICY = 100
+HIDDEN_LAYER_1_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
+HIDDEN_LAYER_2_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
+HIDDEN_LAYER_3_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 
 #LSTM
 ACTIVATION_FUNC_LSTM = "tanh"
@@ -56,14 +57,15 @@ MEMORY_TRACE_LEN = 10 # The length of memory traces retrieved via exp replay
 
 #ANN
 DROPOUT_RATE= 0 #TODO: not yet implemented at all, but might be interesting
-ALPHA = 0.00025 #Learning rate. Marco recommended to try lower learning rates too, decrease by factor of 10 or 100
+ALPHA = 0.0001 #Learning rate. Marco recommended to try lower learning rates too, decrease by factor of 10 or 100
 OPTIMIZER = "Adam" #SGD has much worse performance
-ACTIVATION_FUNC_HIDDEN = 'elu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
+ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
 ACTIVATION_FUNC_OUTPUT = 'linear'
 
 #Layer neurons
 STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + 2
-HIDDEN_LAYER_1 = 500
-HIDDEN_LAYER_2 = 500
-HIDDEN_LAYER_3 = 500
+HIDDEN_ALL = 500
+HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 500
+HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 500
+HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 500
 # More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation
