@@ -216,7 +216,7 @@ def testModel(testModel, bot, n_training, reset_time, modelPath, name):
         masses.append(massOverTime)
         meanMasses.append(meanMass)
         maxMasses.append(maxMass)
-        print("Mean mass for run ", test, ": ", meanMass)
+        print("Mean mass for run ", test + 1, ": ", meanMass)
     meanScore = numpy.mean(meanMasses)
     stdMean = numpy.std(meanMasses)
     meanMaxScore = numpy.mean(maxMasses)
@@ -231,7 +231,7 @@ def runTests(model):
     print("Testing...")
     resetPellet = 10000
     resetGreedy = 20000
-    n_test_runs = 10
+    n_test_runs = 3
     trainedBot = model.getNNBot()
     originalMassOverTime = trainedBot.getMassOverTime()
     trainedBot.setTrainingEnabled(False)
@@ -445,13 +445,13 @@ if __name__ == '__main__':
         print("")
 
     if model.getTrainingEnabled():
+        runTests(model)
         model.save(True)
         model.saveModels()
         if model_in_subfolder:
             print(os.path.join(modelName))
             createCombinedModelGraphs(os.path.join(modelName))
 
-        runTests(model)
 
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 

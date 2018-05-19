@@ -5,7 +5,7 @@ Default = False
 
 # Game
 PELLET_SPAWN = True
-NUM_GREEDY_BOTS = 0
+NUM_GREEDY_BOTS = 1
 NUM_NN_BOTS = 1
 # Experience replay:
 MEMORY_CAPACITY = 75000 #10000 is worse
