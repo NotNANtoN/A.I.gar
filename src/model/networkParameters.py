@@ -27,14 +27,13 @@ NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2)) #0.99995 
 # Q-learning
 EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
-TARGET_NETWORK_STEPS = 10000
-TARGET_NETWORK_MAX_STEPS = 10000 # 2000 performs worse than 5000. 20000 was a bit better than 5000. 20k was worse than 10k
+TARGET_NETWORK_STEPS = 10000 / (FRAME_SKIP_RATE + 1)
 DISCOUNT = 0.9 # 0.9 seems best so far. Better than 0.995 and 0.9999 . 0.5 and below performs much worse. 0.925 performs worse than 0.9
 # Higher discount seems to lead to much more stable learning, less variance
 TD = 0
 Exploration = True
 EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
-EXPLORATION_STRATEGY = "Boltzmann" # "Boltzmann" or "e-Greedy"
+EXPLORATION_STRATEGY = "e-Greedy" # "Boltzmann" or "e-Greedy"
 TEMPERATURE = 20
 TEMPERATURE_AT_END_TRAINING = 0.025
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)

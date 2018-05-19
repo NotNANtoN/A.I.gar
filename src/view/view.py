@@ -80,6 +80,15 @@ class View:
             # Print grid for grid state representation
             for bot in self.model.getBots():
                 player = bot.getPlayer()
+
+                # Plot command point:
+                if player.getIsAlive():
+                    commandPoint = player.getCommandPoint()
+                    pos = commandPoint[0], commandPoint[1]
+                    scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
+                    pygame.gfxdraw.filled_circle(screen, int(scaledPos[0]), int(scaledPos[1]), 5, RED)
+
+
                 if player.getIsAlive() and player.getSelected() and bot.getType() == "NN":
                     playerFovPos = player.getFovPos()
                     playerFovSize = player.getFovSize()

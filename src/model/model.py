@@ -131,10 +131,10 @@ class Model(object):
             self.visualize()
 
         # Save the models occasionally in case the program crashes at some point
-        if self.trainingEnabled and self.counter != 0 and self.counter % self.resetLimit == 0:
+        if self.trainingEnabled and self.counter != 0 and self.counter % max(self.resetLimit, 2500) == 0:
             self.saveSpecs()
             self.saveModels()
-            if self.counter != 0 and self.counter % (self.resetLimit*5) == 0:
+            if self.counter != 0 and self.counter % max(self.resetLimit*5, 12500) == 0:
                 self.save()
 
 
@@ -365,7 +365,7 @@ class Model(object):
         if parameters.GRID_VIEW_ENABLED:
             data += "Grid - " + str(parameters.GRID_SQUARES_PER_FOV) + "x" +  str(parameters.GRID_SQUARES_PER_FOV)  + "\n"
         data += "Experience Replay - " + ("Enabled" if parameters.EXP_REPLAY_ENABLED else "Disabled") + "\n"
-        data += "Target Network steps until update - " + str(parameters.TARGET_NETWORK_MAX_STEPS) + "\n"
+        data += "Target Network steps until update - " + str(parameters.TARGET_NETWORK_STEPS) + "\n"
 
         data += "Name of model that was loaded - " + (bot.modelName if bot.modelName else "None") + "\n"
         data += "\n"
@@ -393,13 +393,13 @@ class Model(object):
         recentMeanTDError = numpy.mean(self.tdErrors[-self.pointAveraging:])
         print(" ")
         print("Avg time since update start for the last ", self.pointAveraging, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - self.pointAveraging:]), 3)))
-        if len(self.rewards) > 0:
-             print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
-        if len(self.tdErrors) > 0:
-             print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
+        #if len(self.rewards) > 0:
+        #     print("Avg reward   last 100 steps:", round(recentMeanReward, 4), " Min: ", round(min(self.rewards),4), " Max: ", round(max(self.rewards), 4))
+        #if len(self.tdErrors) > 0:
+        #     print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
         print("Step: ", self.counter)
         if self.trainingEnabled:
-            print("Noise level: ", self.getCurrentNoise())
+            print("Noise level: ", round(self.getCurrentNoise(),4))
         self.printBotStds()
         self.printBotMasses()
         print(" ")
@@ -543,7 +543,8 @@ class Model(object):
     def addBot(self, bot):
         self.bots.append(bot)
         player = bot.getPlayer()
-        self.addPlayer(player)
+        if player not in self.players:
+            self.addPlayer(player)
 
     def addHuman(self, human):
         self.humans.append(human)
