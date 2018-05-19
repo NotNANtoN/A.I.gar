@@ -35,8 +35,6 @@ class Network(object):
         self.gpus = self.parameters.GPUS
 
         # Q-learning
-        self.targetNetworkSteps = self.parameters.TARGET_NETWORK_STEPS
-        self.targetNetworkMaxSteps = self.parameters.TARGET_NETWORK_MAX_STEPS
         self.discount = self.parameters.DISCOUNT
         self.epsilon = self.parameters.EPSILON
         self.frameSkipRate = self.parameters.FRAME_SKIP_RATE

@@ -202,6 +202,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
 def testModel(testModel, bot, n_training, reset_time, modelPath, name):
     masses = []
     meanMasses = []
+    maxMasses = []
     print("Testing ", name, "...")
     testModel.initialize(False)
     for test in range(n_training):
@@ -211,42 +212,64 @@ def testModel(testModel, bot, n_training, reset_time, modelPath, name):
 
         massOverTime = bot.getMassOverTime()
         meanMass = numpy.mean(massOverTime)
+        maxMass = numpy.max(massOverTime)
         masses.append(massOverTime)
         meanMasses.append(meanMass)
+        maxMasses.append(maxMass)
         print("Mean mass for run ", test, ": ", meanMass)
-        print("")
     meanScore = numpy.mean(meanMasses)
-    stdScore = numpy.std(meanMasses)
+    stdMean = numpy.std(meanMasses)
+    meanMaxScore = numpy.mean(maxMasses)
+    stdMax = numpy.std(maxMasses)
+    maxScore = numpy.max(maxMasses)
     labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
               "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_Testing"}
     plot(masses, reset_time, labels)
-    return meanScore, stdScore
+    return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
 
 def runTests(model):
     print("Testing...")
     resetPellet = 10000
     resetGreedy = 20000
+    n_test_runs = 10
     trainedBot = model.getNNBot()
     originalMassOverTime = trainedBot.getMassOverTime()
     trainedBot.setTrainingEnabled(False)
+    evaluations = []
 
     pelletModel = Model(False, False, False, resetPellet, False)
     pelletModel.addBot(trainedBot)
-    meanPelletScore, stdPelletScore = testModel(pelletModel, trainedBot, 5, resetPellet, model.getPath(),
-                                                "pellet collection")
-    print("Total Mean Mass of testing: ", meanPelletScore, " Std: ", stdPelletScore)
+    pelletEvaluation = testModel(pelletModel, trainedBot, n_test_runs, resetPellet, model.getPath(),
+                                                "pellet_collection")
+    evaluations.append(pelletEvaluation)
 
     if "Greedy" in [bot.getType() for bot in model.getBots()]:
         greedyModel = Model(False, False, False, resetGreedy, False)
         greedyModel.addBot(trainedBot)
         greedyModel.createBot("Greedy")
-        meanGreedyScore, stdGreedyScore = testModel(greedyModel, trainedBot, 5, resetGreedy, model.getPath(),
-                                                    "vs greedy bot")
-        print("Total Mean Mass against 1 Greedy: ", meanGreedyScore, " Std: ", stdGreedyScore)
+        greedyEvaluation = testModel(greedyModel, trainedBot, n_test_runs, resetGreedy, model.getPath(),
+                                                    "vs_1_greedy")
+        evaluations.append(greedyEvaluation)
 
     # TODO: add more test scenarios for viruses, multiple greedy bots
-
+    print("Testing completed.")
     trainedBot.setMassesOverTime(originalMassOverTime)
+
+    name_of_file = model.getPath() + "/final_results.txt"
+    with open(name_of_file, "w") as file:
+        data = "Avg run time(s): " + str(round(numpy.mean(model.timings), 5)) + "\n"
+        data += "Number of runs per testing: " + str(n_test_runs) + "\n"
+        for evaluation in evaluations:
+            name = evaluation[0]
+            maxScore = str(round(evaluation[1], 1))
+            meanScore = str(round(evaluation[2], 1))
+            stdMean = str(round(evaluation[3], 1))
+            meanMaxScore = str(round(evaluation[4], 1))
+            stdMax = str(round(evaluation[5], 1))
+            data += name + " Highscore: " + maxScore + " Mean: " + meanScore + " StdMean: " + stdMean \
+                    +" Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
+        file.write(data)
+
 
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
@@ -427,6 +450,7 @@ if __name__ == '__main__':
         if model_in_subfolder:
             print(os.path.join(modelName))
             createCombinedModelGraphs(os.path.join(modelName))
+
         runTests(model)
 
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))

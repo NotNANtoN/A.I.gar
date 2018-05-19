@@ -186,7 +186,7 @@ class QLearn(object):
         self.updateActionModel(time)
 
     def updateTargetModel(self, time):
-        if time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+        if time % self.parameters.TARGET_NETWORK_STEPS == 0:
            self.network.updateTargetNetwork()
 
     def updateActionModel(self, time):
@@ -201,11 +201,9 @@ class QLearn(object):
                 newActionIdx = numpy.random.randint(len(self.network.getActions()))
                 self.qValues.append(float("NaN"))
                 if __debug__:
-                    print("Explore")
                     bot.setExploring(True)
                 return explore, newActionIdx
-        else:
-            return False, None
+        return False, None
 
     def boltzmannDist(self, values, temp):
         distribution_values = [math.e ** (value / temp) for value in values]
@@ -214,7 +212,7 @@ class QLearn(object):
 
     def decideMove(self, newState, bot):
         # Take random action with probability 1 - epsilon
-        explore, actionIdx = self.decideExploration(bot)
+        explore, newActionIdx = self.decideExploration(bot)
         if not explore:
             q_Values = self.network.predict_action(newState)
             if self.parameters.EXPLORATION_STRATEGY == "Boltzmann" and self.temperature != 0:
