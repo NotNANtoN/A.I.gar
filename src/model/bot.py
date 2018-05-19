@@ -200,8 +200,16 @@ class Bot(object):
             else:
                 self.reset()
 
+
     def setExploring(self, val):
         self.player.setExploring(val)
+
+    def setTrainingEnabled(self, val):
+        self.trainMode = val
+        self.learningAlg.setNoise(0)
+
+    def setMassesOverTime(self, array):
+        self.totalMasses = array
 
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())

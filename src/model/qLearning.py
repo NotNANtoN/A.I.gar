@@ -172,8 +172,11 @@ class QLearn(object):
             else:
                 self.latestTDerror = self.calculateTDError_ExpRep_Lstm(currentExp)
 
+    def getNoiseLevel(self):
+        return self.epsilon
+
     def updateNoise(self):
-        self.epsilon *= self.parameters.EPSILON_DECAY
+        self.epsilon *= self.parameters.NOISE_DECAY
 
     def updateNetworks(self, time):
         self.updateTargetModel(time)
@@ -221,6 +224,9 @@ class QLearn(object):
 
     def save(self, path):
         self.network.saveModel(path)
+
+    def setNoise(self, val):
+        self.epsilon = 0
 
     def getNetwork(self):
         return self.network

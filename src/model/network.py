@@ -230,12 +230,6 @@ class Network(object):
     def getTrainMode(self):
         return self.trainMode
 
-    def getMemoriesPerUpdate(self):
-        return self.memoriesPerUpdate
-
-    def getMemoryCapacity(self):
-        return self.memoryCapacity
-
     def getParameters(self):
         return self.parameters
 

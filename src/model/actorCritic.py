@@ -454,6 +454,9 @@ class ActorCritic(object):
     def resetQValueList(self):
         self.qValues = []
 
+    def getNoiseLevel(self):
+        return self.std
+
     def getTDError(self):
         return self.latestTDerror
 

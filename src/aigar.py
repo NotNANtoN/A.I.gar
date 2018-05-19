@@ -10,7 +10,7 @@ from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
 from view.view import View
-from modelCombiner import createCombinedModelGraphs
+from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
 
 import numpy as np
 import tensorflow as tf
@@ -55,6 +55,7 @@ def fix_seeds():
     sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
     K.set_session(sess)
 
+
 def algorithmNumberToName(val):
     if val == 0:
         return "Q-Learning"
@@ -71,6 +72,7 @@ def algorithmNumberToName(val):
     else:
         print("Wrong algorithm selected...")
         quit()
+
 
 def algorithmNameToNumber(name):
     if name == "Q-learning":
@@ -145,6 +147,7 @@ def fitsLimitations(number, limit):
         quit()
     return True
 
+
 def defineScreenSize(humansNr):
     # Define screen size (to allow splitscreen)
     if humansNr == 2:
@@ -195,6 +198,31 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
             model.createBot(type, None, parameters)
 
 
+
+def testModel(testModel, bot, n_training, reset_time, modelPath):
+    masses = []
+    meanMasses = []
+    testModel.initialize(False)
+    for test in range(n_training):
+        bot.resetMassList()
+        testModel.resetModel()
+
+        for step in range(reset_time):
+            testModel.update()
+
+        massOverTime = bot.getMassOverTime()
+        meanMass = numpy.mean(massOverTime)
+        masses.append(massOverTime)
+
+        meanMasses.append(meanMass)
+    meanScore = numpy.mean(meanMasses)
+    stdScore = numpy.std(meanMasses)
+    #TODO: plot masses nicely
+    labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
+              "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_Testing"}
+    plot(masses, reset_time, labels)
+    return meanScore, stdScore
+
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
@@ -213,7 +241,7 @@ if __name__ == '__main__':
         maxSteps = int(input("For how many steps do you want to train?\n"))
     virusEnabled = int(input("Viruses enabled? (1==True)\n")) == 1
     resetSteps = int(input("Reset model after X steps (X==0 means no reset)\n"))
-    model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps)
+    model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps, True)
 
     numberOfHumans = 0
     mouseEnabled = True
@@ -355,11 +383,32 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
-        smallPart = int(maxSteps / 200)
+        smallPart = max(int(maxSteps / 200), 1)
         for step in range(maxSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
+        print("Training done.")
+        print("")
+        print("Testing...")
+        resetPellet = 10000
+        resetGreedy = 20000
+        trainedBot = model.getNNBot()
+        originalMassOverTime = trainedBot.getMassOverTime()
+        trainedBot.setTrainingEnabled(False)
+        pelletModel = Model(False, False, False, resetPellet, False)
+        pelletModel.addBot(trainedBot)
+
+
+        greedyModel = Model(False, False, False, resetGreedy, False)
+        greedyModel.addBot(trainedBot)
+        #TODO Add greedy bot and test. only do so if we trained using greedy bot
+
+        meanScore, stdScore = testModel(pelletModel, trainedBot, 5, resetPellet, model.getPath())
+
+        trainedBot.setMassesOverTime(originalMassOverTime)
+        print("Total Mean Mass of testing: ", meanScore, " Std: ", stdScore)
+        print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 
     if model.getTrainingEnabled():
         model.save(True)
@@ -386,7 +435,9 @@ if __name__ == '__main__':
             variance = numpy.std(massList)
             print("Median = ", median, " Mean = ", mean, " Std = ", variance)
             print("")
-        print("Total average time per update: ", round(numpy.mean(model.timings), 5))
+
+
+
 
 
 
