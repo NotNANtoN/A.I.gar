@@ -393,10 +393,10 @@ if __name__ == '__main__':
     if not humanTraining:
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
     model.setTrainingEnabled(enableTrainMode == 1)
-    if enableTrainMode:
-        maxTrainSteps = str(input("For how many steps do you want to train?\n"))
-        paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
-        modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
+    #if enableTrainMode:
+    #    maxTrainSteps = str(input("For how many steps do you want to train?\n"))
+    #    paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
+    #    modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
 
