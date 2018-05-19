@@ -131,10 +131,10 @@ class Model(object):
             self.visualize()
 
         # Save the models occasionally in case the program crashes at some point
-        if self.trainingEnabled and self.counter != 0 and self.counter % self.resetLimit == 0:
+        if self.trainingEnabled and self.counter != 0 and self.counter % max(self.resetLimit, 2500) == 0:
             self.saveSpecs()
             self.saveModels()
-            if self.counter != 0 and self.counter % (self.resetLimit*5) == 0:
+            if self.counter != 0 and self.counter % max(self.resetLimit*5, 12500) == 0:
                 self.save()
 
 
@@ -543,7 +543,8 @@ class Model(object):
     def addBot(self, bot):
         self.bots.append(bot)
         player = bot.getPlayer()
-        self.addPlayer(player)
+        if player not in self.players:
+            self.addPlayer(player)
 
     def addHuman(self, human):
         self.humans.append(human)

@@ -207,6 +207,7 @@ class Bot(object):
     def setTrainingEnabled(self, val):
         self.trainMode = val
         self.learningAlg.setNoise(0)
+        self.learningAlg.setTemperature(0)
 
     def setMassesOverTime(self, array):
         self.totalMasses = array

@@ -241,7 +241,10 @@ class QLearn(object):
         self.network.saveModel(path)
 
     def setNoise(self, val):
-        self.epsilon = 0
+        self.epsilon = val
+
+    def setTemperature(self, val):
+        self.temperature = val
 
     def getNetwork(self):
         return self.network

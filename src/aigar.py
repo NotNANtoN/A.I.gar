@@ -222,6 +222,32 @@ def testModel(testModel, bot, n_training, reset_time, modelPath, name):
     plot(masses, reset_time, labels)
     return meanScore, stdScore
 
+def runTests(model):
+    print("Testing...")
+    resetPellet = 10000
+    resetGreedy = 20000
+    trainedBot = model.getNNBot()
+    originalMassOverTime = trainedBot.getMassOverTime()
+    trainedBot.setTrainingEnabled(False)
+
+    pelletModel = Model(False, False, False, resetPellet, False)
+    pelletModel.addBot(trainedBot)
+    meanPelletScore, stdPelletScore = testModel(pelletModel, trainedBot, 5, resetPellet, model.getPath(),
+                                                "pellet collection")
+    print("Total Mean Mass of testing: ", meanPelletScore, " Std: ", stdPelletScore)
+
+    if "Greedy" in [bot.getType() for bot in model.getBots()]:
+        greedyModel = Model(False, False, False, resetGreedy, False)
+        greedyModel.addBot(trainedBot)
+        greedyModel.createBot("Greedy")
+        meanGreedyScore, stdGreedyScore = testModel(greedyModel, trainedBot, 5, resetGreedy, model.getPath(),
+                                                    "vs greedy bot")
+        print("Total Mean Mass against 1 Greedy: ", meanGreedyScore, " Std: ", stdGreedyScore)
+
+    # TODO: add more test scenarios for viruses, multiple greedy bots
+
+    trainedBot.setMassesOverTime(originalMassOverTime)
+
 if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
@@ -394,32 +420,6 @@ if __name__ == '__main__':
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
         print("Training done.")
         print("")
-        print("Testing...")
-        resetPellet = 10000
-        resetGreedy = 20000
-        trainedBot = model.getNNBot()
-        originalMassOverTime = trainedBot.getMassOverTime()
-        trainedBot.setTrainingEnabled(False)
-
-        pelletModel = Model(False, False, False, resetPellet, False)
-        pelletModel.addBot(trainedBot)
-        meanPelletScore, stdPelletScore = testModel(pelletModel, trainedBot, 5, resetPellet, model.getPath(), "pellet collection")
-        print("Total Mean Mass of testing: ", meanPelletScore, " Std: ", stdPelletScore)
-
-        if "Greedy" in [bot.getType() for bot in model.getBots()]:
-            greedyModel = Model(False, False, False, resetGreedy, False)
-            greedyModel.addBot(trainedBot)
-            greedyModel.createBot("Greedy")
-            meanGreedyScore, stdGreedyScore = testModel(greedyModel, trainedBot, 5, resetGreedy, model.getPath(),
-                                            "vs greedy bot")
-            print("Total Mean Mass against 1 Greedy: ", meanGreedyScore, " Std: ", stdGreedyScore)
-
-        #TODO: add more test scenarios for viruses, multiple greedy bots
-
-        trainedBot.setMassesOverTime(originalMassOverTime)
-
-
-        print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 
     if model.getTrainingEnabled():
         model.save(True)
@@ -427,6 +427,10 @@ if __name__ == '__main__':
         if model_in_subfolder:
             print(os.path.join(modelName))
             createCombinedModelGraphs(os.path.join(modelName))
+        runTests(model)
+
+        print("Total average time per update: ", round(numpy.mean(model.timings), 5))
+
         bots = model.getBots()
         for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
             player = bot.getPlayer()
