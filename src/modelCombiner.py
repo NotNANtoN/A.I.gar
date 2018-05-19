@@ -16,7 +16,6 @@ def createCombinedModelGraphs(path):
     print("###############################")
 
 def plotTDErrorAndMean(path):
-
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
 
     allErrorLists = []
@@ -63,6 +62,37 @@ def plotTDErrorAndMean(path):
 
     # Single plot Reward
     plot(allRewardLists, maxLength, rewardLabels)
+
+
+def plotMassesOverTime(path):
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+
+    allMassList = []
+    maxLength = 0
+    massListPresent = False
+    for model in modelList:
+        print(model)
+        modelPath = path + "/" + model
+        for file in os.listdir(modelPath):
+            if not fnmatch.fnmatch(file, 'meanMassOverTimeNN*'):
+                continue
+            print(file)
+            massListPath = modelPath + "/" + file
+            massListPresent = True
+
+            with open(massListPath, 'r') as f:
+                massList = list(map(float, f))
+                if len(massList) > maxLength:
+                    maxLength = len(massList)
+                allMassList.append(massList)
+
+    if not massListPresent:
+        print("-- Model does not have any meanMassOverTimeNN(i).txt --")
+        return
+
+    labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
+              "yLabel": "Mass mean value", "title": "Mass", "path": path, "subPath": "Mean_Mass"}
+    plot(allMassList, maxLength, labels)
 
 
 def plotMassesOverTime(path):
@@ -167,6 +197,7 @@ def plot(ylist, maxLength, labels, y2list=None, labels2=None):
     y_lower_bound = y - ysigma
     y_upper_bound = y + ysigma
 
+    plt.clf()
     fig, ax = plt.subplots(1)
     ax.plot(x, y, lw=2, label=labels["meanLabel"], color='blue')
     ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor='blue', alpha=0.5,

@@ -47,23 +47,23 @@ def display_top(snapshot, key_type='lineno', limit=3):
 # It links the actions of the players to consequences in the field and updates information.
 
 class Model(object):
-    def __init__(self, guiEnabled, viewEnabled, virusEnabled, resetLimit):
+    def __init__(self, guiEnabled, viewEnabled, virusEnabled, resetLimit, trainingEnabled, testingModel = False):
         self.listeners = []
         self.viewEnabled = viewEnabled
         self.guiEnabled = guiEnabled
         self.virusEnabled = virusEnabled
         self.resetLimit = resetLimit
-        self.trainingEnabled = True
+        self.trainingEnabled = trainingEnabled
         self.path = None
         self.superPath = None
         self.startTime = None
+        self.isTestingModel = testingModel
 
         self.players = []
         self.bots = []
         self.humans = []
         self.playerSpectator = None
         self.spectatedPlayer = None
-        self.players = []
         self.field = Field(virusEnabled)
         self.screenWidth = None
         self.screenHeight = None
@@ -72,11 +72,17 @@ class Model(object):
         self.rewards = []
         self.tdErrors = []
         self.dataFiles = {}
-        self.pointAveraging = 200
+        self.pointAveraging = 100
 
-        tracemalloc.start()
+        if __debug__:
+            tracemalloc.start()
+
+
+    def modifySettings(self, reset_time):
+        self.resetLimit = reset_time
 
     def initialize(self, modelHasBeenLoaded):
+        print("Initializing model...")
         if self.trainingEnabled and not modelHasBeenLoaded:
             self.saveSpecs()
             for bot in self.bots:
@@ -85,6 +91,8 @@ class Model(object):
                     print(data)
                     break
         self.field.initialize()
+        self.resetBots()
+
 
     def loadModel(self, path):
         self.setPath(path)
@@ -93,13 +101,11 @@ class Model(object):
 
     def resetModel(self):
         print("Resetting field and players!")
-        for bot in self.bots:
-            if bot.getType() == "NN":
-                print("Average reward of ", bot.getPlayer(), " for this episode: ", bot.getAvgReward())
         self.field.reset()
         self.resetBots()
 
     def update(self):
+        self.counter += 1
         # Reset the model after self.resetLimit steps:
         if self.resetLimit > 0 and self.counter > 0 and  self.counter % self.resetLimit  == 0:
             self.resetModel()
@@ -121,6 +127,9 @@ class Model(object):
             self.storeRewardsAndTDError()
             self.timings.append(time.process_time() - timeProcessStart)
 
+        if self.trainingEnabled and self.counter % 1000 == 0:
+            self.visualize()
+
         # Save the models occasionally in case the program crashes at some point
         if self.trainingEnabled and self.counter != 0 and self.counter % self.resetLimit == 0:
             self.saveSpecs()
@@ -128,7 +137,6 @@ class Model(object):
             if self.counter != 0 and self.counter % (self.resetLimit*5) == 0:
                 self.save()
 
-        self.counter += 1
 
     def storeRewardsAndTDError(self):
         errors = []
@@ -285,11 +293,12 @@ class Model(object):
 
 
     def save(self, end = False):
-        self.visualize()
         self.exportData()
         self.resetStoredValues()
         self.plotTDError()
         self.plotMassesOverTime()
+        if self.resetLimit != 0:
+            self.plotMassesOverTimeClean()
         self.plotQValuesOverTime()
 
     def exportData(self):
@@ -376,8 +385,8 @@ class Model(object):
     def printBotMasses(self):
         for bot in self.bots:
             mass = bot.getPlayer().getTotalMass()
-            print("Mass of ", bot.getPlayer(), ":", end = " ")
-            print(round(mass,1) if mass is not None else (bot.getPlayer, " is dead!"))
+            print("Mass of ", bot.getPlayer(), ": ", round(mass, 1) if mass is not None else "Dead")
+
 
     def visualize(self):
         recentMeanReward = numpy.mean(self.rewards[-self.pointAveraging:])
@@ -389,10 +398,17 @@ class Model(object):
         if len(self.tdErrors) > 0:
              print("Avg abs TD-Error last 100 steps: ", round(recentMeanTDError, 4), " Min: ", round(min(self.tdErrors),4), " Max: ", round(max(self.tdErrors), 4))
         print("Step: ", self.counter)
-        print("Number of stored rewards: ", len(self.rewards))
+        if self.trainingEnabled:
+            print("Noise level: ", self.getCurrentNoise())
         self.printBotStds()
         self.printBotMasses()
         print(" ")
+
+    def getCurrentNoise(self):
+        for bot in self.bots:
+            if bot.getType() == "NN":
+                return bot.getLearningAlg().getNoiseLevel()
+        return None
 
     def printBotStds(self):
         for bot in self.bots:
@@ -433,7 +449,7 @@ class Model(object):
         plt.close()
 
     def plotMassesOverTime(self):
-        for bot_idx, bot in enumerate([bot for bot in self.bots]):
+        for bot_idx, bot in enumerate(self.bots):
             massListPath = self.path + self.dataFiles[str(bot) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
@@ -452,6 +468,30 @@ class Model(object):
             plt.ylabel("Total Player Mass")
             plt.savefig(self.path + "MassOverTime" + playerName + ".pdf")
             plt.close()
+
+
+    def plotMassesOverTimeClean(self):
+        for bot_idx, bot in enumerate(self.bots):
+            massListPath = self.path + self.dataFiles[str(bot) + "_mass"]
+            with open(massListPath, 'r') as f:
+                massList = list(map(float, f))
+            avg_step = int(self.resetLimit / self.pointAveraging)
+            massList = [numpy.mean(massList[idx:idx+avg_step]) for idx in range(0, len(massList), avg_step)]
+            meanMass = round(numpy.mean(massList),1)
+            medianMass = round(numpy.median(massList),1)
+            varianceMass = round(numpy.std(massList), 1)
+            maxMass = round(max(massList), 1)
+            len_masses = len(massList)
+            playerName = str(bot.getPlayer())
+            #timeAxis = list(range(0, len_masses * self.pointAveraging, self.pointAveraging))
+            plt.plot(massList)
+            plt.title("Mass of " + playerName + "- Mean: " + str(meanMass) + " Median: " + str(medianMass) + " Std: " +
+                      str(varianceMass) + " Max: " + str(maxMass))
+            plt.xlabel("Episode")
+            plt.ylabel("Total Player Mass")
+            plt.savefig(self.path + "CleanMassOverTime" + playerName + ".pdf")
+            plt.close()
+
 
     def plotQValuesOverTime(self):
         for bot_idx, bot in enumerate([bot for bot in self.bots if bot.getType() == "NN"]):
@@ -502,6 +542,8 @@ class Model(object):
 
     def addBot(self, bot):
         self.bots.append(bot)
+        player = bot.getPlayer()
+        self.addPlayer(player)
 
     def addHuman(self, human):
         self.humans.append(human)
@@ -534,6 +576,11 @@ class Model(object):
         return self.playerSpectator is not None
 
     # Getters:
+    def getNNBot(self):
+        for bot in self.bots:
+            if bot.getType() == "NN":
+                return bot
+
     def getPath(self):
         return self.path
 
@@ -541,6 +588,7 @@ class Model(object):
         players = self.getPlayers()[:]
         players.sort(key=lambda p: p.getTotalMass(), reverse=True)
         return players[0:10]
+
 
     def getHumans(self):
         return self.humans
