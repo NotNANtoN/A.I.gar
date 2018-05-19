@@ -125,7 +125,6 @@ class Model(object):
         if self.trainingEnabled and self.counter != 0 and self.counter % self.resetLimit == 0:
             self.saveSpecs()
             self.saveModels()
-            qList = self.bots[0].getLearningAlg().getQValues()
             if self.counter != 0 and self.counter % (self.resetLimit*5) == 0:
                 self.save()
 
