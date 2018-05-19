@@ -252,3 +252,6 @@ class QLearn(object):
 
     def getTDError(self):
         return self.latestTDerror
+
+    def getFrameSkipRate(self):
+        return self.parameters.FRAME_SKIP_RATE

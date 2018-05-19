@@ -72,7 +72,7 @@ class Model(object):
         self.rewards = []
         self.tdErrors = []
         self.dataFiles = {}
-        self.pointAveraging = 100
+        self.pointAveraging = 500
 
         if __debug__:
             tracemalloc.start()
@@ -315,7 +315,6 @@ class Model(object):
         with open(subPath, "a") as f:
             for value in range(0,len(self.rewards),self.pointAveraging):
                 meanReward = numpy.mean(self.rewards[value:(value + self.pointAveraging)])
-                #print(self.rewards[value:(value + self.pointAveraging)])
                 f.write("%s\n" % meanReward)
         # self.meanRewards = []
         # Bot exports
@@ -331,9 +330,12 @@ class Model(object):
             if bot.type == "NN":
                 subPath = path + self.dataFiles[str(bot)+"_qValue"]
                 qList = bot.getLearningAlg().getQValues()
+                interval = int(self.pointAveraging / (bot.getLearningAlg().getFrameSkipRate() + 1))
                 with open(subPath, "a") as f:
-                    for value in range(0, len(qList), self.pointAveraging):
-                        meanQ = numpy.mean(qList[value:(value + self.pointAveraging)])
+                    for value in range(0, len(qList), interval):
+                        qValuesInRange = [i for i in qList[value:(value + interval)] if not math.isnan(i)]
+                        meanQ = numpy.mean(qValuesInRange) if len(qValuesInRange) > 0 else float("NaN")
+
                         f.write("%s\n" % meanQ)
 
 
@@ -436,7 +438,6 @@ class Model(object):
         with open(rewardListPath, 'r') as f:
             rewardList = list(map(float, f))
         timeAxis = list(range(0, len(errorList) * self.pointAveraging, self.pointAveraging))
-        print(timeAxis, rewardList)
         plt.plot(timeAxis, errorList, label="Absolute TD-Error")
         plt.xlabel("Time")
         plt.ylabel("TD error averaged")
@@ -502,13 +503,12 @@ class Model(object):
             for i in range(len(q)):
                 if q[i] != "nan\n":
                     qValueList.append(float(q[i]))
-                    timeAxis.append(i)
+                    timeAxis.append(i * self.pointAveraging)
             f.close()
             # qValueList_filtered = [i for i in qValueList if i != float("NaN")]
             meanQValue = round(numpy.mean(qValueList), 1)
             playerName = str(self.bots[bot_idx].getPlayer())
-            timeAxis = list(range(0, len(qValueList) * self.pointAveraging, self.pointAveraging))
-
+            # timeAxis = list(range(0, len(qValueList) * self.pointAveraging, self.pointAveraging))
             plt.plot(timeAxis, qValueList)
             plt.title("Q-Values of " + playerName + "- Mean: " + str(meanQValue))
             plt.xlabel("Step")

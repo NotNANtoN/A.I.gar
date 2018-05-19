@@ -7,6 +7,9 @@ import fnmatch
 import math
 import numpy
 
+pointAveraging = 500
+
+
 def createCombinedModelGraphs(path):
     print("###############################")
     print("Generating average plots:\n")
@@ -174,6 +177,24 @@ def plotMassesOverTime(path):
               "yLabel": "Mass mean value", "title": "Mass", "path": path, "subPath": "Mean_Mass"}
     plot(allMassList, maxLength, labels)
 
+    resetInterval = 10000
+    episodeSize = resetInterval//pointAveraging
+    cleanMassList = []
+    cleanAllMassList = []
+    for i in range(len(allMassList)):
+        for t in range(0,maxLength,episodeSize):
+            if len(allMassList[i]) <= t:
+                break
+            episodeMean = np.mean(allMassList[i][t:(t + episodeSize)])
+            cleanMassList.append(episodeMean)
+        cleanAllMassList.append(cleanMassList)
+
+
+    labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
+              "yLabel": "Mass mean value", "title": "Mass", "path": path, "subPath": "Clean_Mean_Mass"}
+    plot(cleanAllMassList, maxLength//episodeSize, labels)
+
+
 
 def plotQValuesOverTime(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
@@ -206,8 +227,7 @@ def plotQValuesOverTime(path):
     plot(allQValueList, maxLength, labels)
 
 def getTimeAxis(maxLength):
-    numberOfPoints = 200
-    return np.array(list(range(0, maxLength * numberOfPoints, numberOfPoints)))
+    return np.array(list(range(0, maxLength * pointAveraging, pointAveraging)))
 
 
 def getMeanAndStDev(allList, maxLength):
@@ -272,6 +292,7 @@ def plot(ylist, maxLength, labels, y2list=None, labels2=None):
     ax.set_ylabel(yLabel)
     ax.set_title(title + " mean value (" + str(round(meanY,1)) + ") $\pm$ $\sigma$ interval")
     ax.grid()
+    plt.close()
     fig.savefig(path + ".pdf")
 
 # TODO: MAKE TRAIN STEP TIME CALCULATION
