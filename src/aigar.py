@@ -231,7 +231,8 @@ def runTests(model):
     print("Testing...")
     resetPellet = 10000
     resetGreedy = 20000
-    n_test_runs = 3
+    resetVirus = 15000
+    n_test_runs = 10
     trainedBot = model.getNNBot()
     originalMassOverTime = trainedBot.getMassOverTime()
     trainedBot.setTrainingEnabled(False)
@@ -251,7 +252,14 @@ def runTests(model):
                                                     "vs_1_greedy")
         evaluations.append(greedyEvaluation)
 
-    # TODO: add more test scenarios for viruses, multiple greedy bots
+    if model.virusEnabled:
+        virusModel = Model(False, False, True, resetVirus, False)
+        virusModel.addBot(trainedBot)
+        virusEvaluation = testModel(virusModel, trainedBot, n_test_runs, resetVirus, model.getPath(),
+                                    "virus")
+        evaluations.append(virusEvaluation)
+
+    # TODO: add more test scenarios for multiple greedy bots and full model check
     print("Testing completed.")
     trainedBot.setMassesOverTime(originalMassOverTime)
 

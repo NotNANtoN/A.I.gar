@@ -493,6 +493,9 @@ class Bot(object):
         reward = currentMass - self.lastMass
         return reward
 
+    def getFrameSkipRate(self):
+        return self.parameters.FRAME_SKIP_RATE
+
     def getType(self):
         return self.type
 
