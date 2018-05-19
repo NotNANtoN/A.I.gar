@@ -72,7 +72,7 @@ class Model(object):
         self.rewards = []
         self.tdErrors = []
         self.dataFiles = {}
-        self.pointAveraging = 100
+        self.pointAveraging = 500
 
         if __debug__:
             tracemalloc.start()
