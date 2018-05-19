@@ -1,5 +1,6 @@
 import numpy
 import heapq
+import math
 
 class QLearn(object):
     def __repr__(self):
@@ -17,6 +18,7 @@ class QLearn(object):
         self.output_len = network.num_actions
         self.discrete = True
         self.epsilon = parameters.EPSILON
+        self.temperature = parameters.TEMPERATURE
 
     def load(self, modelName):
         if modelName is not None:
@@ -177,6 +179,7 @@ class QLearn(object):
 
     def updateNoise(self):
         self.epsilon *= self.parameters.NOISE_DECAY
+        self.temperature *= self.parameters.TEMPERATURE_DECAY
 
     def updateNetworks(self, time):
         self.updateTargetModel(time)
@@ -191,23 +194,35 @@ class QLearn(object):
             self.network.updateActionNetwork()
 
 
+    def decideExploration(self, bot):
+        if self.parameters.EXPLORATION_STRATEGY == "e-Greedy":
+            if numpy.random.random(1) < self.epsilon:
+                explore = True
+                newActionIdx = numpy.random.randint(len(self.network.getActions()))
+                self.qValues.append(float("NaN"))
+                if __debug__:
+                    print("Explore")
+                    bot.setExploring(True)
+                return explore, newActionIdx
+        else:
+            return False, None
+
+    def boltzmannDist(self, values, temp):
+        distribution_values = [math.e ** (value / temp) for value in values]
+        sum = numpy.sum(distribution_values)
+        return [value / sum for value in distribution_values]
+
     def decideMove(self, newState, bot):
         # Take random action with probability 1 - epsilon
-        if numpy.random.random(1) < self.epsilon:
-            newActionIdx = numpy.random.randint(len(self.network.getActions()))
-            self.qValues.append(float("NaN"))
-            explore = True
-            if __debug__:
-                print("Explore")
-                bot.setExploring(True)
-        else:
-            explore = False
-            if bot.parameters.NEURON_TYPE == "MLP":
-                # Take action based on greediness towards Q values
-                q_Values = self.network.predict(newState)
+        explore, actionIdx = self.decideExploration(bot)
+        if not explore:
+            q_Values = self.network.predict_action(newState)
+            if self.parameters.EXPLORATION_STRATEGY == "Boltzmann" and self.temperature != 0:
+                q_Values = self.boltzmannDist(q_Values, self.temperature)
+                action_value = numpy.random.choice(q_Values, p=q_Values)
+                newActionIdx = numpy.argmax(q_Values == action_value)
             else:
-                q_Values = self.network.predict_action_network(newState)
-            newActionIdx = numpy.argmax(q_Values)
+                newActionIdx = numpy.argmax(q_Values)
             # Book keeping:
             self.qValues.append(q_Values[newActionIdx])
             if __debug__:

@@ -217,6 +217,12 @@ class Network(object):
     def predict_action_network(self, trace):
         return self.actionNetwork.predict(numpy.array([numpy.array([trace])]))[0]
 
+    def predict_action(self, state):
+        if self.parameters.NEURON_TYPE == "MLP":
+            return self.predict(state)
+        else:
+            return self.predict_action_network(state)
+
     def saveModel(self, path):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
         self.targetNetwork.save(path + "model.h5")

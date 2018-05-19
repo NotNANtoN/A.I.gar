@@ -199,25 +199,24 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
 
 
 
-def testModel(testModel, bot, n_training, reset_time, modelPath):
+def testModel(testModel, bot, n_training, reset_time, modelPath, name):
     masses = []
     meanMasses = []
+    print("Testing ", name, "...")
     testModel.initialize(False)
     for test in range(n_training):
         bot.resetMassList()
-        testModel.resetModel()
-
         for step in range(reset_time):
             testModel.update()
 
         massOverTime = bot.getMassOverTime()
         meanMass = numpy.mean(massOverTime)
         masses.append(massOverTime)
-
         meanMasses.append(meanMass)
+        print("Mean mass for run ", test, ": ", meanMass)
+        print("")
     meanScore = numpy.mean(meanMasses)
     stdScore = numpy.std(meanMasses)
-    #TODO: plot masses nicely
     labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
               "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_Testing"}
     plot(masses, reset_time, labels)
@@ -233,12 +232,10 @@ if __name__ == '__main__':
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
     viewEnabled = False
-    maxSteps = 0
     if guiEnabled:
         viewEnabled = int(input("Display view?: (1 == yes)\n"))
         viewEnabled = (viewEnabled == 1)
-    else:
-        maxSteps = int(input("For how many steps do you want to train?\n"))
+
     virusEnabled = int(input("Viruses enabled? (1==True)\n")) == 1
     resetSteps = int(input("Reset model after X steps (X==0 means no reset)\n"))
     model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps, True)
@@ -341,19 +338,25 @@ if __name__ == '__main__':
         if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
             modelName = "savedModels/" + str(input("Input folder name:\n"))
     model.initModelFolder(modelName)
-    if tweakedTotal:
-        modifyParameterValue(tweakedTotal, model)
-        parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
-
-    numberOfNNBots = parameters.NUM_NN_BOTS
-    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
-    numberOfBots = numberOfNNBots + numberOfGreedyBots
 
 
     enableTrainMode = humanTraining if humanTraining is not None else False
     if not humanTraining:
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
     model.setTrainingEnabled(enableTrainMode == 1)
+    if enableTrainMode:
+        maxTrainSteps = str(input("For how many steps do you want to train?\n"))
+        paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
+        modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
+    if tweakedTotal:
+        modifyParameterValue(tweakedTotal, model)
+
+    parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
+    numberOfNNBots = parameters.NUM_NN_BOTS
+    numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
+    numberOfBots = numberOfNNBots + numberOfGreedyBots
+
+
 
     Bot.init_exp_replayer(parameters)
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadedModelName)
@@ -383,6 +386,7 @@ if __name__ == '__main__':
             controller.process_input()
             model.update()
     else:
+        maxSteps = parameters.MAX_SIMULATION_STEPS
         smallPart = max(int(maxSteps / 200), 1)
         for step in range(maxSteps):
             model.update()
@@ -396,18 +400,25 @@ if __name__ == '__main__':
         trainedBot = model.getNNBot()
         originalMassOverTime = trainedBot.getMassOverTime()
         trainedBot.setTrainingEnabled(False)
+
         pelletModel = Model(False, False, False, resetPellet, False)
         pelletModel.addBot(trainedBot)
+        meanPelletScore, stdPelletScore = testModel(pelletModel, trainedBot, 5, resetPellet, model.getPath(), "pellet collection")
+        print("Total Mean Mass of testing: ", meanPelletScore, " Std: ", stdPelletScore)
 
+        if "Greedy" in [bot.getType() for bot in model.getBots()]:
+            greedyModel = Model(False, False, False, resetGreedy, False)
+            greedyModel.addBot(trainedBot)
+            greedyModel.createBot("Greedy")
+            meanGreedyScore, stdGreedyScore = testModel(greedyModel, trainedBot, 5, resetGreedy, model.getPath(),
+                                            "vs greedy bot")
+            print("Total Mean Mass against 1 Greedy: ", meanGreedyScore, " Std: ", stdGreedyScore)
 
-        greedyModel = Model(False, False, False, resetGreedy, False)
-        greedyModel.addBot(trainedBot)
-        #TODO Add greedy bot and test. only do so if we trained using greedy bot
-
-        meanScore, stdScore = testModel(pelletModel, trainedBot, 5, resetPellet, model.getPath())
+        #TODO: add more test scenarios for viruses, multiple greedy bots
 
         trainedBot.setMassesOverTime(originalMassOverTime)
-        print("Total Mean Mass of testing: ", meanScore, " Std: ", stdScore)
+
+
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 
     if model.getTrainingEnabled():
