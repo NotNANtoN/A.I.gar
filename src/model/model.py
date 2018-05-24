@@ -643,6 +643,9 @@ class Model(object):
     def getDataFiles(self):
         return self.dataFiles
 
+    def getPointAveraging(self):
+        return self.pointAveraging
+
     # MVC related method
     def register_listener(self, listener):
         self.listeners.append(listener)

@@ -58,13 +58,13 @@ def plotTDErrorAndMean(path):
                    "yLabel": "Reward mean value", "title": "Reward", "path": path, "subPath": "Mean_Reward"}
 
     # Combined plot
-    plot(allErrorLists, maxLength, errorLabels, allRewardLists, rewardLabels)
+    plot(allErrorLists, maxLength, pointAveraging,  errorLabels, allRewardLists, rewardLabels)
 
     # Single plot Error
-    plot(allErrorLists, maxLength, errorLabels)
+    plot(allErrorLists, maxLength, pointAveraging, errorLabels)
 
     # Single plot Reward
-    plot(allRewardLists, maxLength, rewardLabels)
+    plot(allRewardLists, maxLength, pointAveraging, rewardLabels)
 
 
 def plotMassesOverTime(path):
@@ -95,38 +95,7 @@ def plotMassesOverTime(path):
 
     labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
               "yLabel": "Mass mean value", "title": "Mass", "path": path, "subPath": "Mean_Mass"}
-    plot(allMassList, maxLength, labels)
-
-
-def plotMassesOverTime(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
-
-    allMassList = []
-    maxLength = 0
-    massListPresent = False
-    for model in modelList:
-        print(model)
-        modelPath = path + "/" + model
-        for file in os.listdir(modelPath):
-            if not fnmatch.fnmatch(file, 'meanMassOverTimeNN*'):
-                continue
-            print(file)
-            massListPath = modelPath + "/" + file
-            massListPresent = True
-
-            with open(massListPath, 'r') as f:
-                massList = list(map(float, f))
-                if len(massList) > maxLength:
-                    maxLength = len(massList)
-                allMassList.append(massList)
-
-    if not massListPresent:
-        print("-- Model does not have any meanMassOverTimeNN(i).txt --")
-        return
-
-    labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
-              "yLabel": "Mass mean value", "title": "Mass", "path": path, "subPath": "Mean_Mass"}
-    plot(allMassList, maxLength, labels)
+    plot(allMassList, maxLength, pointAveraging, labels)
 
     resetInterval = 10000
     episodeSize = resetInterval//pointAveraging
@@ -135,7 +104,7 @@ def plotMassesOverTime(path):
     for i in range(len(allMassList)):
         for t in range(0,maxLength,episodeSize):
             if len(allMassList[i]) <= t:
-                break
+                continue
             episodeMean = np.mean(allMassList[i][t:(t + episodeSize)])
             cleanMassList.append(episodeMean)
         cleanAllMassList.append(cleanMassList)
@@ -143,7 +112,7 @@ def plotMassesOverTime(path):
 
     labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
               "yLabel": "Mass mean value", "title": "Mass", "path": path, "subPath": "Clean_Mean_Mass"}
-    plot(cleanAllMassList, maxLength//episodeSize, labels)
+    plot(cleanAllMassList, maxLength//episodeSize, resetInterval, labels)
 
 
 
@@ -175,10 +144,10 @@ def plotQValuesOverTime(path):
 
     labels = {"meanLabel": "Mean Q-value", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
               "yLabel": "Q-value mean value", "title": "Q-value", "path": path, "subPath": "Mean_QValue" }
-    plot(allQValueList, maxLength, labels)
+    plot(allQValueList, maxLength, pointAveraging, labels)
 
-def getTimeAxis(maxLength):
-    return np.array(list(range(0, maxLength * pointAveraging, pointAveraging)))
+def getTimeAxis(maxLength, avgLength):
+    return np.array(list(range(0, maxLength * avgLength, pointAveraging)))
 
 
 def getMeanAndStDev(allList, maxLength):
@@ -208,8 +177,8 @@ def getMeanAndStDev(allList, maxLength):
     return mean_list, stDev_list
 
 
-def plot(ylist, maxLength, labels, y2list=None, labels2=None):
-    x = getTimeAxis(maxLength)
+def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None):
+    x = getTimeAxis(maxLength, avgLength)
     y, ysigma = getMeanAndStDev(ylist, maxLength)
     if y is None or ysigma is None:
         print(labels["title"] + " list is None.")

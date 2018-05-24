@@ -224,7 +224,7 @@ def testModel(testModel, bot, n_training, reset_time, modelPath, name):
     maxScore = numpy.max(maxMasses)
     labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
               "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_Testing"}
-    plot(masses, reset_time, labels)
+    plot(masses, reset_time, testModel.getPointAveraging(), labels)
     return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
 
 def runTests(model):
