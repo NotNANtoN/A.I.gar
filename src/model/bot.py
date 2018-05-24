@@ -234,10 +234,148 @@ class Bot(object):
         stateRepr = None
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
-                stateRepr = self.getGridStateRepresentation()
+                gridView, mass, fovSize = self.getGridStateRepresentation()
+
+                if self.parameters.CNN_REPRESENTATION:
+                    stateRepr = []
+                    stateRepr.append(gridView)
+                    input2 = numpy.array([mass, fovSize])
+                    stateRepr.append(input2)
+                else:
+                    gridView = gridView.flatten()
+                    stateRepr = numpy.concatenate((gridView, [mass, fovSize]))
+
             else:
                 stateRepr = self.getSimpleStateRepresentation()
         return stateRepr
+
+
+    def getGridStateRepresentation(self):
+        # Get Fov infomation
+        fieldSize = self.field.getWidth()
+        fovSize = self.player.getFovSize()
+        fovPos = self.player.getFovPos()
+        x = fovPos[0]
+        y = fovPos[1]
+        left = x - fovSize / 2
+        top = y - fovSize / 2
+        # Initialize spatial hash tables:
+        if self.parameters.CNN_REPRESENTATION:
+            if self.parameters.CNN_USE_LAYER_1:
+                gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+            elif self.parameters.CNN_USE_LAYER_2:
+                gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+            else:
+                gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+        else:
+            gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
+        gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
+        pelletSHT = spatialHashTable(fovSize, gsSize, left, top)  # SHT = spatial hash table
+        enemySHT = spatialHashTable(fovSize, gsSize, left, top)
+        virusSHT = spatialHashTable(fovSize, gsSize, left, top)
+        playerSHT = spatialHashTable(fovSize, gsSize, left, top)
+        totalPellets = self.field.getPelletsInFov(fovPos, fovSize)
+        pelletSHT.insertAllFloatingPointObjects(totalPellets)
+        if __debug__ and self.player.getSelected():
+            print("Total pellets: ", len(totalPellets))
+            print("pellet view: ")
+            buckets = pelletSHT.getBuckets()
+            for idx in range(len(buckets)):
+                print(len(buckets[idx]), end=" ")
+                if idx != 0 and (idx + 1) % gridSquaresPerFov == 0:
+                    print(" ")
+        playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
+        playerSHT.insertAllFloatingPointObjects(playerCells)
+        enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
+        enemySHT.insertAllFloatingPointObjects(enemyCells)
+        virusCells = self.field.getVirusesInFov(fovPos, fovSize)
+        virusSHT.insertAllFloatingPointObjects(virusCells)
+
+        # Mass vision grid related
+        # enemyCellsCount = len(enemyCells)
+        # allCellsInFov = playerCells + enemyCells + virusCells
+        # biggestMassInFov = max(allCellsInFov, key = lambda cell: cell.getMass()).getMass() if allCellsInFov else None
+
+        # Initialize grid squares with zeros:
+        # gridNumberSquared = gridSquaresPerFov * gridSquaresPerFov
+        gsBiggestEnemyCellMassProportion = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsBiggestOwnCellMassProportion = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsWalls = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsVirus = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsPelletProportion = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gridView = numpy.zeros((5, gridSquaresPerFov, gridSquaresPerFov))
+        # gsMidPoint is adjusted in the loops
+        gsMidPoint = [left + gsSize / 2, top + gsSize / 2]
+        pelletCount = 0
+        for c in range(gridSquaresPerFov):
+            for r in range(gridSquaresPerFov):
+                count = r + c * gridSquaresPerFov
+
+                # Only check for cells if the grid square fov is within the playing field
+                if not (gsMidPoint[0] + gsSize / 2 < 0 or gsMidPoint[0] - gsSize / 2 > fieldSize or
+                        gsMidPoint[1] + gsSize / 2 < 0 or gsMidPoint[1] - gsSize / 2 > fieldSize):
+                    # Create pellet representation
+                    # Make the visionGrid's pellet count a percentage so that the network doesn't have to
+                    # work on interpreting the number of pellets relative to the size (and Fov) of the player
+                    pelletMassSum = 0
+                    pelletsInGS = pelletSHT.getBucketContent(count)
+                    if pelletsInGS:
+                        for pellet in pelletsInGS:
+                            pelletCount += 1
+                            pelletMassSum += pellet.getMass()
+                        gsPelletProportion[c][r] = pelletMassSum
+
+                    # TODO: add relative fov pos of closest pellet to allow micro management
+
+                    # Create Enemy Cell mass representation
+                    # Make the visionGrid's enemy cell representation a percentage. The player's mass
+                    # in proportion to the biggest enemy cell's mass in each grid square.
+                    enemiesInGS = enemySHT.getBucketContent(count)
+                    if enemiesInGS:
+                        biggestEnemyInCell = max(enemiesInGS, key=lambda cell: cell.getMass())
+                        gsBiggestEnemyCellMassProportion[c][r] = biggestEnemyInCell.getMass()
+
+                    # Create Own Cell mass representation
+                    playerCellsInGS = playerSHT.getBucketContent(count)
+                    if playerCellsInGS:
+                        biggestFriendInCell = max(playerCellsInGS, key=lambda cell: cell.getMass())
+                        gsBiggestOwnCellMassProportion[c][r] = biggestFriendInCell.getMass()
+                    # TODO: also add a count grid for own cells?
+
+                    # Create Virus Cell representation
+                    if self.field.getVirusEnabled():
+                        virusesInGS = virusSHT.getBucketContent(count)
+                        if virusesInGS:
+                            biggestVirus = max(virusesInGS, key=lambda virus: virus.getRadius()).getMass()
+                            gsVirus[c][r] = biggestVirus
+
+                # Create Wall representation
+                # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
+                if gsMidPoint[0] - gsSize / 2 < 0 or gsMidPoint[0] + gsSize / 2 > fieldSize or \
+                        gsMidPoint[1] - gsSize / 2 < 0 or gsMidPoint[1] + gsSize / 2 > fieldSize:
+                    gsWalls[c][r] = 1
+                # Increment grid square position horizontally
+                gsMidPoint[0] += gsSize
+            # Reset horizontal grid square, increment grid square position
+            gsMidPoint[0] = left + gsSize / 2
+            gsMidPoint[1] += gsSize
+        if __debug__ and self.player.getSelected():
+            print("counted pellets: ", pelletCount)
+            print(" ")
+        # Concatenate the basis data about the location of pellets, own cells and the walls:
+        # totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestOwnCellMassProportion, gsWalls,
+        #                                gsBiggestEnemyCellMassProportion, gsVirus))
+        gridView[0] = gsPelletProportion
+        gridView[1] = gsBiggestOwnCellMassProportion
+        gridView[2] = gsWalls
+        gridView[3] = gsBiggestEnemyCellMassProportion
+        gridView[4] = gsVirus
+
+        # Add total Mass of player and field size:
+        totalMass = self.player.getTotalMass()
+
+        return gridView, totalMass, fovSize
+
 
     def getSimpleStateRepresentation(self):
         # Get data about the field of view of the player
@@ -277,117 +415,6 @@ class Bot(object):
         totalInfo += [distLeft, distRight, distTop, distBottom]
         return totalInfo
 
-    def getGridStateRepresentation(self):
-        # Get Fov infomation
-        fieldSize = self.field.getWidth()
-        fovSize = self.player.getFovSize()
-        fovPos = self.player.getFovPos()
-        x = fovPos[0]
-        y = fovPos[1]
-        left = x - fovSize / 2
-        top = y - fovSize / 2
-        # Initialize spatial hash tables:
-        gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
-        gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
-        pelletSHT = spatialHashTable(fovSize, gsSize, left, top)  # SHT = spatial hash table
-        enemySHT = spatialHashTable(fovSize, gsSize, left, top)
-        virusSHT = spatialHashTable(fovSize, gsSize, left, top)
-        playerSHT = spatialHashTable(fovSize, gsSize, left, top)
-        totalPellets = self.field.getPelletsInFov(fovPos, fovSize)
-        pelletSHT.insertAllFloatingPointObjects(totalPellets)
-        if __debug__ and self.player.getSelected():
-            print("Total pellets: ", len(totalPellets))
-            print("pellet view: ")
-            buckets = pelletSHT.getBuckets()
-            for idx in range(len(buckets)):
-                print(len(buckets[idx]), end=" ")
-                if idx != 0 and (idx + 1) % gridSquaresPerFov == 0:
-                    print(" ")
-        playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
-        playerSHT.insertAllFloatingPointObjects(playerCells)
-        enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
-        enemySHT.insertAllFloatingPointObjects(enemyCells)
-        virusCells = self.field.getVirusesInFov(fovPos, fovSize)
-        virusSHT.insertAllFloatingPointObjects(virusCells)
-
-        # Mass vision grid related
-        # enemyCellsCount = len(enemyCells)
-        # allCellsInFov = playerCells + enemyCells + virusCells
-        # biggestMassInFov = max(allCellsInFov, key = lambda cell: cell.getMass()).getMass() if allCellsInFov else None
-
-        # Initialize grid squares with zeros:
-        gridNumberSquared = gridSquaresPerFov * gridSquaresPerFov
-        gsBiggestEnemyCellMassProportion = numpy.zeros(gridNumberSquared)
-        gsBiggestOwnCellMassProportion = numpy.zeros(gridNumberSquared)
-        gsWalls = numpy.zeros(gridNumberSquared)
-        gsVirus = numpy.zeros(gridNumberSquared)
-        gsPelletProportion = numpy.zeros(gridNumberSquared)
-        # gsMidPoint is adjusted in the loops
-        gsMidPoint = [left + gsSize / 2, top + gsSize / 2]
-        pelletcount = 0
-        for c in range(gridSquaresPerFov):
-            for r in range(gridSquaresPerFov):
-                count = r + c * gridSquaresPerFov
-
-                # Only check for cells if the grid square fov is within the playing field
-                if not (gsMidPoint[0] + gsSize / 2 < 0 or gsMidPoint[0] - gsSize / 2 > fieldSize or
-                        gsMidPoint[1] + gsSize / 2 < 0 or gsMidPoint[1] - gsSize / 2 > fieldSize):
-                    # Create pellet representation
-                    # Make the visionGrid's pellet count a percentage so that the network doesn't have to
-                    # work on interpreting the number of pellets relative to the size (and Fov) of the player
-                    pelletMassSum = 0
-                    pelletsInGS = pelletSHT.getBucketContent(count)
-                    if pelletsInGS:
-                        for pellet in pelletsInGS:
-                            pelletcount += 1
-                            pelletMassSum += pellet.getMass()
-                        gsPelletProportion[count] = pelletMassSum
-
-                    # TODO: add relative fov pos of closest pellet to allow micro management
-
-                    # Create Enemy Cell mass representation
-                    # Make the visionGrid's enemy cell representation a percentage. The player's mass
-                    # in proportion to the biggest enemy cell's mass in each grid square.
-                    enemiesInGS = enemySHT.getBucketContent(count)
-                    if enemiesInGS:
-                        biggestEnemyInCell = max(enemiesInGS, key=lambda cell: cell.getMass())
-                        gsBiggestEnemyCellMassProportion[count] = biggestEnemyInCell.getMass()
-
-                    # Create Own Cell mass representation
-                    playerCellsInGS = playerSHT.getBucketContent(count)
-                    if playerCellsInGS:
-                        biggestFriendInCell = max(playerCellsInGS, key=lambda cell: cell.getMass())
-                        gsBiggestOwnCellMassProportion[count] = biggestFriendInCell.getMass()
-                    # TODO: also add a count grid for own cells?
-
-                    # Create Virus Cell representation
-                    if self.field.getVirusEnabled():
-                        virusesInGS = virusSHT.getBucketContent(count)
-                        if virusesInGS:
-                            biggestVirus = max(virusesInGS, key=lambda virus: virus.getRadius()).getMass()
-                            gsVirus[count] = biggestVirus
-
-                # Create Wall representation
-                # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
-                if gsMidPoint[0] - gsSize / 2 < 0 or gsMidPoint[0] + gsSize / 2 > fieldSize or \
-                        gsMidPoint[1] - gsSize / 2 < 0 or gsMidPoint[1] + gsSize / 2 > fieldSize:
-                    gsWalls[count] = 1
-                # Increment grid square position horizontally
-                gsMidPoint[0] += gsSize
-            # Reset horizontal grid square, increment grid square position
-            gsMidPoint[0] = left + gsSize / 2
-            gsMidPoint[1] += gsSize
-        if __debug__ and self.player.getSelected():
-            print("counted pellets: ", pelletcount)
-            print(" ")
-        # Concatenate the basis data about the location of pellets, own cells and the walls:
-        totalInfo = numpy.concatenate((gsPelletProportion, gsBiggestOwnCellMassProportion, gsWalls,
-                                       gsBiggestEnemyCellMassProportion, gsVirus))
-        # Add total Mass of player and field size:
-        totalMass = self.player.getTotalMass()
-        totalInfo = numpy.concatenate((totalInfo, [totalMass, fovSize]))
-
-        return totalInfo
 
     def set_command_point(self, action):
         midPoint = self.player.getFovPos()
@@ -399,6 +426,8 @@ class Bot(object):
         size = int(size)
         xChoice = left + action[0] * size
         yChoice = top + action[1] * size
+        splitChoice = None
+        ejectChoice = None
         if len(action) > 2:
             if len(action) == 3:
                 if self.parameters.ENABLE_SPLIT == True:

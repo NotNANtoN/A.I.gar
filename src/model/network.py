@@ -4,7 +4,7 @@ import numpy
 import tensorflow as tf
 import importlib.util
 import keras.backend as K
-from keras.layers import Dense, LSTM, Softmax
+from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
 from keras.models import load_model
@@ -29,9 +29,6 @@ class Network(object):
         self.num_actions = len(self.actions)
         self.loadedModelName = None
 
-        self.stateReprLen = self.parameters.STATE_REPR_LEN
-
-
         self.gpus = self.parameters.GPUS
 
         # Q-learning
@@ -39,6 +36,23 @@ class Network(object):
         self.epsilon = self.parameters.EPSILON
         self.frameSkipRate = self.parameters.FRAME_SKIP_RATE
         self.gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
+
+        # CNN
+        if self.parameters.CNN_REPRESENTATION:
+            self.kernelLen_1 = self.parameters.CNN_LAYER_1
+            self.stride_1 = self.parameters.CNN_LAYER_1_STRIDE
+            self.filterNum_1 = self.parameters.CNN_LAYER_1_FILTER_NUM
+            self.poolLen_1 = self.parameters.CNN_POOL_1
+
+            self.kernelLen_2 = self.parameters.CNN_LAYER_2
+            self.stride_2 = self.parameters.CNN_LAYER_2_STRIDE
+            self.filterNum_2 = self.parameters.CNN_LAYER_2_FILTER_NUM
+            self.poolLen_2 = self.parameters.CNN_POOL_2
+
+            self.kernelLen_3 = self.parameters.CNN_LAYER_3
+            self.stride_3 = self.parameters.CNN_LAYER_3_STRIDE
+            self.filterNum_3 = self.parameters.CNN_LAYER_3_FILTER_NUM
+            self.poolLen_3 = self.parameters.CNN_POOL_3
 
         # ANN
         self.learningRate = self.parameters.ALPHA
@@ -50,6 +64,8 @@ class Network(object):
         self.hiddenLayer1 = self.parameters.HIDDEN_LAYER_1
         self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2
         self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3
+
+        self.stateReprLen = self.parameters.STATE_REPR_LEN
 
         if self.parameters.EXP_REPLAY_ENABLED:
             input_shape_lstm = (self.parameters.MEMORY_TRACE_LEN, self.stateReprLen)
@@ -80,47 +96,102 @@ class Network(object):
                 self.valueNetwork = multi_gpu_model(self.valueNetwork, gpus=self.gpus)
         else:
             self.valueNetwork = Sequential()
-            hidden1 = None
-            if self.parameters.NEURON_TYPE == "MLP":
-                hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
-                                          bias_initializer=initializer, kernel_initializer=initializer)
-            elif self.parameters.NEURON_TYPE == "LSTM":
-                hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm,
-                               return_sequences = True, stateful= stateful_training, batch_size=self.batch_len)
 
-            self.valueNetwork.add(hidden1)
-            #self.valueNetwork.add(Dropout(0.5))
+            # CNN
+            if self.parameters.CNN_REPRESENTATION:
+                if self.parameters.CNN_USE_LAYER_1:
+                    inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+                    self.CNN_input_1 = (inputLen, inputLen, self.parameters.NUM_OF_GRIDS)
+                    cnn1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                  strides=(self.stride_1, self.stride_1), activation='relu', input_shape=self.CNN_input_1)
+                    self.valueNetwork.add(cnn1)
+                    pool1 = MaxPooling2D(pool_size=(self.poolLen_1, self.poolLen_1), strides=(self.poolLen_1, self.poolLen_1))
+                    self.valueNetwork.add(pool1)
+
+                if self.parameters.CNN_USE_LAYER_2:
+                    if self.parameters.CNN_USE_LAYER_1:
+                        cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                      strides=(self.stride_2, self.stride_2), activation='relu')
+                    else:
+                        inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+                        self.CNN_input_2 = (inputLen, inputLen, self.parameters.NUM_OF_GRIDS)
+                        cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                      strides=(self.stride_2, self.stride_2), activation='relu', input_shape=self.CNN_input_2)
+                    self.valueNetwork.add(cnn2)
+                    pool2 = MaxPooling2D(pool_size=(self.poolLen_2, self.poolLen_2), strides=(self.poolLen_2, self.poolLen_2))
+                    self.valueNetwork.add(pool2)
+
+
+                if self.parameters.CNN_USE_LAYER_2:
+                    cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                  strides=(self.stride_3, self.stride_3), activation='relu')
+                else:
+                    inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                    self.CNN_input_3 = (inputLen, inputLen, self.parameters.NUM_OF_GRIDS)
+                    cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                  strides=(self.stride_3, self.stride_3), activation='relu', input_shape=self.CNN_input_3)
+                self.valueNetwork.add(cnn3)
+                pool3 = MaxPooling2D(pool_size=(self.poolLen_3, self.poolLen_3), strides=(self.poolLen_3, self.poolLen_3))
+                self.valueNetwork.add(pool3)
+                self.valueNetwork.add(Flatten())
+
+            # Fully connected layers
+            hidden1 = None
             hidden2 = None
-            if self.hiddenLayer2 > 0:
-                if self.parameters.NEURON_TYPE == "MLP":
+            hidden3 = None
+            output = None
+
+            if self.parameters.NEURON_TYPE == "MLP":
+                # Hidden Layer 1
+                if self.parameters.CNN_REPRESENTATION:
+                    hidden1 = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                else:
+                    hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)
+                self.valueNetwork.add(hidden1)
+                # Hidden 2
+                if self.hiddenLayer2 > 0:
                     hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)
-                elif self.parameters.NEURON_TYPE == "LSTM":
-                    hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
-                self.valueNetwork.add(hidden2)
-                #self.valueNetwork.add(Dropout(0.5))
-
-            if self.hiddenLayer3 > 0:
-                hidden3 = None
-                if self.parameters.NEURON_TYPE == "MLP":
+                    self.valueNetwork.add(hidden2)
+                # Hidden 3
+                if self.hiddenLayer3 > 0:
                     hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)
-                elif self.parameters.NEURON_TYPE == "LSTM":
-                    hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
-                self.valueNetwork.add(hidden3)
-                #self.valueNetwork.add(Dropout(0.5))
+                    self.valueNetwork.add(hidden3)
+                # Output layer
+                output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
+                          , kernel_initializer=initializer)
+                self.valueNetwork.add(output)
 
-            if self.parameters.NEURON_TYPE == "MLP": #or self.parameters.NEURON_TYPE == "LSTM":
-                self.valueNetwork.add(
-                    Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
-                          , kernel_initializer=initializer))
             elif self.parameters.NEURON_TYPE == "LSTM":
-                self.valueNetwork.add(LSTM(self.num_actions, activation=self.activationFuncOutput,
-                                   return_sequences=True, stateful=stateful_training, batch_size=self.batch_len))
+                # Hidden Layer 1
+                #TODO: Use CNN with LSTM
+                # if self.parameters.CNN_REPRESENTATION:
+                #     hidden1 = LSTM(self.hiddenLayer1, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                # else:
+                #     hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences = True,
+                #                    stateful= stateful_training, batch_size=self.batch_len)
+                hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences=True,
+                               stateful= stateful_training, batch_size=self.batch_len)
+                self.valueNetwork.add(hidden1)
+                # Hidden 2
+                if self.hiddenLayer2 > 0:
+                    hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                    self.valueNetwork.add(hidden2)
+                # Hidden 3
+                if self.hiddenLayer3 > 0:
+                    hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                    self.valueNetwork.add(hidden3)
+                # Output layer
+                output = LSTM(self.num_actions, activation=self.activationFuncOutput,
+                     return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                self.valueNetwork.add(output)
 
+        # Create target network
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-
 
 
         if self.optimizer == "Adam":

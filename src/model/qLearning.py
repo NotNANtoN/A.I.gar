@@ -14,7 +14,15 @@ class QLearn(object):
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
-        self.input_len = parameters.STATE_REPR_LEN
+        if self.parameters.CNN_REPRESENTATION:
+            if self.parameters.CNN_USE_LAYER_1:
+                self.input_len = self.parameters.CNN_SIZE_OF_INPUT_DIM_1 **2 * self.parameters.NUM_OF_GRIDS
+            elif self.parameters.CNN_USE_LAYER_2:
+                self.input_len = self.parameters.CNN_SIZE_OF_INPUT_DIM_2 **2 * self.parameters.NUM_OF_GRIDS
+            else:
+                self.input_len = self.parameters.CNN_SIZE_OF_INPUT_DIM_3 **2 * self.parameters.NUM_OF_GRIDS
+        else:
+            self.input_len = parameters.STATE_REPR_LEN
         self.output_len = network.num_actions
         self.discrete = True
         self.epsilon = parameters.EPSILON

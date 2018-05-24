@@ -50,19 +50,45 @@ HIDDEN_LAYER_1_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_2_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_3_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 
-#LSTM
+# LSTM
 ACTIVATION_FUNC_LSTM = "tanh"
 UPDATE_LSTM_MOVE_NETWORK = 1
 TRACE_MIN = 4 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
 MEMORY_TRACE_LEN = 10 # The length of memory traces retrieved via exp replay
 
 
-#ANN
+# ANN
 DROPOUT_RATE= 0 #TODO: not yet implemented at all, but might be interesting
 ALPHA = 0.0001 #Learning rate. Marco recommended to try lower learning rates too, decrease by factor of 10 or 100
 OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
 ACTIVATION_FUNC_OUTPUT = 'linear'
+
+# CNN (Default screen size is 900*900
+CNN_REPRESENTATION = False
+CNN_PIXEL_REPRESENTATION = False
+CNN_USE_LAYER_1 = False
+CNN_LAYER_1 = 9
+CNN_LAYER_1_STRIDE = 3
+CNN_LAYER_1_FILTER_NUM = 10
+CNN_POOL_1 = 2
+CNN_SIZE_OF_INPUT_DIM_1 = 900
+
+CNN_USE_LAYER_2 = False
+CNN_LAYER_2 = 5
+CNN_LAYER_2_STRIDE = 2
+CNN_LAYER_2_FILTER_NUM = 10
+CNN_POOL_2 = 2
+CNN_SIZE_OF_INPUT_DIM_2 = 200
+
+CNN_LAYER_3 = 5
+CNN_LAYER_3_STRIDE = 2
+CNN_LAYER_3_FILTER_NUM = 10
+CNN_POOL_3 = 2
+CNN_SIZE_OF_INPUT_DIM_3 = 40
+
+CNN_POOLING_TYPE = "Max"
+
 
 
 #Layer neurons
