@@ -105,7 +105,7 @@ class Bot(object):
         self.totalMasses = []
         self.memories = []
         # If using lstm the memories have to be ordered correctly in time for this bot.
-        if self.parameters.NEURON_TYPE == "LSTM":
+        if type == "NN" and self.parameters.NEURON_TYPE == "LSTM":
             self.expReplayer = ExpReplay(parameters)
 
         self.reset()
@@ -521,6 +521,9 @@ class Bot(object):
         currentMass = self.player.getTotalMass()
         reward = currentMass - self.lastMass
         return reward
+
+    def getFrameSkipRate(self):
+        return self.parameters.FRAME_SKIP_RATE
 
     def getType(self):
         return self.type

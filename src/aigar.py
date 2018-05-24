@@ -216,7 +216,7 @@ def testModel(testModel, bot, n_training, reset_time, modelPath, name):
         masses.append(massOverTime)
         meanMasses.append(meanMass)
         maxMasses.append(maxMass)
-        print("Mean mass for run ", test, ": ", meanMass)
+        print("Mean mass for run ", test + 1, ": ", meanMass)
     meanScore = numpy.mean(meanMasses)
     stdMean = numpy.std(meanMasses)
     meanMaxScore = numpy.mean(maxMasses)
@@ -231,6 +231,7 @@ def runTests(model):
     print("Testing...")
     resetPellet = 10000
     resetGreedy = 20000
+    resetVirus = 15000
     n_test_runs = 10
     trainedBot = model.getNNBot()
     originalMassOverTime = trainedBot.getMassOverTime()
@@ -251,7 +252,14 @@ def runTests(model):
                                                     "vs_1_greedy")
         evaluations.append(greedyEvaluation)
 
-    # TODO: add more test scenarios for viruses, multiple greedy bots
+    if model.virusEnabled:
+        virusModel = Model(False, False, True, resetVirus, False)
+        virusModel.addBot(trainedBot)
+        virusEvaluation = testModel(virusModel, trainedBot, n_test_runs, resetVirus, model.getPath(),
+                                    "virus")
+        evaluations.append(virusEvaluation)
+
+    # TODO: add more test scenarios for multiple greedy bots and full model check
     print("Testing completed.")
     trainedBot.setMassesOverTime(originalMassOverTime)
 
@@ -393,10 +401,10 @@ if __name__ == '__main__':
     if not humanTraining:
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
     model.setTrainingEnabled(enableTrainMode == 1)
-    if enableTrainMode:
-        maxTrainSteps = str(input("For how many steps do you want to train?\n"))
-        paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
-        modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
+    #if enableTrainMode:
+    #    maxTrainSteps = str(input("For how many steps do you want to train?\n"))
+    #    paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
+    #    modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
 
@@ -445,13 +453,13 @@ if __name__ == '__main__':
         print("")
 
     if model.getTrainingEnabled():
+        runTests(model)
         model.save(True)
         model.saveModels()
         if model_in_subfolder:
             print(os.path.join(modelName))
             createCombinedModelGraphs(os.path.join(modelName))
 
-        runTests(model)
 
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 

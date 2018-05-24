@@ -291,14 +291,13 @@ class ActorCritic(object):
         self.std *= self.noise_decay_factor
 
     def updateCriticNetworks(self, time):
-        if time % self.parameters.TARGET_NETWORK_MAX_STEPS == 0:
+        if time % self.parameters.TARGET_NETWORK_STEPS == 0:
             self.critic.update_target_model()
 
     def updateNetworks(self, time):
         self.updateCriticNetworks(time)
 
     def learn(self, batch):
-        # TODO: actor should not be included in the replays.. I think??? Marco says this can be done
         self.train_critic(batch)
         if self.parameters.ACTOR_REPLAY_ENABLED:
             self.train_actor_batch(batch)
@@ -447,6 +446,12 @@ class ActorCritic(object):
     def save(self, path):
         self.actor.save(path)
         self.critic.save(path)
+
+    def setNoise(self, val):
+        self.std = val
+
+    def setTemperature(self, val):
+        self.temperature = val
 
     def reset(self):
         self.latestTDerror = None

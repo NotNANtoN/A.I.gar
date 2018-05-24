@@ -16,7 +16,56 @@ def createCombinedModelGraphs(path):
     plotTDErrorAndMean(path)
     plotMassesOverTime(path)
     plotQValuesOverTime(path)
+    print("Combining test results..")
+    combineTestResults(path)
     print("###############################")
+
+def combineTestResults(path):
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+
+    evaluations = {}
+    keyList = []
+    for model in modelList:
+        modelPath = path + "/" + model
+        for file in os.listdir(modelPath):
+            if not fnmatch.fnmatch(file, 'final_results*'):
+                continue
+            resultsPath = modelPath + "/" + file
+            with open(resultsPath, 'r') as f:
+                for line in f.readlines():
+                    words = line.split(sep=" ")
+                    # Only check for evaluation lines
+                    if len(words) == 11:
+                        name = words[0]
+                        maxScore = float(words[2])
+                        meanScore = float(words[4])
+                        stdMean = float(words[6])
+                        meanMaxScore = float(words[8])
+                        stdMax = float(words[10])
+                        evaluation = (name, maxScore, meanScore, stdMean, meanMaxScore, stdMax)
+                        # Create entry if it is not there yet
+                        try:
+                            evaluations[name]
+                        except KeyError:
+                            evaluations[name] = []
+                            keyList.append(name)
+                        evaluations[name].append(evaluation)
+
+    name_of_file = path + "/combined_final_results.txt"
+    with open(name_of_file, "w") as file:
+        data = ""
+        for key in keyList:
+            evalList = evaluations[key]
+            name = key
+            maxScore = str(round(max([evaluation[1] for evaluation in evalList]), 1))
+            meanScore = str(round(numpy.mean([evaluation[2] for evaluation in evalList]), 1))
+            stdMean = str(round(numpy.mean([evaluation[3] for evaluation in evalList]), 1))
+            meanMaxScore = str(round(numpy.mean([evaluation[4] for evaluation in evalList]), 1))
+            stdMax = str(round(numpy.mean([evaluation[5] for evaluation in evalList]), 1))
+            data += name + " Highscore: " + maxScore + " Mean: " + meanScore + " StdMean: " + stdMean \
+                    + " Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
+        file.write(data)
+
 
 def plotTDErrorAndMean(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]

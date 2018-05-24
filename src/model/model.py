@@ -330,7 +330,7 @@ class Model(object):
             if bot.type == "NN":
                 subPath = path + self.dataFiles[str(bot)+"_qValue"]
                 qList = bot.getLearningAlg().getQValues()
-                interval = int(self.pointAveraging / (bot.getLearningAlg().getFrameSkipRate() + 1))
+                interval = int(self.pointAveraging / (bot.getFrameSkipRate() + 1))
                 with open(subPath, "a") as f:
                     for value in range(0, len(qList), interval):
                         qValuesInRange = [i for i in qList[value:(value + interval)] if not math.isnan(i)]
