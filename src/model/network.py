@@ -1,5 +1,6 @@
 import heapq
 import keras
+keras.backend.set_image_dim_ordering('tf')
 import numpy
 import tensorflow as tf
 import importlib.util
@@ -42,17 +43,14 @@ class Network(object):
             self.kernelLen_1 = self.parameters.CNN_LAYER_1
             self.stride_1 = self.parameters.CNN_LAYER_1_STRIDE
             self.filterNum_1 = self.parameters.CNN_LAYER_1_FILTER_NUM
-            self.poolLen_1 = self.parameters.CNN_POOL_1
 
             self.kernelLen_2 = self.parameters.CNN_LAYER_2
             self.stride_2 = self.parameters.CNN_LAYER_2_STRIDE
             self.filterNum_2 = self.parameters.CNN_LAYER_2_FILTER_NUM
-            self.poolLen_2 = self.parameters.CNN_POOL_2
 
             self.kernelLen_3 = self.parameters.CNN_LAYER_3
             self.stride_3 = self.parameters.CNN_LAYER_3_STRIDE
             self.filterNum_3 = self.parameters.CNN_LAYER_3_FILTER_NUM
-            self.poolLen_3 = self.parameters.CNN_POOL_3
 
         # ANN
         self.learningRate = self.parameters.ALPHA
@@ -101,12 +99,11 @@ class Network(object):
             if self.parameters.CNN_REPRESENTATION:
                 if self.parameters.CNN_USE_LAYER_1:
                     inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-                    self.CNN_input_1 = (inputLen, inputLen, self.parameters.NUM_OF_GRIDS)
+                    self.CNN_input_1 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
                     cnn1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
-                                  strides=(self.stride_1, self.stride_1), activation='relu', input_shape=self.CNN_input_1)
+                                  strides=(self.stride_1, self.stride_1), activation='relu', input_shape=self.CNN_input_1,
+                                  data_format = 'channels_first')
                     self.valueNetwork.add(cnn1)
-                    pool1 = MaxPooling2D(pool_size=(self.poolLen_1, self.poolLen_1), strides=(self.poolLen_1, self.poolLen_1))
-                    self.valueNetwork.add(pool1)
 
                 if self.parameters.CNN_USE_LAYER_2:
                     if self.parameters.CNN_USE_LAYER_1:
@@ -114,25 +111,22 @@ class Network(object):
                                       strides=(self.stride_2, self.stride_2), activation='relu')
                     else:
                         inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
-                        self.CNN_input_2 = (inputLen, inputLen, self.parameters.NUM_OF_GRIDS)
+                        self.CNN_input_2 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
                         cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                      strides=(self.stride_2, self.stride_2), activation='relu', input_shape=self.CNN_input_2)
+                                      strides=(self.stride_2, self.stride_2), activation='relu', input_shape=self.CNN_input_2,
+                                      data_format='channels_first')
                     self.valueNetwork.add(cnn2)
-                    pool2 = MaxPooling2D(pool_size=(self.poolLen_2, self.poolLen_2), strides=(self.poolLen_2, self.poolLen_2))
-                    self.valueNetwork.add(pool2)
-
 
                 if self.parameters.CNN_USE_LAYER_2:
                     cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
                                   strides=(self.stride_3, self.stride_3), activation='relu')
                 else:
                     inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
-                    self.CNN_input_3 = (inputLen, inputLen, self.parameters.NUM_OF_GRIDS)
+                    self.CNN_input_3 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
                     cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                  strides=(self.stride_3, self.stride_3), activation='relu', input_shape=self.CNN_input_3)
+                                  strides=(self.stride_3, self.stride_3), activation='relu', input_shape=self.CNN_input_3,
+                                  data_format='channels_first')
                 self.valueNetwork.add(cnn3)
-                pool3 = MaxPooling2D(pool_size=(self.poolLen_3, self.poolLen_3), strides=(self.poolLen_3, self.poolLen_3))
-                self.valueNetwork.add(pool3)
                 self.valueNetwork.add(Flatten())
 
             # Fully connected layers

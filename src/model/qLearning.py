@@ -16,11 +16,14 @@ class QLearn(object):
         self.qValues = []
         if self.parameters.CNN_REPRESENTATION:
             if self.parameters.CNN_USE_LAYER_1:
-                self.input_len = self.parameters.CNN_SIZE_OF_INPUT_DIM_1 **2 * self.parameters.NUM_OF_GRIDS
+                self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_1,
+                                  self.parameters.CNN_SIZE_OF_INPUT_DIM_1)
             elif self.parameters.CNN_USE_LAYER_2:
-                self.input_len = self.parameters.CNN_SIZE_OF_INPUT_DIM_2 **2 * self.parameters.NUM_OF_GRIDS
+                self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_2,
+                                  self.parameters.CNN_SIZE_OF_INPUT_DIM_2)
             else:
-                self.input_len = self.parameters.CNN_SIZE_OF_INPUT_DIM_3 **2 * self.parameters.NUM_OF_GRIDS
+                self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_3,
+                                  self.parameters.CNN_SIZE_OF_INPUT_DIM_3)
         else:
             self.input_len = parameters.STATE_REPR_LEN
         self.output_len = network.num_actions
@@ -92,8 +95,17 @@ class QLearn(object):
 
     def train(self, batch):
         batch_len = len(batch)
-        inputs = numpy.zeros((batch_len, self.input_len))
+        # In the case of CNN, self.input_len has several dimensions
+        if self.parameters.CNN_REPRESENTATION:
+            inputDims = [batch_len]
+            for dimension in self.input_len:
+                inputDims.append(dimension)
+            inputs = numpy.zeros(inputDims)
+            print(numpy.shape(inputs))
+        else:
+            inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, self.output_len))
+
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
             # No new state: dead
