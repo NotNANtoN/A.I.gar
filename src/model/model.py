@@ -106,6 +106,7 @@ class Model(object):
 
     def update(self):
         self.counter += 1
+        print(self.counter)
         # Reset the model after self.resetLimit steps:
         if self.resetLimit > 0 and self.counter > 0 and  self.counter % self.resetLimit  == 0:
             self.resetModel()

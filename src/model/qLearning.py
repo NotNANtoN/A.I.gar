@@ -101,7 +101,6 @@ class QLearn(object):
             for dimension in self.input_len:
                 inputDims.append(dimension)
             inputs = numpy.zeros(inputDims)
-            print(numpy.shape(inputs))
         else:
             inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, self.output_len))
