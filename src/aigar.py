@@ -232,7 +232,7 @@ def runTests(model):
     resetPellet = 10000
     resetGreedy = 20000
     resetVirus = 15000
-    n_test_runs = 10
+    n_test_runs = 1
     trainedBot = model.getNNBot()
     originalMassOverTime = trainedBot.getMassOverTime()
     trainedBot.setTrainingEnabled(False)
