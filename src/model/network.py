@@ -243,6 +243,7 @@ class Network(object):
     def load(self, modelName):
         path = modelName
         self.loadedModelName = modelName
+        print(path, "AAAAAAAAAAAA")
         self.valueNetwork = load_model(path + "model.h5")
         self.targetNetwork = load_model(path + "model.h5")
 

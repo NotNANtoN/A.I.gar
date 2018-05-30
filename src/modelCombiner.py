@@ -235,6 +235,7 @@ def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None):
     y_lower_bound = y - ysigma
     y_upper_bound = y + ysigma
 
+    matplotlib.pyplot.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
     plt.clf()
     fig, ax = plt.subplots(1)
     ax.plot(x, y, lw=2, label=labels["meanLabel"], color='blue')

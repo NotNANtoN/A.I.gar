@@ -1,0 +1,78 @@
+--------------------------------------------------------------------------
+A process has executed an operation involving a call to the
+"fork()" system call to create a child process.  Open MPI is currently
+operating in a condition that could result in memory corruption or
+other system errors; your job may hang, crash, or produce silent
+data corruption.  The use of fork() (or system() or other calls that
+create child processes) is strongly discouraged.
+
+The process that invoked fork was:
+
+  Local host:          [[30653,1],0] (PID 67009)
+
+If you are *absolutely sure* that your application will successfully
+and correctly survive a call to fork(), you may disable this warning
+by setting the mpi_warn_on_fork MCA parameter to 0.
+--------------------------------------------------------------------------
+/software/software/h5py/2.7.1-foss-2018a-Python-3.6.4/lib/python3.6/site-packages/h5py-2.7.1-py3.6-linux-x86_64.egg/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+Enable GUI?: (1 == yes)
+Viruses enabled? (1==True)
+Reset model after X steps (X==0 means no reset)
+Do you want to load a model? (1 == yes)
+What learning algorithm do you want to use?
+'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,
+'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5
+Do you want to tweak parameters? (1 == yes)
+Enter name of parameter to be tweaked:
+FOUND
+Enter parameter value:
+Tweak another parameter? (1 == yes)
+Enter name of parameter to be tweaked:
+FOUND
+Enter parameter value:
+Tweak another parameter? (1 == yes)
+Give saveModel folder a custom name? (1 == yes)
+/home/s2705338/A.I.gar/src/savedModels/CNN_REPRESENTATION=True&CNN_LAYER_3_FILTER_NUM=30 savedModels/CNN_REPRESENTATION=True&CNN_LAYER_3_FILTER_NUM=30
+Do you want to train the network?: (1 == yes)
+[pg-node161:67009] PMIX ERROR: UNPACK-PAST-END in file src/client/pmix_client.c at line 100
+slurmstepd: error: Detected 1 oom-kill event(s) in step 1288989.batch cgroup.
+
+
+###############################################################################
+Peregrine Cluster
+Job 1288989 for user 's2705338'
+Finished at: Tue May 29 06:57:24 CEST 2018
+
+Job details:
+============
+
+Name                : jobScript_Nil.sh
+User                : s2705338
+Partition           : regular
+Nodes               : pg-node161
+Cores               : 1
+State               : OUT_OF_MEMORY
+Submit              : 2018-05-28T00:11:23
+Start               : 2018-05-28T00:11:26
+End                 : 2018-05-29T06:57:24
+Reserved walltime   : 2-23:00:00
+Used walltime       : 1-06:45:58
+Used CPU time       : 1-06:45:07 (efficiency: 99.95%)
+% User (Computation): 97.96%
+% System (I/O)      :  2.04%
+Mem reserved        : 20000M/node
+Max Mem used        : 19.50G (pg-node161)
+Max Disk Write      : 81.92K (pg-node161)
+Max Disk Read       : 2.57M (pg-node161)
+
+
+Acknowledgements:
+=================
+
+Please see this page if you want to acknowledge Peregrine in your publications:
+
+https://redmine.hpc.rug.nl/redmine/projects/peregrine/wiki/ScientificOutput
+
+################################################################################

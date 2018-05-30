@@ -331,10 +331,13 @@ if __name__ == '__main__':
             print("Saved Models: \n")
             for folder in [i for i in os.listdir("savedModels/")]:
                 print(folder)
-            modelName = input("Enter the model name (name of directory in savedModels): (Empty string == break) \n")
+            modelName = input("Enter the model name (name of directory in savedModels): (Empty string == break)\n")
+            # If user presses enter, quit model loading
             if str(modelName) == "":
                 loadModel = False
+                modelName = None
                 break
+            # If user inputs wrong model name, ask for input again
             path = "savedModels/" + modelName + "/"
             if not os.path.exists(path):
                 print("Invalid model name, no model found under ", path)
@@ -347,16 +350,16 @@ if __name__ == '__main__':
                     for folder in [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]:
                         print(folder)
                     subModelName = input("Enter the submodel name: (Empty string == break)\n")
+                    # If user presses enter, leave model
                     if str(subModelName) == "":
                         break
                     subPath = path + subModelName + "/"
                     if not os.path.exists(subPath):
                         print("Invalid model name, no model found under ", subPath)
-                        packageName = None
                         continue
                     packageName = "savedModels." + modelName + "." + subModelName
                     loadedModelName = subPath
-                    modelName = path
+                    # modelName = path
                     model_in_subfolder = True
                 if packageName is None:
                     continue
@@ -370,6 +373,7 @@ if __name__ == '__main__':
             parameters = importlib.import_module('.networkParameters', package=packageName)
             algorithm = algorithmNameToNumber(parameters.ALGORITHM)
             # model.setPath(modelName)
+        modelName = None
 
     tweakedTotal = []
     if not loadModel:
@@ -378,24 +382,26 @@ if __name__ == '__main__':
         algorithm = int(input("What learning algorithm do you want to use?\n" + \
         "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
         "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
-        tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
-        if tweaking == 1:
-            while True:
-                tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
-                paramLineNumber = checkValidParameter(tweakedParameter)
-                if paramLineNumber is not None:
-                    paramValue = str(input("Enter parameter value:\n"))
-                    tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
-                if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
-                    break
-            modelName = "savedModels/" + nameSavedModelFolder(tweakedTotal)
-            model_in_subfolder = True
+    tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
+    if tweaking == 1:
+        while True:
+            tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
+            paramLineNumber = checkValidParameter(tweakedParameter)
+            if paramLineNumber is not None:
+                paramValue = str(input("Enter parameter value:\n"))
+                tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
+            if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
+                break
+        modelName = "savedModels/" + nameSavedModelFolder(tweakedTotal)
+        model_in_subfolder = True
 
 
-        if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
-            modelName = "savedModels/" + str(input("Input folder name:\n"))
-    model.initModelFolder(modelName)
+    if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
+        modelName = "savedModels/" + str(input("Input folder name:\n"))
+    model.initModelFolder(modelName, loadedModelName)
 
+    if tweakedTotal:
+        modifyParameterValue(tweakedTotal, model)
 
     enableTrainMode = humanTraining if humanTraining is not None else False
     if not humanTraining:
@@ -405,9 +411,8 @@ if __name__ == '__main__':
     #    maxTrainSteps = str(input("For how many steps do you want to train?\n"))
     #    paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
     #    modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
-    if tweakedTotal:
-        modifyParameterValue(tweakedTotal, model)
 
+    print(model.getPath())
     parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
     numberOfNNBots = parameters.NUM_NN_BOTS
     numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
@@ -416,7 +421,7 @@ if __name__ == '__main__':
 
 
     Bot.init_exp_replayer(parameters)
-    createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadedModelName)
+    createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
@@ -425,7 +430,6 @@ if __name__ == '__main__':
 
     if numberOfNNBots == 0:
          model.setTrainingEnabled(False)
-
 
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()

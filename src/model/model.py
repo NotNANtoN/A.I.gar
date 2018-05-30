@@ -174,12 +174,12 @@ class Model(object):
             bot.reset()
 
 
-    def initModelFolder(self, name = None):
+    def initModelFolder(self, name = None, loadedModelName = None):
         if name is None:
             self.createPath()
         else:
             self.createNamedPath(name)
-        self.copyParameters()
+        self.copyParameters(loadedModelName)
 
 
     def createPath(self):
@@ -231,10 +231,12 @@ class Model(object):
         path += "/"
         self.path = path
 
-    def copyParameters(self):
+    def copyParameters(self, loadedModelName = None):
         # Copy the simulation, NN and RL parameters so that we can load them later on
         shutil.copy("model/networkParameters.py", self.path)
         shutil.copy("model/parameters.py", self.path)
+        if loadedModelName is not None:
+            shutil.copy(loadedModelName + "model.h5", self.path)
 
     def addDataFilesToDictionary(self):
         self.dataFiles.update({"Error": "tdErrors.txt", "Reward": "rewards.txt"})
@@ -362,8 +364,21 @@ class Model(object):
         data += "Discount factor - " + str(parameters.DISCOUNT) + "\n"
         data += "Frame skip rate - " + str(parameters.FRAME_SKIP_RATE) + "\n"
         data += "State representation - " + ("Grid" if parameters.GRID_VIEW_ENABLED else "Simple") + "\n"
+        data += "CNN representation - " + ("True" if parameters.CNN_REPRESENTATION else "False") + "\n"
+
         if parameters.GRID_VIEW_ENABLED:
-            data += "Grid - " + str(parameters.GRID_SQUARES_PER_FOV) + "x" +  str(parameters.GRID_SQUARES_PER_FOV)  + "\n"
+            if parameters.CNN_REPRESENTATION:
+                if parameters.CNN_USE_LAYER_1:
+                    data += "Grid - " + str(parameters.CNN_SIZE_OF_INPUT_DIM_1) + "x" + str(
+                        parameters.CNN_SIZE_OF_INPUT_DIM_1) + "\n"
+                elif parameters.CNN_USE_LAYER_2:
+                    data += "Grid - " + str(parameters.CNN_SIZE_OF_INPUT_DIM_2) + "x" + str(
+                        parameters.CNN_SIZE_OF_INPUT_DIM_2) + "\n"
+                else:
+                    data += "Grid - " + str(parameters.CNN_SIZE_OF_INPUT_DIM_3) + "x" + str(
+                        parameters.CNN_SIZE_OF_INPUT_DIM_3) + "\n"
+            else:
+                data += "Grid - " + str(parameters.GRID_SQUARES_PER_FOV) + "x" +  str(parameters.GRID_SQUARES_PER_FOV)  + "\n"
         data += "Experience Replay - " + ("Enabled" if parameters.EXP_REPLAY_ENABLED else "Disabled") + "\n"
         data += "Target Network steps until update - " + str(parameters.TARGET_NETWORK_STEPS) + "\n"
 
