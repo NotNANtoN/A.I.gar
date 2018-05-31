@@ -5,4 +5,5 @@ src/controller/__pycache__/*.*
 src/model/__pycache__/*.*
 src/view/__pycache__/*.*
 src/savedModels/
+src/savedModels_old/
 /workspace.xml

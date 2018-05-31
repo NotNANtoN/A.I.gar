@@ -196,39 +196,34 @@ class Model(object):
             path = basePath + "$" + nowStr + "$"
         os.makedirs(path)
         path += "/"
+        print("Path: ", path)
+
         self.path = path
 
     def createNamedPath(self, name):
         #Create savedModels folder
-        basePath = "savedModels"
+        basePath = "savedModels/"
         if not os.path.exists(basePath):
             os.makedirs(basePath)
         #Create subFolder for given parameter tweaking
-        subPath = name
-        subName = os.getcwd() + "/" + subPath
-        print(subName, subPath)
+        superName = basePath + name
+        osPath = os.getcwd() + "/" + superName
         time.sleep(numpy.random.rand())
-        if not os.path.exists(subName):
-            os.makedirs(subName)
+        if not os.path.exists(osPath):
+            os.makedirs(osPath)
         #Create folder based on name
         now = datetime.datetime.now()
         self.startTime = now
         nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
-        path = subPath  + "$" + nowStr + "$"
+        path = superName  + "$" + nowStr + "$"
         time.sleep(numpy.random.rand())
-        # Also display seconds in name if we already have a model this minute
-        #if os.path.exists(path):
-        #    nowStr = now.strftime("%b-%d_%H:%M:%S")
-        #    path = subPath + "/" + "$" + nowStr + "$"
-        #    if os.path.exists(path):
-        #        nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
-        #        path = subPath + "/" + "$" + nowStr + "$"
-
         if os.path.exists(path):
             randNum = numpy.random.randint(100000)
-            path = subPath + "$" + nowStr + "-" + str(randNum) + "$"
+            path = superName + "$" + nowStr + "-" + str(randNum) + "$"
         os.makedirs(path)
         path += "/"
+        print("Super Path: ", superName)
+        print("Path: ", path)
         self.path = path
 
     def copyParameters(self, loadedModelName = None):

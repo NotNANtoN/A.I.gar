@@ -456,7 +456,7 @@ if __name__ == '__main__':
         print("")
 
     if model.getTrainingEnabled():
-        runTests(model)
+        # runTests(model)
         model.save(True)
         model.saveModels()
         if model_in_subfolder:
