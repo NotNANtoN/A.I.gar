@@ -93,7 +93,6 @@ class Bot(object):
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
             self.trainMode = trainMode
-            self.learningAlg.load(modelName)
 
         self.type = bot_type
         self.player = player

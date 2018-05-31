@@ -8,14 +8,14 @@ import keras.backend as K
 from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
-from keras.models import load_model
+from keras.models import load_model, save_model
 
 
 from .parameters import *
 
 class Network(object):
 
-    def __init__(self, trainMode, modelName, parameters):
+    def __init__(self, trainMode, modelName, parameters, loadModel):
         self.parameters = parameters
         self.trainMode = trainMode
 
@@ -216,7 +216,7 @@ class Network(object):
                                         return_sequences=False, stateful=True, batch_size=self.batch_len))
             self.actionNetwork.compile(loss='mse', optimizer=optimizer)
 
-        if modelName is not None:
+        if loadModel:
             self.load(modelName)
 
 
@@ -243,8 +243,7 @@ class Network(object):
     def load(self, modelName):
         path = modelName
         self.loadedModelName = modelName
-        print(path, "AAAAAAAAAAAA")
-        self.valueNetwork = load_model(path + "model.h5")
+        self.valueNetwork = keras.models.load_model(path + "model.h5")
         self.targetNetwork = load_model(path + "model.h5")
 
     def trainOnBatch(self, inputs, targets):

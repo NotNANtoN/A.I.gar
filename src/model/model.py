@@ -183,17 +183,17 @@ class Model(object):
 
 
     def createPath(self):
-        basePath = "savedModels"
+        basePath = "savedModels/"
         if not os.path.exists(basePath):
             os.makedirs(basePath)
         now = datetime.datetime.now()
         self.startTime = now
         nowStr = now.strftime("%b-%d_%H:%M")
-        path = basePath + "/" + "$" + nowStr + "$"
+        path = basePath + "$" + nowStr + "$"
         # Also display seconds in name if we already have a model this minute
         if os.path.exists(path):
             nowStr = now.strftime("%b-%d_%H:%M:%S")
-            path = basePath + "/" + "$" + nowStr + "$"
+            path = basePath + "$" + nowStr + "$"
         os.makedirs(path)
         path += "/"
         self.path = path
@@ -214,7 +214,7 @@ class Model(object):
         now = datetime.datetime.now()
         self.startTime = now
         nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
-        path = subPath + "/"  + "$" + nowStr + "$"
+        path = subPath  + "$" + nowStr + "$"
         time.sleep(numpy.random.rand())
         # Also display seconds in name if we already have a model this minute
         #if os.path.exists(path):
@@ -226,7 +226,7 @@ class Model(object):
 
         if os.path.exists(path):
             randNum = numpy.random.randint(100000)
-            path = subPath + "/"  + "$" + nowStr + "-" + str(randNum) + "$"
+            path = subPath + "$" + nowStr + "-" + str(randNum) + "$"
         os.makedirs(path)
         path += "/"
         self.path = path
@@ -541,10 +541,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type, learningAlg = None, parameters = None, modelName = None):
+    def createBot(self, type, learningAlg = None, parameters = None, modelPath = None):
         name = type + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg, parameters, modelName)
+        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg, parameters, modelPath)
         self.addBot(bot)
 
     def createHuman(self, name):

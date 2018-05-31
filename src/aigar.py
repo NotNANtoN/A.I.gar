@@ -130,6 +130,7 @@ def nameSavedModelFolder(array):
         if i != 0:
             name += "&"
         name += array[i][0] + "=" + str(array[i][1]).replace('.', '_')
+        name += '/'
     return name
 
 
@@ -164,7 +165,7 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, parameters, algorithm = None, loadedModelName = None):
+def createBots(number, model, type, parameters, algorithm = None, loadModel = None):
     learningAlg = None
     if type == "NN":
         Bot.num_NNbots = number
@@ -173,7 +174,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
             # Create algorithm instance
             #Discrete algorithms
             if algorithm in [0,1,4,5]:
-                network = Network(enableTrainMode, loadedModelName, parameters)
+                network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
                 if algorithm == 0:
                     learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
                 elif algorithm == 1:
@@ -185,13 +186,13 @@ def createBots(number, model, type, parameters, algorithm = None, loadedModelNam
 
             #AC algorithms
             elif algorithm == 2:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, False, loadedModelName)
+                learningAlg = ActorCritic(parameters, numberOfNNBots, False, model.getPath())
             elif algorithm == 3:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, True, loadedModelName)
+                learningAlg = ActorCritic(parameters, numberOfNNBots, True, model.getPath())
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
-            model.createBot(type, learningAlg, parameters, loadedModelName)
+            model.createBot(type, learningAlg, parameters)
     elif type == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
@@ -373,7 +374,6 @@ if __name__ == '__main__':
             parameters = importlib.import_module('.networkParameters', package=packageName)
             algorithm = algorithmNameToNumber(parameters.ALGORITHM)
             # model.setPath(modelName)
-        modelName = None
 
     tweakedTotal = []
     if not loadModel:
@@ -395,9 +395,9 @@ if __name__ == '__main__':
         modelName = "savedModels/" + nameSavedModelFolder(tweakedTotal)
         model_in_subfolder = True
 
-
     if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
         modelName = "savedModels/" + str(input("Input folder name:\n"))
+
     model.initModelFolder(modelName, loadedModelName)
 
     if tweakedTotal:
@@ -412,7 +412,6 @@ if __name__ == '__main__':
     #    paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
     #    modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
 
-    print(model.getPath())
     parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
     numberOfNNBots = parameters.NUM_NN_BOTS
     numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
@@ -421,7 +420,7 @@ if __name__ == '__main__':
 
 
     Bot.init_exp_replayer(parameters)
-    createBots(numberOfNNBots, model, "NN", parameters, algorithm, modelName)
+    createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
