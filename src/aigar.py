@@ -130,7 +130,7 @@ def nameSavedModelFolder(array):
         if i != 0:
             name += "&"
         name += array[i][0] + "=" + str(array[i][1]).replace('.', '_')
-        name += '/'
+    name += '/'
     return name
 
 
