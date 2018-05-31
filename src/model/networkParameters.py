@@ -61,7 +61,7 @@ TRACE_MIN = 4 # The minimum amount of traces that are not trained on, as they ha
 MEMORY_TRACE_LEN = 15 # The length of memory traces retrieved via exp replay
 
 # CNN
-CNN_REPRESENTATION = True
+CNN_REPRESENTATION = False
 CNN_PIXEL_REPRESENTATION = False
 CNN_USE_LAYER_1 = False
 CNN_LAYER_1 = 5

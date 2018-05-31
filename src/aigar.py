@@ -174,6 +174,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
             # Create algorithm instance
             #Discrete algorithms
             if algorithm in [0,1,4,5]:
+                print(i)
                 network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
                 if algorithm == 0:
                     learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
@@ -318,9 +319,9 @@ if __name__ == '__main__':
 
 
     modelName = None
+    modelPath = None
     loadedModelName = None
     algorithm = None
-    learningAlg = None
     packageName = None
     model_in_subfolder = False
     loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
@@ -339,22 +340,22 @@ if __name__ == '__main__':
                 modelName = None
                 break
             # If user inputs wrong model name, ask for input again
-            path = "savedModels/" + modelName + "/"
-            if not os.path.exists(path):
-                print("Invalid model name, no model found under ", path)
+            modelPath = "savedModels/" + modelName + "/"
+            if not os.path.exists(modelPath):
+                print("Invalid model name, no model found under ", modelPath)
                 continue
             # CHECK FOR SUBFOLDERS
             if str(modelName)[0] != "$":
                 while packageName is None:
                     print("------------------------------------")
                     print("Folder Submodels: \n")
-                    for folder in [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]:
+                    for folder in [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]:
                         print(folder)
                     subModelName = input("Enter the submodel name: (Empty string == break)\n")
                     # If user presses enter, leave model
                     if str(subModelName) == "":
                         break
-                    subPath = path + subModelName + "/"
+                    subPath = modelPath + subModelName + "/"
                     if not os.path.exists(subPath):
                         print("Invalid model name, no model found under ", subPath)
                         continue
@@ -367,7 +368,7 @@ if __name__ == '__main__':
 
             if packageName is None:
                 packageName = "savedModels." + modelName
-                loadedModelName = path
+                loadedModelName = modelPath
                 # ModelName = None will autogenereate a name
                 modelName = None
         if packageName is not None:
@@ -392,13 +393,13 @@ if __name__ == '__main__':
                 tweakedTotal.append([tweakedParameter, paramValue, paramLineNumber])
             if 1 != int(input("Tweak another parameter? (1 == yes)\n")):
                 break
-        modelName = "savedModels/" + nameSavedModelFolder(tweakedTotal)
+        modelPath = "savedModels/" + nameSavedModelFolder(tweakedTotal)
         model_in_subfolder = True
 
     if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
-        modelName = "savedModels/" + str(input("Input folder name:\n"))
+        modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
-    model.initModelFolder(modelName, loadedModelName)
+    model.initModelFolder(modelPath, loadedModelName)
 
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
@@ -460,8 +461,8 @@ if __name__ == '__main__':
         model.save(True)
         model.saveModels()
         if model_in_subfolder:
-            print(os.path.join(modelName))
-            createCombinedModelGraphs(os.path.join(modelName))
+            print(os.path.join(modelPath))
+            createCombinedModelGraphs(os.path.join(modelPath))
 
 
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))

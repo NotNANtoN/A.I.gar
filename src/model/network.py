@@ -216,6 +216,7 @@ class Network(object):
                                         return_sequences=False, stateful=True, batch_size=self.batch_len))
             self.actionNetwork.compile(loss='mse', optimizer=optimizer)
 
+        print(self.valueNetwork.summary())
         if loadModel:
             self.load(modelName)
 

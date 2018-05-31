@@ -200,13 +200,12 @@ class Model(object):
 
         self.path = path
 
-    def createNamedPath(self, name):
+    def createNamedPath(self, superName):
         #Create savedModels folder
         basePath = "savedModels/"
         if not os.path.exists(basePath):
             os.makedirs(basePath)
         #Create subFolder for given parameter tweaking
-        superName = basePath + name
         osPath = os.getcwd() + "/" + superName
         time.sleep(numpy.random.rand())
         if not os.path.exists(osPath):
@@ -228,9 +227,12 @@ class Model(object):
 
     def copyParameters(self, loadedModelName = None):
         # Copy the simulation, NN and RL parameters so that we can load them later on
-        shutil.copy("model/networkParameters.py", self.path)
-        shutil.copy("model/parameters.py", self.path)
-        if loadedModelName is not None:
+        if loadedModelName is None:
+            shutil.copy("model/networkParameters.py", self.path)
+            shutil.copy("model/parameters.py", self.path)
+        else:
+            shutil.copy(loadedModelName + "networkParameters.py", self.path)
+            shutil.copy(loadedModelName + "parameters.py", self.path)
             shutil.copy(loadedModelName + "model.h5", self.path)
 
     def addDataFilesToDictionary(self):
