@@ -178,7 +178,10 @@ class Model(object):
         if name is None:
             self.createPath()
         else:
-            self.createNamedPath(name)
+            if loadedModelName is None:
+                self.createNamedPath(name)
+            else:
+                self.createLoadPath(loadedModelName)
         self.copyParameters(loadedModelName)
 
 
@@ -197,7 +200,33 @@ class Model(object):
         os.makedirs(path)
         path += "/"
         print("Path: ", path)
+        self.path = path
 
+    def countLoadDepth(self, loadedModelName):
+        print(loadedModelName[-3], loadedModelName[-6:-4])
+        if loadedModelName[-3] == ")" and loadedModelName[-6:-4] == "(l":
+            loadDepth = int(loadedModelName[-4]) + 1
+        else:
+            loadDepth = 1
+        loadString = "(l" + str(loadDepth) + ")"
+        return loadString
+
+    def createLoadPath(self, loadedModelName):
+        loadDepth = self.countLoadDepth(loadedModelName)
+        basePath = "savedModels/"
+        if not os.path.exists(basePath):
+            os.makedirs(basePath)
+        now = datetime.datetime.now()
+        self.startTime = now
+        nowStr = now.strftime("%b-%d_%H:%M")
+        path = basePath + "$" + nowStr + loadDepth + "$"
+        # Also display seconds in name if we already have a model this minute
+        if os.path.exists(path):
+            nowStr = now.strftime("%b-%d_%H:%M:%S")
+            path = basePath + "$" + nowStr + loadDepth + "$"
+        os.makedirs(path)
+        path += "/"
+        print("Path: ", path)
         self.path = path
 
     def createNamedPath(self, superName):
