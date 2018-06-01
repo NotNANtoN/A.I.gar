@@ -399,7 +399,7 @@ if __name__ == '__main__':
     if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
-    model.initModelFolder(modelPath, loadedModelName)
+    model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
 
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)

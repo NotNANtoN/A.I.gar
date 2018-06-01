@@ -174,14 +174,17 @@ class Model(object):
             bot.reset()
 
 
-    def initModelFolder(self, name = None, loadedModelName = None):
+    def initModelFolder(self, name = None, loadedModelName = None, model_in_subfolder = None):
         if name is None:
             self.createPath()
         else:
             if loadedModelName is None:
                 self.createNamedPath(name)
             else:
-                self.createLoadPath(loadedModelName)
+                if model_in_subfolder:
+                    self.createNamedLoadPath(name, loadedModelName)
+                else:
+                    self.createLoadPath(loadedModelName)
         self.copyParameters(loadedModelName)
 
 
@@ -203,12 +206,11 @@ class Model(object):
         self.path = path
 
     def countLoadDepth(self, loadedModelName):
-        print(loadedModelName[-3], loadedModelName[-6:-4])
         if loadedModelName[-3] == ")" and loadedModelName[-6:-4] == "(l":
             loadDepth = int(loadedModelName[-4]) + 1
         else:
             loadDepth = 1
-        loadString = "(l" + str(loadDepth) + ")"
+        loadString = "_(l" + str(loadDepth) + ")"
         return loadString
 
     def createLoadPath(self, loadedModelName):
@@ -226,6 +228,43 @@ class Model(object):
             path = basePath + "$" + nowStr + loadDepth + "$"
         os.makedirs(path)
         path += "/"
+        print("Path: ", path)
+        self.path = path
+
+    def countNamedLoadDepth(self, superName, loadedModelName):
+        char = -3
+        while loadedModelName[char] != "/":
+            char -= 1
+        if loadedModelName[char-1] == ")" and loadedModelName[char-4:char-2] == "(l":
+            loadDepth = int(loadedModelName[char-2]) + 1
+        else:
+            loadDepth = 1
+        loadString = "_(l" + str(loadDepth) + ")"
+        superName = superName[0:len(superName)-1] + loadString + "/"
+        return superName
+
+    def createNamedLoadPath(self, superName, loadedModelName):
+        superName = self.countNamedLoadDepth(superName, loadedModelName)
+        basePath = "savedModels/"
+        if not os.path.exists(basePath):
+            os.makedirs(basePath)
+        # Create subFolder for given parameter tweaking
+        osPath = os.getcwd() + "/" + superName
+        time.sleep(numpy.random.rand())
+        if not os.path.exists(osPath):
+            os.makedirs(osPath)
+        # Create folder based on name
+        now = datetime.datetime.now()
+        self.startTime = now
+        nowStr = now.strftime("%b-%d_%H:%M:%S:%f")
+        path = superName + "$" + nowStr + "$"
+        time.sleep(numpy.random.rand())
+        if os.path.exists(path):
+            randNum = numpy.random.randint(100000)
+            path = superName + "$" + nowStr + "-" + str(randNum) + "$"
+        os.makedirs(path)
+        path += "/"
+        print("Super Path: ", superName)
         print("Path: ", path)
         self.path = path
 
