@@ -30,13 +30,13 @@ ALPHA = 0.0001
 NUM_ACTIONS = 16 # That number plus 1 (for standing still)
 OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
-ELU_ALPHA = 1 # 1 is default of keras, we used that so far.
+ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
 ACTIVATION_FUNC_OUTPUT = 'linear'
 EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 1500
 DISCOUNT = 0.85 # Higher discount seems to lead to much more stable learning, less variance
-USE_ACTION_AS_INPUT = False #TODO: still needs to be implemented
+USE_ACTION_AS_INPUT = False
 TD = 0
 Exploration = True
 EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration

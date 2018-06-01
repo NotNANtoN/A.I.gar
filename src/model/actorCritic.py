@@ -117,7 +117,7 @@ class ValueNetwork(object):
             path = modelName
             self.loadedModelName = modelName
             self.model = load_model(path + "value_model.h5")
-            self.target_model = load_model(path + "/value_model.h5")
+            self.target_model = load_model(path + "value_model.h5")
 
     def predict(self, state):
         return self.model.predict(numpy.array([state]))[0][0]
