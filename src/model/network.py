@@ -3,7 +3,6 @@ import keras
 keras.backend.set_image_dim_ordering('tf')
 import numpy
 import tensorflow as tf
-import importlib.util
 import keras.backend as K
 from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten
 from keras.models import Sequential
@@ -13,21 +12,35 @@ from keras.models import load_model, save_model
 
 from .parameters import *
 
+def createDiscreteActions(numActions, enableSplit, enableEject):
+    actions = []
+    # Add standing still action:
+    actions.append([0.5, 0.5, False, False])
+    # Add all other actions:
+    degPerAction = 360 / numActions
+    for degreeCount in range(numActions):
+        degree = math.radians(degreeCount * degPerAction)
+        x = math.cos(degree)
+        y = math.sin(degree)
+        action = [x, y, False, False]
+        actions.append(action)
+        if enableSplit:
+            splitAction = [x, y, True, False]
+            actions.append(splitAction)
+        if enableEject:
+            ejectAction = [x, y, False, True]
+            actions.append(ejectAction)
+    return actions
+
 class Network(object):
 
     def __init__(self, trainMode, modelName, parameters, loadModel):
         self.parameters = parameters
         self.trainMode = trainMode
 
-        self.actions = [[x, y, split, eject] for x in [0, 0.5, 1] for y in [0, 0.5, 1] for split in [0, 1] for
-                   eject in [0, 1]]
-        # Filter out actions that do a split and eject at the same time
-        # Also filter eject actions for now
-        for action in self.actions[:]:
-            if action[2] or action[3]:
-                self.actions.remove(action)
-
+        self.actions = createDiscreteActions(self.parameters.NUM_ACTIONS, self.parameters.ENABLE_SPLIT, self.parameters.ENABLE_EJECT)
         self.num_actions = len(self.actions)
+
         self.loadedModelName = None
 
         self.gpus = self.parameters.GPUS
@@ -55,7 +68,11 @@ class Network(object):
         # ANN
         self.learningRate = self.parameters.ALPHA
         self.optimizer = self.parameters.OPTIMIZER
-        self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN
+        if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+            eluAlpha = self.parameters.ELU_ALPHA
+            self.activationFuncHidden = lambda x: keras.activations.elu(x, eluAlpha)
+        else:
+            self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN
         self.activationFuncLSTM = self.parameters.ACTIVATION_FUNC_LSTM
         self.activationFuncOutput = self.parameters.ACTIVATION_FUNC_OUTPUT
 
@@ -75,9 +92,14 @@ class Network(object):
             stateful_training = True
             self.batch_len = 1
 
-        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + self.num_actions))
-        initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
-                                                       maxval=weight_initializer_range, seed=None)
+        if self.parameters.INITIALIZER == "glorot_uniform":
+            initializer = keras.initializers.glorot_uniform()
+        elif self.parameters.INITIALIZER == "glorot_normal":
+            initializer = keras.initializers.glorot_normal()
+        else:
+            weight_initializer_range = math.sqrt(6 / (self.stateReprLen + self.num_actions))
+            initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
+                                                           maxval=weight_initializer_range, seed=None)
         if self.gpus > 1:
             with tf.device("/cpu:0"):
                 self.valueNetwork = Sequential()
@@ -168,19 +190,23 @@ class Network(object):
                 #     hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences = True,
                 #                    stateful= stateful_training, batch_size=self.batch_len)
                 hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences=True,
-                               stateful= stateful_training, batch_size=self.batch_len)
+                               stateful= stateful_training, batch_size=self.batch_len, bias_initializer=initializer
+                          , kernel_initializer=initializer)
                 self.valueNetwork.add(hidden1)
                 # Hidden 2
                 if self.hiddenLayer2 > 0:
-                    hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                    hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len, bias_initializer=initializer
+                          , kernel_initializer=initializer)
                     self.valueNetwork.add(hidden2)
                 # Hidden 3
                 if self.hiddenLayer3 > 0:
-                    hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                    hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len, bias_initializer=initializer
+                          , kernel_initializer=initializer)
                     self.valueNetwork.add(hidden3)
                 # Output layer
                 output = LSTM(self.num_actions, activation=self.activationFuncOutput,
-                     return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+                     return_sequences=True, stateful=stateful_training, batch_size=self.batch_len, bias_initializer=initializer
+                          , kernel_initializer=initializer)
                 self.valueNetwork.add(output)
 
         # Create target network
@@ -203,17 +229,21 @@ class Network(object):
             input_shape_lstm = (1, self.stateReprLen)
             self.actionNetwork = Sequential()
             hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm,
-                            return_sequences=True, stateful=True, batch_size=1)
+                            return_sequences=True, stateful=True, batch_size=1, bias_initializer=initializer
+                          , kernel_initializer=initializer)
             self.actionNetwork.add(hidden1)
 
             if self.hiddenLayer2 > 0:
-                hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=True, batch_size=self.batch_len)
+                hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=True, batch_size=self.batch_len,
+                               bias_initializer=initializer, kernel_initializer=initializer)
                 self.actionNetwork.add(hidden2)
             if self.hiddenLayer3 > 0:
-                hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=True, batch_size=self.batch_len)
+                hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=True, batch_size=self.batch_len,
+                               bias_initializer=initializer, kernel_initializer=initializer)
                 self.actionNetwork.add(hidden3)
             self.actionNetwork.add(LSTM(self.num_actions, activation=self.activationFuncOutput,
-                                        return_sequences=False, stateful=True, batch_size=self.batch_len))
+                                        return_sequences=False, stateful=True, batch_size=self.batch_len,
+                                        bias_initializer=initializer, kernel_initializer=initializer))
             self.actionNetwork.compile(loss='mse', optimizer=optimizer)
 
         print(self.valueNetwork.summary())

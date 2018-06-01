@@ -262,7 +262,13 @@ class Model(object):
         else:
             shutil.copy(loadedModelName + "networkParameters.py", self.path)
             shutil.copy(loadedModelName + "parameters.py", self.path)
-            shutil.copy(loadedModelName + "model.h5", self.path)
+            if os.path.exists(loadedModelName + "model.h5"):
+                shutil.copy(loadedModelName + "model.h5", self.path)
+            if os.path.exists(loadedModelName + "actor_model.h5"):
+                shutil.copy(loadedModelName + "actor_model.h5", self.path)
+            if os.path.exists(loadedModelName + "value_model.h5"):
+                shutil.copy(loadedModelName + "value_model.h5", self.path)
+
 
     def addDataFilesToDictionary(self):
         self.dataFiles.update({"Error": "tdErrors.txt", "Reward": "rewards.txt"})
@@ -321,6 +327,7 @@ class Model(object):
 
 
     def save(self, end = False):
+        print("SAVING MODEL")
         self.exportData()
         self.resetStoredValues()
         self.plotTDError()

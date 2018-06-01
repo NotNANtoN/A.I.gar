@@ -37,9 +37,15 @@ class ValueNetwork(object):
             self.load(modelName)
             return
 
-        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + num_outputs))
-        initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
-                                                       maxval=weight_initializer_range, seed=None)
+        if self.parameters.INITIALIZER == "glorot_uniform":
+            initializer = keras.initializers.glorot_uniform()
+        elif self.parameters.INITIALIZER == "glorot_normal":
+            initializer = keras.initializers.glorot_normal()
+        else:
+            weight_initializer_range = math.sqrt(6 / (self.stateReprLen + 1))
+            initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
+                                                           maxval=weight_initializer_range, seed=None)
+
         if self.gpus > 1:
             with tf.device("/cpu:0"):
                 self.model = Sequential()
@@ -110,7 +116,7 @@ class ValueNetwork(object):
         if modelName is not None:
             path = modelName
             self.loadedModelName = modelName
-            self.model = load_model(path + "/value_model.h5")
+            self.model = load_model(path + "value_model.h5")
             self.target_model = load_model(path + "/value_model.h5")
 
     def predict(self, state):
@@ -134,6 +140,14 @@ class PolicyNetwork(object):
     def __init__(self, parameters, discrete, modelName=None):
         self.parameters = parameters
         self.loadedModelName = None
+
+
+        if self.parameters.POLICY_OUTPUT_ACTIVATION_FUNC == "relu_max":
+            policyOutputActivationFunction = relu_max
+        elif self.parameters.POLICY_OUTPUT_ACTIVATION_FUNC == "sigmoid":
+            policyOutputActivationFunction = "sigmoid"
+        else:
+            policyOutputActivationFunction = "sigmoid"
 
         self.stateReprLen = self.parameters.STATE_REPR_LEN
 
@@ -160,18 +174,24 @@ class PolicyNetwork(object):
             self.num_outputs = self.num_actions
         else:
             self.num_outputs = 2  #x, y, split, eject all continuous between 0 and 1
-            if self.parameters.ENABLE_SPLIT == True:
+            if self.parameters.ENABLE_SPLIT:
                 self.num_outputs += 1
-            if self.parameters.ENABLE_EJECT == True:
+            if self.parameters.ENABLE_EJECT:
                 self.num_outputs += 1
 
         if modelName is not None:
             self.load(modelName)
             return
 
-        weight_initializer_range = math.sqrt(6 / (self.stateReprLen + self.num_outputs))
-        initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
-                                                       maxval=weight_initializer_range, seed=None)
+        if self.parameters.INITIALIZER == "glorot_uniform":
+            initializer = keras.initializers.glorot_uniform()
+        elif self.parameters.INITIALIZER == "glorot_normal":
+            initializer = keras.initializers.glorot_normal()
+        else:
+            weight_initializer_range = math.sqrt(6 / (self.stateReprLen + 1))
+            initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
+                                                           maxval=weight_initializer_range, seed=None)
+
         if self.gpus > 1:
             with tf.device("/cpu:0"):
                 self.model = Sequential()
@@ -230,7 +250,7 @@ class PolicyNetwork(object):
                           , kernel_initializer=initializer))
             else:
                 self.model.add(
-                    Dense(self.num_outputs, activation=relu_max, bias_initializer=initializer
+                    Dense(self.num_outputs, activation=policyOutputActivationFunction, bias_initializer=initializer
                           , kernel_initializer=initializer))
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
@@ -240,7 +260,7 @@ class PolicyNetwork(object):
         if modelName is not None:
             path = modelName
             self.loadedModelName = modelName
-            self.model = load_model(path + "/actor_model.h5", custom_objects={"relu_max": relu_max})
+            self.model = load_model(path + "actor_model.h5", custom_objects={"relu_max": relu_max})
 
     def predict(self, state):
         return self.model.predict(numpy.array([state]))[0]
@@ -370,6 +390,10 @@ class ActorCritic(object):
             if td_e > 0:
                 mu_s = self.actor.predict(old_s)
                 target = mu_s + (a - mu_s) #/ self.std ** 2
+            elif td_e < 0 and self.parameters.CACLA_UPDATE_ON_NEGATIVE_TD:
+                mu_s = self.actor.predict(old_s)
+                target = mu_s - (a - mu_s)
+
         elif self.acType == "Standard":
             mu_s = self.actor.predict(old_s)
             target = mu_s + td_e * (a - mu_s) #/ self.std ** 2

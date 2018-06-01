@@ -13,51 +13,56 @@ MEMORY_BATCH_LEN = 32
 
 # General RL:
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
-ENABLE_SPLIT = False #TODO: these two only work  actor critic yet.
-ENABLE_EJECT = False #TODO: en/disable ejection and splitting for both continuous and discrete algorithms
+ENABLE_SPLIT = False
+ENABLE_EJECT = False
 NEURON_TYPE = "MLP"
-FRAME_SKIP_RATE = 9 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+FRAME_SKIP_RATE = 11 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 MAX_TRAINING_STEPS = 50
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
-NOISE_AT_HALF_TRAINING = 0.1
-NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2)) #0.99995 # Noise decay. with start noise of 1 and decay of 0.999995 it decays slowly to 0 over 1M steps for FSR of 0. For FSR of 9: 0.99995. For FSR of 4: 0.99998
+NOISE_AT_HALF_TRAINING = 0.05
+NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
+INITIALIZER = "Default" # "glorot_uniform" or "glorot_normal"
 
 # Q-learning
-ALPHA = 0.0001 #Learning rate. Marco recommended to try lower learning rates too, decrease by factor of 10 or 100
+ALPHA = 0.0001
+NUM_ACTIONS = 16 # That number plus 1 (for standing still)
 OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
+ELU_ALPHA = 1 # 1 is default of keras, we used that so far.
 ACTIVATION_FUNC_OUTPUT = 'linear'
 EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
-TARGET_NETWORK_STEPS = 1000
-DISCOUNT = 0.9 # 0.9 seems best so far. Better than 0.995 and 0.9999 . 0.5 and below performs much worse. 0.925 performs worse than 0.9
-# Higher discount seems to lead to much more stable learning, less variance
+TARGET_NETWORK_STEPS = 1500
+DISCOUNT = 0.85 # Higher discount seems to lead to much more stable learning, less variance
+USE_ACTION_AS_INPUT = False #TODO: still needs to be implemented
 TD = 0
 Exploration = True
 EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EXPLORATION_STRATEGY = "e-Greedy" # "Boltzmann" or "e-Greedy"
-TEMPERATURE = 20
-TEMPERATURE_AT_END_TRAINING = 0.025
+TEMPERATURE = 5
+TEMPERATURE_AT_END_TRAINING = 0.01
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 
 # Actor-critic:
 ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
+CACLA_UPDATE_ON_NEGATIVE_TD = False
+POLICY_OUTPUT_ACTIVATION_FUNC = "relu_max" # "relu_max" or "sigmoid"
 ACTOR_REPLAY_ENABLED = True
 GAUSSIAN_NOISE = 1 # Initial noise
-ALPHA_POLICY = 0.00025
+ALPHA_POLICY = 0.00005
 OPTIMIZER_POLICY = "Adam"
-ACTIVATION_FUNC_HIDDEN_POLICY = "elu"
+ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
 HIDDEN_ALL_POLICY = 100
 HIDDEN_LAYER_1_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_2_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_3_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 
 # LSTM
-ACTIVATION_FUNC_LSTM = "tanh"
+ACTIVATION_FUNC_LSTM = "sigmoid"
 UPDATE_LSTM_MOVE_NETWORK = 1
-TRACE_MIN = 4 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
+TRACE_MIN = 1 # The minimum amount of traces that are not trained on, as they have insufficient hidden state info
 MEMORY_TRACE_LEN = 15 # The length of memory traces retrieved via exp replay
 
 # CNN

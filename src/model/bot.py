@@ -84,7 +84,7 @@ class Bot(object):
         elif bot_type == "NN":
             self.id = self.nnId
             self.nnId += 1
-        self.trainMode = None
+        self.trainMode = trainMode
         self.parameters = parameters
         self.modelName = modelName
         self.learningAlg = None
