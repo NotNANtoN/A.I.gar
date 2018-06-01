@@ -235,10 +235,10 @@ def testModel(testingModel, n_training, reset_time, modelPath, name):
 
 def runTests(model):
     print("Testing...")
-    resetPellet = 1000#10000
-    resetGreedy = 2000#20000
+    resetPellet = 10000
+    resetGreedy = 20000
     resetVirus = 15000
-    n_test_runs = 3
+    n_test_runs = 10
     trainedBot = model.getNNBot()
     trainedAlg = trainedBot.getLearningAlg()
     trainedBot.setTrainingEnabled(False)
@@ -248,7 +248,7 @@ def runTests(model):
     pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
 
-    if "Greedy" in [bot.getType() for bot in model.getBots()]:
+    if len(model.getBots()) > 1:
         greedyModel = Model(False, False, False, resetGreedy , False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")

@@ -40,14 +40,14 @@ INITIALIZER "glorot_normal"  3x:
 NUM_GREEDY_BOTS 1 3x:
 NUM_GREEDY_BOTS 2 3x:
 
-ENABLE_SPLIT True 5x:
+ENABLE_SPLIT True 3x:
 
-ENABLE_EJECT True 5x:
+ENABLE_EJECT True 3x:
 
 ACTIVATION_FUNC_HIDDEN "elu":
-	Default 3x:
-	ELU_ALPHA 0.5 3x:
-	ELU_ALPHA 0.1 3x:
+	ELU_ALPHA 1    3x:
+	ELU_ALPHA 0.5  3x:
+	ELU_ALPHA 0.1  3x:
 	ELU_ALPHA 0.01 3x:
 
 EXPLORATION_STRATEGY "Boltzmann":
@@ -58,8 +58,14 @@ EXPLORATION_STRATEGY "Boltzmann":
 	TEMPERATURE_AT_END_TRANING 0.005 3x:
 	TEMPERATURE_AT_END_TRANING 0.001 3x:
 
+Everything above this does not have proper testing.... (number tests only 3, resetlimit is 10 times lower than it should be)
+
+NUM_NN_BOTS 2 3x:
+
 ACTOR CRITIC:
 	Default 5x:
+	NUM_NN_BOTS 2 5x:
+	NUM_GREEDY_BOTS 1 5x:
 	CACLA_UPDATE_ON_NEGATIVE_TD True 5x:
 	MAX_TRAINING_STEPS 150000 5x:
 	NUM_GREEDY_BOTS 1 5x:
@@ -81,6 +87,8 @@ NEURON_TYPE "LSTM":
 	INITIALIZER "glorot_uniform" 3x:
 	INITIALIZER "glorot_normal"  3x:
 	Default 5x:
+	NUM_NN_BOTS 2 5x:
+	NUM_GREEDY_BOTS 1 5x:
 	ALPHA 0.00001 5x:
 	ALPHA 0.00005 5x:
 	TRACE_MIN 2 5x:
