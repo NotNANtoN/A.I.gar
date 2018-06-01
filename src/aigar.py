@@ -1,5 +1,6 @@
 import os
 import sys
+import importlib
 from controller.controller import Controller
 from model.model import *
 from model.network import *
@@ -79,7 +80,7 @@ def algorithmNameToNumber(name):
         return 0
     elif name == "n-step Sarsa":
         return 1
-    elif name == "CACLA":
+    elif name == "AC":
         return 2
     elif name == "Discrete ACLA":
         return 3
@@ -187,9 +188,9 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
 
             #AC algorithms
             elif algorithm == 2:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, False, model.getPath())
+                learningAlg = ActorCritic(parameters, numberOfNNBots, False, model.getPath() if loadModel else None)
             elif algorithm == 3:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, True, model.getPath())
+                learningAlg = ActorCritic(parameters, numberOfNNBots, True, model.getPath() if loadModel else None)
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
@@ -201,16 +202,19 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
 
 
 
-def testModel(testModel, bot, n_training, reset_time, modelPath, name):
+def testModel(testingModel, n_training, reset_time, modelPath, name):
     masses = []
     meanMasses = []
     maxMasses = []
+    bot = testingModel.getNNBot()
     print("Testing ", name, "...")
-    testModel.initialize(False)
+    testingModel.initialize(False)
+    #viewTestModel = View(testModel, screenWidth, screenHeight)
+    #viewTestModel.draw()
     for test in range(n_training):
         bot.resetMassList()
-        for step in range(reset_time):
-            testModel.update()
+        for updateStep in range(reset_time):
+            testingModel.update()
 
         massOverTime = bot.getMassOverTime()
         meanMass = numpy.mean(massOverTime)
@@ -225,45 +229,41 @@ def testModel(testModel, bot, n_training, reset_time, modelPath, name):
     stdMax = numpy.std(maxMasses)
     maxScore = numpy.max(maxMasses)
     labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
-              "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_Testing"}
-    plot(masses, reset_time, testModel.getPointAveraging(), labels)
+              "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_" + name}
+    plot(masses, reset_time, testingModel.getPointAveraging(), labels)
     return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
+
 
 def runTests(model):
     print("Testing...")
-    resetPellet = 10000
-    resetGreedy = 20000
+    resetPellet = 1000#10000
+    resetGreedy = 2000#20000
     resetVirus = 15000
-    n_test_runs = 1
+    n_test_runs = 3
     trainedBot = model.getNNBot()
-    originalMassOverTime = trainedBot.getMassOverTime()
+    trainedAlg = trainedBot.getLearningAlg()
     trainedBot.setTrainingEnabled(False)
     evaluations = []
-
     pelletModel = Model(False, False, False, resetPellet, False)
-    pelletModel.addBot(trainedBot)
-    pelletEvaluation = testModel(pelletModel, trainedBot, n_test_runs, resetPellet, model.getPath(),
-                                                "pellet_collection")
+    pelletModel.createBot("NN", trainedAlg, parameters)
+    pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
 
     if "Greedy" in [bot.getType() for bot in model.getBots()]:
-        greedyModel = Model(False, False, False, resetGreedy, False)
-        greedyModel.addBot(trainedBot)
+        greedyModel = Model(False, False, False, resetGreedy , False)
+        greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
-        greedyEvaluation = testModel(greedyModel, trainedBot, n_test_runs, resetGreedy, model.getPath(),
-                                                    "vs_1_greedy")
+        greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
 
     if model.virusEnabled:
         virusModel = Model(False, False, True, resetVirus, False)
-        virusModel.addBot(trainedBot)
-        virusEvaluation = testModel(virusModel, trainedBot, n_test_runs, resetVirus, model.getPath(),
-                                    "virus")
+        virusModel.createBot("NN", trainedAlg, parameters)
+        virusEvaluation = testModel(virusModel, n_test_runs, resetVirus, model.getPath(), "virus")
         evaluations.append(virusEvaluation)
 
     # TODO: add more test scenarios for multiple greedy bots and full model check
     print("Testing completed.")
-    trainedBot.setMassesOverTime(originalMassOverTime)
 
     name_of_file = model.getPath() + "/final_results.txt"
     with open(name_of_file, "w") as file:
@@ -437,7 +437,7 @@ if __name__ == '__main__':
     model.initialize(loadModel)
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
-    model.setScreenSize(screenWidth, screenHeight)
+    # model.setScreenSize(screenWidth, screenHeight)
 
     if guiEnabled:
         view = View(model, screenWidth, screenHeight)
@@ -457,7 +457,7 @@ if __name__ == '__main__':
         print("")
 
     if model.getTrainingEnabled():
-        # runTests(model)
+        runTests(model)
         model.save(True)
         model.saveModels()
         if model_in_subfolder:
