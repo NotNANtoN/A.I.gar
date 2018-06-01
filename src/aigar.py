@@ -170,13 +170,12 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
     learningAlg = None
     if type == "NN":
         Bot.num_NNbots = number
+        network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
 
         for i in range(number):
             # Create algorithm instance
             #Discrete algorithms
             if algorithm in [0,1,4,5]:
-                print(i)
-                network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
                 if algorithm == 0:
                     learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
                 elif algorithm == 1:
