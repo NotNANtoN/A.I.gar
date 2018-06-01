@@ -27,7 +27,7 @@ INITIALIZER = "Default" # "glorot_uniform" or "glorot_normal"
 
 # Q-learning
 ALPHA = 0.0001
-NUM_ACTIONS = 16 # That number plus 1 (for standing still)
+NUM_ACTIONS = 8 # That number plus 1 (for standing still)
 OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too

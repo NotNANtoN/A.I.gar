@@ -235,7 +235,9 @@ class QLearn(object):
         return False, None
 
     def boltzmannDist(self, values, temp):
-        distribution_values = [math.e ** (value / temp) for value in values]
+        maxVal = max(values)
+        shiftedVals = [value - maxVal for value in values]
+        distribution_values = [math.e ** (value / temp) for value in shiftedVals]
         sum = numpy.sum(distribution_values)
         return [value / sum for value in distribution_values]
 

@@ -1,8 +1,13 @@
+!!! All jobs were started with NUM_ACTIONS=16
+So yeah... let's wait for the results.
+
 Q-learning:
 Default 5x:
 
 MAX_TRAINING_STEPS 150000 3x:
 
+
+USE_ACTION_AS_INPUT True 5x:
 
 NUM_ACTIONS 4 3x:
 NUM_ACTIONS 6 3x:
