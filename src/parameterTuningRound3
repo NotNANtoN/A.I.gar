@@ -1,8 +1,6 @@
 Q-learning:
 Default 5x:
 
-Load trained pellet model and train against greedy
-
 MAX_TRAINING_STEPS 150000 3x:
 
 
@@ -10,6 +8,7 @@ NUM_ACTIONS 4 3x:
 NUM_ACTIONS 6 3x:
 NUM_ACTIONS 10 3x:
 NUM_ACTIONS 12 3x:
+NUM_ACTIONS 16 3x:
 
 ALPHA 0.00025  3x:
 ALPHA 0.000075 3x:
