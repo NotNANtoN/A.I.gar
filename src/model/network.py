@@ -345,9 +345,9 @@ class Network(object):
             else:
                 return self.predict_action_network(state)
 
-    def saveModel(self, path):
+    def saveModel(self, path, name = ""):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-        self.targetNetwork.save(path + "model.h5")
+        self.targetNetwork.save(path + name + "model.h5")
 
     def setEpsilon(self, val):
         self.epsilon = val

@@ -266,8 +266,8 @@ class QLearn(object):
 
         return newActionIdx, newAction
 
-    def save(self, path):
-        self.network.saveModel(path)
+    def save(self, path, name = ""):
+        self.network.saveModel(path, name)
 
     def setNoise(self, val):
         self.epsilon = val

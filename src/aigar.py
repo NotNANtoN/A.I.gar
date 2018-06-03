@@ -18,43 +18,60 @@ import tensorflow as tf
 import random as rn
 
 
-def fix_seeds():
+def fix_seeds(seedNum):
     # The below is necessary in Python 3.2.3 onwards to
     # have reproducible behavior for certain hash-based operations.
     # See these references for further details:
     # https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED
     # https://github.com/keras-team/keras/issues/2280#issuecomment-306959926
 
-    import os
-    os.environ['PYTHONHASHSEED'] = '0'
+    #import os
+    #os.environ['PYTHONHASHSEED'] = '0'
 
     # The below is necessary for starting Numpy generated random numbers
     # in a well-defined initial state.
 
-    np.random.seed(42)
+    if seedNum is not None:
+        np.random.seed(42)
+    else:
+        np.random.seed()
 
     # The below is necessary for starting core Python generated random numbers
     # in a well-defined state.
 
-    rn.seed(12345)
+    #rn.seed(12345)
 
     # Force TensorFlow to use single thread.
     # Multiple threads are a potential source of
     # non-reproducible results.
     # For further details, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
 
-    session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    if seedNum is not None:
 
-    from keras import backend as K
+        session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 
-    # The below tf.set_random_seed() will make random number generation
-    # in the TensorFlow backend have a well-defined initial state.
-    # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+        from keras import backend as K
 
-    tf.set_random_seed(1234)
+        # The below tf.set_random_seed() will make random number generation
+        # in the TensorFlow backend have a well-defined initial state.
+        # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
 
-    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-    K.set_session(sess)
+        tf.set_random_seed(seedNum)
+
+
+        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+        K.set_session(sess)
+    else:
+        session_conf = tf.ConfigProto()
+
+        from keras import backend as K
+
+        # The below tf.set_random_seed() will make random number generation
+        # in the TensorFlow backend have a well-defined initial state.
+        # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+
+        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+        K.set_session(sess)
 
 
 def algorithmNumberToName(val):
@@ -170,7 +187,8 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
     learningAlg = None
     if type == "NN":
         Bot.num_NNbots = number
-        network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
+        if algorithm not in [2, 3]:
+            network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
 
         for i in range(number):
             # Create algorithm instance
@@ -234,6 +252,8 @@ def testModel(testingModel, n_training, reset_time, modelPath, name):
 
 
 def runTests(model):
+    np.random.seed()
+
     print("Testing...")
     resetPellet = 10000
     resetGreedy = 20000
@@ -245,20 +265,20 @@ def runTests(model):
     evaluations = []
     pelletModel = Model(False, False, False, resetPellet, False)
     pelletModel.createBot("NN", trainedAlg, parameters)
-    pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
+    pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet - 1, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
 
     if len(model.getBots()) > 1:
         greedyModel = Model(False, False, False, resetGreedy , False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
-        greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
+        greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy - 1, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
 
     if model.virusEnabled:
         virusModel = Model(False, False, True, resetVirus, False)
         virusModel.createBot("NN", trainedAlg, parameters)
-        virusEvaluation = testModel(virusModel, n_test_runs, resetVirus, model.getPath(), "virus")
+        virusEvaluation = testModel(virusModel, n_test_runs, resetVirus - 1, model.getPath(), "virus")
         evaluations.append(virusEvaluation)
 
     # TODO: add more test scenarios for multiple greedy bots and full model check
@@ -284,8 +304,6 @@ if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
-
-    # fix_seeds()
 
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
@@ -395,7 +413,7 @@ if __name__ == '__main__':
         modelPath = "savedModels/" + nameSavedModelFolder(tweakedTotal)
         model_in_subfolder = True
 
-    if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
+    if int(input("Give saveModel folder a custom name? (1 == yes)\n")) == 1:
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
     model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
@@ -420,7 +438,18 @@ if __name__ == '__main__':
 
 
     Bot.init_exp_replayer(parameters)
+
+    seedNumber = None
+    if model_in_subfolder:
+        folders = [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]
+        seedNumber = len(folders)
+    if seedNumber and enableTrainMode:
+        pass
+        fix_seeds(seedNumber)
+
+    # TODO: make seed number dependent on number of items in subfolder
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
+
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
@@ -447,7 +476,7 @@ if __name__ == '__main__':
             model.update()
     else:
         maxSteps = parameters.MAX_SIMULATION_STEPS
-        smallPart = max(int(maxSteps / 200), 1)
+        smallPart = max(int(maxSteps / 100), 1)
         for step in range(maxSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
@@ -456,15 +485,16 @@ if __name__ == '__main__':
         print("")
 
     if model.getTrainingEnabled():
-        runTests(model)
         model.save(True)
         model.saveModels()
+
+        runTests(model)
         if model_in_subfolder:
             print(os.path.join(modelPath))
             createCombinedModelGraphs(os.path.join(modelPath))
 
-
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))
+
 
         bots = model.getBots()
         for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):

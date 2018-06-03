@@ -4,17 +4,11 @@
 0
 0
 1
-USE_ACTION_AS_INPUT
-False
-1
-ACTIVATION_FUNC_HIDDEN
-"elu"
-1
-ELU_ALPHA
-1
+Default
+"reliability test"
 1
 MAX_TRAINING_STEPS
-100
+150
 0
 0
 1

@@ -7,6 +7,7 @@ Default = False
 PELLET_SPAWN = True
 NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
+
 # Experience replay:
 MEMORY_CAPACITY = 75000 #10000 is worse
 MEMORY_BATCH_LEN = 32
@@ -16,20 +17,20 @@ TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu 
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
 NEURON_TYPE = "MLP"
-FRAME_SKIP_RATE = 11 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = 5
 MAX_TRAINING_STEPS = 100000
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
-NOISE_AT_HALF_TRAINING = 0.05
+NOISE_AT_HALF_TRAINING = 0.01
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
 INITIALIZER = "Default" # "glorot_uniform" or "glorot_normal"
 
 # Q-learning
 ALPHA = 0.0001
-NUM_ACTIONS = 16 # That number plus 1 (for standing still)
+NUM_ACTIONS = 8 # That number plus 1 (for standing still)
 OPTIMIZER = "Adam" #SGD has much worse performance
-ACTIVATION_FUNC_HIDDEN = 'relu' #'relu' is better than sigmoid, but gives more variable results. we should try elu
+ACTIVATION_FUNC_HIDDEN = 'elu' 
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
 ACTIVATION_FUNC_OUTPUT = 'linear'
 EXP_REPLAY_ENABLED = True
@@ -42,13 +43,13 @@ Exploration = True
 EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EXPLORATION_STRATEGY = "e-Greedy" # "Boltzmann" or "e-Greedy"
 TEMPERATURE = 5
-TEMPERATURE_AT_END_TRAINING = 0.01
+TEMPERATURE_AT_END_TRAINING = 0.005
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 
 # Actor-critic:
 ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
 CACLA_UPDATE_ON_NEGATIVE_TD = False
-POLICY_OUTPUT_ACTIVATION_FUNC = "relu_max" # "relu_max" or "sigmoid"
+POLICY_OUTPUT_ACTIVATION_FUNC = "sigmoid" # "relu_max" or "sigmoid"
 ACTOR_REPLAY_ENABLED = True
 GAUSSIAN_NOISE = 1 # Initial noise
 ALPHA_POLICY = 0.00005

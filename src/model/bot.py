@@ -109,6 +109,9 @@ class Bot(object):
 
         self.reset()
 
+    def saveInitialModels(self, path):
+        self.learningAlg.save(path, "init_")
+
     def saveModel(self, path):
         self.learningAlg.save(path)
 

@@ -83,13 +83,16 @@ class Model(object):
 
     def initialize(self, modelHasBeenLoaded):
         print("Initializing model...")
-        if self.trainingEnabled and not modelHasBeenLoaded:
-            self.saveSpecs()
+        if self.trainingEnabled:
             for bot in self.bots:
-                if bot.getType() == "NN":
-                    data = self.getRelevantModelData(bot)
-                    print(data)
-                    break
+                bot.saveInitialModels(self.path)
+            if not modelHasBeenLoaded:
+                self.saveSpecs()
+                for bot in self.bots:
+                    if bot.getType() == "NN":
+                        data = self.getRelevantModelData(bot)
+                        print(data)
+                        break
         self.field.initialize()
         self.resetBots()
 
