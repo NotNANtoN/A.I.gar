@@ -508,7 +508,7 @@ if __name__ == '__main__':
     Bot.init_exp_replayer(parameters)
 
     seedNumber = None
-    if model_in_subfolder:
+    if model_in_subfolder and not loadModel:
         folders = [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]
         seedNumber = len(folders)
     if seedNumber and enableTrainMode:

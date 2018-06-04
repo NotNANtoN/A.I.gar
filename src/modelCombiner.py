@@ -154,7 +154,7 @@ def plotFinalTests(path):
 
         labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training steps",
                   "yLabel": "Mass Mean Value", "title": "Mass", "path": path,
-                  "subPath": "Final_testing_" + test}
+                  "subPath": "Final_testing_" + test[:-4]}
         plot(masses, maxLength, 1, labels)
 
 

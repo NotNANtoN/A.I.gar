@@ -1,11 +1,12 @@
 0
 0
 10000
-0
-0
 1
-Default
-"test plotting"
+Default="Q-Learning"
+$Jun-04_21:13:42:032903$
+1
+NUM_GREEDY_BOTS
+1
 1
 MAX_TRAINING_STEPS
 250
