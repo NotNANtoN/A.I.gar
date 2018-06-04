@@ -13,18 +13,36 @@ MEMORY_CAPACITY = 75000 #10000 is worse
 MEMORY_BATCH_LEN = 32
 
 # General RL:
+FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
+MAX_TRAINING_STEPS = 100000
+MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
-NEURON_TYPE = "MLP"
-FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
-NUM_OF_GRIDS = 5
-MAX_TRAINING_STEPS = 100000
-MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
+
 NOISE_AT_HALF_TRAINING = 0.01
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
+
+# State represenation parameters:
+NORMALIZE_GRID_BY_MAX_MASS = False
+ENABLE_PELLET_GRID = True
+ENABLE_SELF_GRID = True
+ENABLE_WALL_GRID = True
+ENABLE_VIRUS_GRID = True
+ENABLE_ENEMY_GRID = True
+USE_FOVSIZE = True
+USE_TOTALMASS = True
+GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
+NUM_OF_GRIDS = ENABLE_PELLET_GRID + ENABLE_SELF_GRID + ENABLE_WALL_GRID + ENABLE_VIRUS_GRID + ENABLE_ENEMY_GRID
+STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + USE_FOVSIZE + USE_TOTALMASS
+
 INITIALIZER = "Default" # "glorot_uniform" or "glorot_normal"
+NEURON_TYPE = "MLP"
+HIDDEN_ALL = 500
+HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 500
+HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 500
+HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 500
+
 
 # Q-learning
 ALPHA = 0.0001
@@ -88,12 +106,3 @@ CNN_SIZE_OF_INPUT_DIM_3 = 42
 
 CNN_POOLING_TYPE = "Max"
 
-
-
-#Layer neurons
-STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + 2
-HIDDEN_ALL = 500
-HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 500
-HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 500
-HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 500
-# More hidden layers lead to improved performance. Best so far three hidden layers with 100 neurons each and relu activation
