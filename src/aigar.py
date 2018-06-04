@@ -219,7 +219,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
 
 
 
-def testModel(testingModel, n_training, reset_time, modelPath, name):
+def testModel(testingModel, n_training, reset_time, modelPath, name, plotting = True):
     masses = []
     meanMasses = []
     maxMasses = []
@@ -230,6 +230,7 @@ def testModel(testingModel, n_training, reset_time, modelPath, name):
     #viewTestModel.draw()
     for test in range(n_training):
         bot.resetMassList()
+        testingModel.resetModel()
         for updateStep in range(reset_time):
             testingModel.update()
 
@@ -245,40 +246,107 @@ def testModel(testingModel, n_training, reset_time, modelPath, name):
     meanMaxScore = numpy.mean(maxMasses)
     stdMax = numpy.std(maxMasses)
     maxScore = numpy.max(maxMasses)
-    labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
-              "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_" + name}
-    plot(masses, reset_time, testingModel.getPointAveraging(), labels)
+    if plotting:
+        meanMassPerTimeStep = []
+        for timeIdx in range(reset_time):
+            val = 0
+            for listIdx in range(n_training):
+                val += masses[listIdx][timeIdx]
+            meanVal = val / n_training
+            meanMassPerTimeStep.append(meanVal)
+
+        exportTestResults(meanMassPerTimeStep, modelPath, "Mean_Mass_" + name)
+        labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
+                  "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_" + name}
+        plot(masses, reset_time, 1, labels)
     return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
 
+
+def cloneModel(model):
+    clone = Model(False, False, model.virusEnabled, model.resetLimit, False)
+    for bot in model.getBots():
+        clone.createBot(bot.getType(), bot.getLearningAlg(), bot.parameters)
+    return clone
+
+def updateTestResults(testResults):
+    clonedModel = cloneModel(model)
+    clonedModel.getNNBot().getLearningAlg().setNoise(0)
+    currentEval = testModel(clonedModel, 5, clonedModel.resetLimit, model.getPath(), "test", False)
+    meanScore = currentEval[2]
+    stdDev = currentEval[3]
+    testResults.append((meanScore, stdDev))
+    return testResults
+
+
+def exportTestResults(testResults, path, name):
+    filePath = path + name + ".txt"
+    with open(filePath, "a") as f:
+        for val in testResults:
+            # write as: "mean\n"
+            line = str(val) + "\n"
+            f.write(line)
+
+
+def plotTesting(testResults, path, timeBetween, end):
+    x = range(0, end + timeBetween, timeBetween)
+    y = [x[0] for x in testResults]
+    ysigma = [x[1] for x in testResults]
+
+
+    y_lower_bound = [y[i] - ysigma[i] for i in range(len(y))]
+    y_upper_bound = [y[i] + ysigma[i] for i in range(len(y))]
+
+    plt.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
+    plt.clf()
+    fig = plt.gcf()
+    ax = plt.gca()
+    #fig, ax = plt.subplots(1)
+    ax.plot(x, y, lw=2, label="testing mass", color='blue')
+    ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor='blue', alpha=0.5,
+                    label="+/- sigma")
+    ax.set_xlabel("Time")
+    yLabel = "Mass"
+    title = "Testing mass over time"
+
+    meanY = numpy.mean(y)
+    ax.legend(loc='upper left')
+    ax.set_ylabel(yLabel)
+    ax.set_title(title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval")
+    ax.grid()
+    print("PATH: ", path)
+    fig.savefig(path + title +".pdf")
+
+    plt.close()
 
 def runTests(model):
     np.random.seed()
 
     print("Testing...")
+    # Set Parameters:
     resetPellet = 10000
     resetGreedy = 20000
     resetVirus = 15000
     n_test_runs = 10
     trainedBot = model.getNNBot()
     trainedAlg = trainedBot.getLearningAlg()
-    trainedBot.setTrainingEnabled(False)
     evaluations = []
-    pelletModel = Model(False, False, False, resetPellet, False)
+    # Pellet testing:
+    pelletModel = Model(False, False, False, 0, False)
     pelletModel.createBot("NN", trainedAlg, parameters)
-    pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet - 1, model.getPath(), "pellet_collection")
+    pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
-
+    # Greedy Testing:
     if len(model.getBots()) > 1:
-        greedyModel = Model(False, False, False, resetGreedy , False)
+        greedyModel = Model(False, False, False, 0 , False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
-        greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy - 1, model.getPath(), "vs_1_greedy")
+        greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
-
+    # Virus Testing:
     if model.virusEnabled:
-        virusModel = Model(False, False, True, resetVirus, False)
+        virusModel = Model(False, False, True, 0, False)
         virusModel.createBot("NN", trainedAlg, parameters)
-        virusEvaluation = testModel(virusModel, n_test_runs, resetVirus - 1, model.getPath(), "virus")
+        virusEvaluation = testModel(virusModel, n_test_runs, resetVirus, model.getPath(), "virus")
         evaluations.append(virusEvaluation)
 
     # TODO: add more test scenarios for multiple greedy bots and full model check
@@ -447,7 +515,6 @@ if __name__ == '__main__':
         pass
         fix_seeds(seedNumber)
 
-    # TODO: make seed number dependent on number of items in subfolder
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
 
 
@@ -477,10 +544,18 @@ if __name__ == '__main__':
     else:
         maxSteps = parameters.MAX_SIMULATION_STEPS
         smallPart = max(int(maxSteps / 100), 1)
+        testResults = []
         for step in range(maxSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
+                # Test every 10% of training
+            if step % (smallPart * 10) == 0:
+                testResults = updateTestResults(testResults)
+        testResults = updateTestResults(testResults)
+        meanMassesOfTestResults = [val[0] for val in testResults]
+        exportTestResults(meanMassesOfTestResults, model.getPath(),"testMassOverTime")
+        plotTesting(testResults, model.getPath(), smallPart * 10, maxSteps)
         print("Training done.")
         print("")
 

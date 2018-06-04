@@ -5,10 +5,10 @@
 0
 1
 Default
-"reliability test"
+"test plotting"
 1
 MAX_TRAINING_STEPS
-150
+250
 0
 0
 1

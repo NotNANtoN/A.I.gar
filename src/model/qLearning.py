@@ -206,6 +206,9 @@ class QLearn(object):
     def getNoiseLevel(self):
         return self.epsilon
 
+    def setNoise(self, val):
+        self.epsilon = val
+
     def updateNoise(self):
         self.epsilon *= self.parameters.NOISE_DECAY
         self.temperature *= self.parameters.TEMPERATURE_DECAY
