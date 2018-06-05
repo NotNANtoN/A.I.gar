@@ -17,9 +17,12 @@ def createCombinedModelGraphs(path):
     plotTDErrorAndMean(path)
     plotMassesOverTime(path)
     plotQValuesOverTime(path)
+    plotTestingMassOverTime(path)
+    plotFinalTests(path)
     print("Combining test results..")
     combineTestResults(path)
     print("###############################")
+    # TODO: combine test results
 
 def combineTestResults(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
@@ -115,6 +118,69 @@ def plotTDErrorAndMean(path):
 
     # Single plot Reward
     plot(allRewardLists, maxLength, POINT_AVERAGING, rewardLabels)
+
+
+def plotFinalTests(path):
+
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+
+    allMassesOverTime = {}
+    maxLength = 0
+
+    for model in modelList:
+        modelPath = path + "/" + model
+        for file in os.listdir(modelPath):
+            if not fnmatch.fnmatch(file, "Mean_Mass_*") or not fnmatch.fnmatch(file, "*.txt"):
+                continue
+
+            testingMassPath = modelPath + "/" + file
+
+            # Create empty list if it is not yet there
+            try:
+                allMassesOverTime[file]
+            except KeyError:
+                allMassesOverTime[file] = []
+
+            print(file)
+
+            with open(testingMassPath, 'r') as f:
+                meanVals = list(map(float, f))
+                maxLength = len(meanVals)
+                allMassesOverTime[file].append(meanVals)
+
+    for test in allMassesOverTime:
+        masses = allMassesOverTime[test]
+
+
+        labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training steps",
+                  "yLabel": "Mass Mean Value", "title": "Mass", "path": path,
+                  "subPath": "Final_testing_" + test[:-4]}
+        plot(masses, maxLength, 1, labels)
+
+
+def plotTestingMassOverTime(path):
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+
+    allMeans = []
+    maxLength = 0
+
+
+    for model in modelList:
+        modelPath = path + "/" + model
+        for file in os.listdir(modelPath):
+            if not fnmatch.fnmatch(file, "testMassOverTime.txt"):
+                continue
+            testingMassPath = modelPath + "/" + file
+
+            with open(testingMassPath, 'r') as f:
+                meanVals = list(map(float, f))
+                maxLength = len(meanVals)
+                allMeans.append(meanVals)
+
+
+    labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training Time (%)",
+              "yLabel": "Testing Mass Mean Value", "title": "Mass", "path": path, "subPath": "Mean_Testing_Mass_During_training"}
+    plot(allMeans, maxLength, 10, labels)
 
 
 def plotMassesOverTime(path):

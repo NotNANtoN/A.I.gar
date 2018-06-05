@@ -18,43 +18,69 @@ import tensorflow as tf
 import random as rn
 
 
-def fix_seeds():
+def fix_seeds(seedNum):
     # The below is necessary in Python 3.2.3 onwards to
     # have reproducible behavior for certain hash-based operations.
     # See these references for further details:
     # https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED
     # https://github.com/keras-team/keras/issues/2280#issuecomment-306959926
 
-    import os
-    os.environ['PYTHONHASHSEED'] = '0'
+    #import os
+    #os.environ['PYTHONHASHSEED'] = '0'
 
     # The below is necessary for starting Numpy generated random numbers
     # in a well-defined initial state.
 
-    np.random.seed(42)
+    if seedNum is not None:
+        np.random.seed(42)
+    else:
+        np.random.seed()
 
     # The below is necessary for starting core Python generated random numbers
     # in a well-defined state.
 
-    rn.seed(12345)
+    #rn.seed(12345)
 
     # Force TensorFlow to use single thread.
     # Multiple threads are a potential source of
     # non-reproducible results.
     # For further details, see: https://stackoverflow.com/questions/42022950/which-seeds-have-to-be-set-where-to-realize-100-reproducibility-of-training-res
 
-    session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    if seedNum is not None:
 
-    from keras import backend as K
+        session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 
-    # The below tf.set_random_seed() will make random number generation
-    # in the TensorFlow backend have a well-defined initial state.
-    # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+        from keras import backend as K
 
-    tf.set_random_seed(1234)
+        # The below tf.set_random_seed() will make random number generation
+        # in the TensorFlow backend have a well-defined initial state.
+        # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
 
-    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-    K.set_session(sess)
+        tf.set_random_seed(seedNum)
+
+
+        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+        K.set_session(sess)
+    else:
+        session_conf = tf.ConfigProto()
+
+        from keras import backend as K
+
+        # The below tf.set_random_seed() will make random number generation
+        # in the TensorFlow backend have a well-defined initial state.
+        # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+
+        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+        K.set_session(sess)
+
+
+def setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode):
+    seedNumber = None
+    if model_in_subfolder and not loadModel:
+        folders = [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]
+        seedNumber = len(folders) * 10
+    if seedNumber and enableTrainMode:
+        fix_seeds(seedNumber)
 
 
 def algorithmNumberToName(val):
@@ -170,7 +196,8 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
     learningAlg = None
     if type == "NN":
         Bot.num_NNbots = number
-        network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
+        if algorithm not in [2, 3]:
+            network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
 
         for i in range(number):
             # Create algorithm instance
@@ -201,7 +228,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
 
 
 
-def testModel(testingModel, n_training, reset_time, modelPath, name):
+def testModel(testingModel, n_training, reset_time, modelPath, name, plotting = True):
     masses = []
     meanMasses = []
     maxMasses = []
@@ -212,6 +239,7 @@ def testModel(testingModel, n_training, reset_time, modelPath, name):
     #viewTestModel.draw()
     for test in range(n_training):
         bot.resetMassList()
+        testingModel.resetModel()
         for updateStep in range(reset_time):
             testingModel.update()
 
@@ -227,36 +255,105 @@ def testModel(testingModel, n_training, reset_time, modelPath, name):
     meanMaxScore = numpy.mean(maxMasses)
     stdMax = numpy.std(maxMasses)
     maxScore = numpy.max(maxMasses)
-    labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
-              "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_" + name}
-    plot(masses, reset_time, testingModel.getPointAveraging(), labels)
+    if plotting:
+        meanMassPerTimeStep = []
+        for timeIdx in range(reset_time):
+            val = 0
+            for listIdx in range(n_training):
+                val += masses[listIdx][timeIdx]
+            meanVal = val / n_training
+            meanMassPerTimeStep.append(meanVal)
+
+        exportTestResults(meanMassPerTimeStep, modelPath, "Mean_Mass_" + name)
+        labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
+                  "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_" + name}
+        plot(masses, reset_time, 1, labels)
     return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
 
 
+def cloneModel(model):
+    clone = Model(False, False, model.virusEnabled, model.resetLimit, False)
+    for bot in model.getBots():
+        clone.createBot(bot.getType(), bot.getLearningAlg(), bot.parameters)
+    return clone
+
+def updateTestResults(testResults):
+    clonedModel = cloneModel(model)
+    clonedModel.getNNBot().getLearningAlg().setNoise(0)
+    currentEval = testModel(clonedModel, 5, clonedModel.resetLimit, model.getPath(), "test", False)
+    meanScore = currentEval[2]
+    stdDev = currentEval[3]
+    testResults.append((meanScore, stdDev))
+    return testResults
+
+
+def exportTestResults(testResults, path, name):
+    filePath = path + name + ".txt"
+    with open(filePath, "a") as f:
+        for val in testResults:
+            # write as: "mean\n"
+            line = str(val) + "\n"
+            f.write(line)
+
+
+def plotTesting(testResults, path, timeBetween, end):
+    x = range(0, end + timeBetween, timeBetween)
+    y = [x[0] for x in testResults]
+    ysigma = [x[1] for x in testResults]
+
+
+    y_lower_bound = [y[i] - ysigma[i] for i in range(len(y))]
+    y_upper_bound = [y[i] + ysigma[i] for i in range(len(y))]
+
+    plt.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
+    plt.clf()
+    fig = plt.gcf()
+    ax = plt.gca()
+    #fig, ax = plt.subplots(1)
+    ax.plot(x, y, lw=2, label="testing mass", color='blue')
+    ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor='blue', alpha=0.5,
+                    label="+/- sigma")
+    ax.set_xlabel("Time")
+    yLabel = "Mass"
+    title = "Testing mass over time"
+
+    meanY = numpy.mean(y)
+    ax.legend(loc='upper left')
+    ax.set_ylabel(yLabel)
+    ax.set_title(title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval")
+    ax.grid()
+    print("PATH: ", path)
+    fig.savefig(path + title +".pdf")
+
+    plt.close()
+
 def runTests(model):
+    np.random.seed()
+
     print("Testing...")
-    resetPellet = 1000#10000
-    resetGreedy = 2000#20000
+    # Set Parameters:
+    resetPellet = 10000
+    resetGreedy = 20000
     resetVirus = 15000
-    n_test_runs = 3
+    n_test_runs = 10
     trainedBot = model.getNNBot()
     trainedAlg = trainedBot.getLearningAlg()
-    trainedBot.setTrainingEnabled(False)
     evaluations = []
-    pelletModel = Model(False, False, False, resetPellet, False)
+    # Pellet testing:
+    pelletModel = Model(False, False, False, 0, False)
     pelletModel.createBot("NN", trainedAlg, parameters)
     pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
-
-    if "Greedy" in [bot.getType() for bot in model.getBots()]:
-        greedyModel = Model(False, False, False, resetGreedy , False)
+    # Greedy Testing:
+    if len(model.getBots()) > 1:
+        greedyModel = Model(False, False, False, 0 , False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
         greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
-
+    # Virus Testing:
     if model.virusEnabled:
-        virusModel = Model(False, False, True, resetVirus, False)
+        virusModel = Model(False, False, True, 0, False)
         virusModel.createBot("NN", trainedAlg, parameters)
         virusEvaluation = testModel(virusModel, n_test_runs, resetVirus, model.getPath(), "virus")
         evaluations.append(virusEvaluation)
@@ -284,8 +381,6 @@ if __name__ == '__main__':
     # This is used in case we want to use a freezing program to create an .exe
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
-
-    # fix_seeds()
 
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
@@ -395,7 +490,7 @@ if __name__ == '__main__':
         modelPath = "savedModels/" + nameSavedModelFolder(tweakedTotal)
         model_in_subfolder = True
 
-    if 1 == int(input("Give saveModel folder a custom name? (1 == yes)\n")):
+    if int(input("Give saveModel folder a custom name? (1 == yes)\n")) == 1:
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
     model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
@@ -420,7 +515,11 @@ if __name__ == '__main__':
 
 
     Bot.init_exp_replayer(parameters)
+
+    setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode)
+
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
+
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
@@ -447,24 +546,33 @@ if __name__ == '__main__':
             model.update()
     else:
         maxSteps = parameters.MAX_SIMULATION_STEPS
-        smallPart = max(int(maxSteps / 200), 1)
+        smallPart = max(int(maxSteps / 100), 1)
+        testResults = []
         for step in range(maxSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
+                # Test every 10% of training
+            if step % (smallPart * 10) == 0:
+                testResults = updateTestResults(testResults)
+        testResults = updateTestResults(testResults)
+        meanMassesOfTestResults = [val[0] for val in testResults]
+        exportTestResults(meanMassesOfTestResults, model.getPath(),"testMassOverTime")
+        plotTesting(testResults, model.getPath(), smallPart * 10, maxSteps)
         print("Training done.")
         print("")
 
     if model.getTrainingEnabled():
-        runTests(model)
         model.save(True)
         model.saveModels()
+
+        runTests(model)
         if model_in_subfolder:
             print(os.path.join(modelPath))
             createCombinedModelGraphs(os.path.join(modelPath))
 
-
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))
+
 
         bots = model.getBots()
         for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):

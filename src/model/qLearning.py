@@ -14,6 +14,7 @@ class QLearn(object):
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
+        self.output_len = network.num_actions
         if self.parameters.CNN_REPRESENTATION:
             if self.parameters.CNN_USE_LAYER_1:
                 self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_1,
@@ -24,9 +25,12 @@ class QLearn(object):
             else:
                 self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_3,
                                   self.parameters.CNN_SIZE_OF_INPUT_DIM_3)
+        elif self.parameters.USE_ACTION_AS_INPUT:
+            self.input_len = parameters.STATE_REPR_LEN + 4
+            self.output_len = 1
         else:
             self.input_len = parameters.STATE_REPR_LEN
-        self.output_len = network.num_actions
+
         self.discrete = True
         self.epsilon = parameters.EPSILON
         self.temperature = parameters.TEMPERATURE
@@ -54,8 +58,7 @@ class QLearn(object):
     def calculateTargetForAction(self, newState, reward, alive):
         target = reward
         if alive:
-            # The target is the reward plus the discounted prediction of the value network
-            action_Q_values = self.network.predict_target_network(newState)
+            action_Q_values = self.network.predictTargetQValues(newState)
             newActionIdx = numpy.argmax(action_Q_values)
             target += self.network.getDiscount() * action_Q_values[newActionIdx]
         return target
@@ -70,9 +73,13 @@ class QLearn(object):
     def calculateTDError(self, experience):
         old_s, a, r, new_s, _ = experience
         alive = new_s is not None
-        state_Q_values = self.network.predict(old_s)
+        if self.parameters.USE_ACTION_AS_INPUT:
+            q_value_of_action = self.network.predict(numpy.concatenate((old_s, self.network.getActions()[a])))
+        else:
+            state_Q_values = self.network.predict(old_s)
+            q_value_of_action = state_Q_values[a]
+
         target = self.calculateTargetForAction(new_s, r, alive)
-        q_value_of_action = state_Q_values[a]
         td_error = target - q_value_of_action
         return td_error
 
@@ -84,9 +91,6 @@ class QLearn(object):
         if alive:
             # The target is the reward plus the discounted prediction of the value network
             action_Q_values = self.network.predict_single_trace_LSTM(new_s, False)
-
-            # TODO: Maybe this is not so smart at all! The hidden state of this prediction will be passed on, so it might lead to weird hidden states if we train twice on one?
-
             newActionIdx = numpy.argmax(action_Q_values)
             target += self.network.getDiscount() * action_Q_values[newActionIdx]
         q_value_of_action = state_Q_values[a]
@@ -105,11 +109,17 @@ class QLearn(object):
             inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, self.output_len))
 
+
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
             # No new state: dead
-            inputs[sample_idx] = old_s
-            targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
+            if self.parameters.USE_ACTION_AS_INPUT:
+                stateAction =  numpy.concatenate((old_s, self.network.getActions()[a]))  #old_s.extend(a)
+                inputs[sample_idx] = stateAction
+                targets[sample_idx] = self.calculateTargetForAction(new_s, r, new_s is not None)
+            else:
+                inputs[sample_idx] = old_s
+                targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
         self.network.trainOnBatch(inputs, targets)
 
     def train_LSTM_batch(self, batch):
@@ -196,6 +206,9 @@ class QLearn(object):
     def getNoiseLevel(self):
         return self.epsilon
 
+    def setNoise(self, val):
+        self.epsilon = val
+
     def updateNoise(self):
         self.epsilon *= self.parameters.NOISE_DECAY
         self.temperature *= self.parameters.TEMPERATURE_DECAY
@@ -225,7 +238,9 @@ class QLearn(object):
         return False, None
 
     def boltzmannDist(self, values, temp):
-        distribution_values = [math.e ** (value / temp) for value in values]
+        maxVal = max(values)
+        shiftedVals = [value - maxVal for value in values]
+        distribution_values = [math.e ** (value / temp) for value in shiftedVals]
         sum = numpy.sum(distribution_values)
         return [value / sum for value in distribution_values]
 
@@ -254,8 +269,8 @@ class QLearn(object):
 
         return newActionIdx, newAction
 
-    def save(self, path):
-        self.network.saveModel(path)
+    def save(self, path, name = ""):
+        self.network.saveModel(path, name)
 
     def setNoise(self, val):
         self.epsilon = val

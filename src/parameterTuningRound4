@@ -1,0 +1,158 @@
+Q-learning:
+
+
+Default 3x:
+Default 5x:
+
+Inverted:
+NORMALIZE_GRID_BY_MAX_MASS True 3x:
+NORMALIZE_GRID_BY_MAX_MASS True;USE_TOTALMASS False 3x:
+ENABLE_PELLET_GRID False 1x:
+ENABLE_SELF_GRID False 3x:
+ENABLE_WALL_GRID False 3x:
+ENABLE_VIRUS_GRID False 3x:
+ENABLE_ENEMY_GRID False 3x:
+USE_FOVSIZE False 3x:
+USE_TOTALMASS False 3x:
+
+Pellet:
+	WALL;VIRUS;ENEMY;FOVSIZE;TOTALMASS False 3x:
+	SELF;WALL;VIRUS;ENEMY;FOVSIZE False 3x:
+	SELF;WALL;VIRUS;ENEMY;FOVSIZE;TOTALMASS False 3x:
+	SELF;WALL;VIRUS;ENEMY;TOTALMASS False 3x:
+
+Greedy:
+	WALL False 3x:
+	VIRUS False 3x:
+	SELF False 3x:
+
+GRID_SQUARES_PER_FOV 9  3x:
+Default              11 3x:
+GRID_SQUARES_PER_FOV 13 3x:
+GRID_SQUARES_PER_FOV 15 3x:
+	+ No Wall, enemy, virus, self grid
+
+MAX_TRAINING_STEPS 20k  3x:
+MAX_TRAINING_STEPS 50k  3x:
+Default            100k 3x:
+MAX_TRAINING_STEPS 200k 3x:
+MAX_TRAINING_STEPS 500k 3x:
+
+USE_ACTION_AS_INPUT True 3x:
+
+Also measure time!
+NUM_ACTIONS 6  3x:
+Default     8  3x:
+NUM_ACTIONS 10 3x:
+NUM_ACTIONS 16 3x:
+NUM_ACTIONS 32 3x:
+NUM_ACTIONS 64 3x:
+
+ALPHA   0.0002 :
+Default 0.0001 :
+ALPHA   0.00005:
+
+FRAME_SKIP_RATE 4  3x:
+	+ DISCOUNT 0.9 3x:
+	+ DISCOUNT 0.95 3x:
+	+ DISCOUNT 0.995 3x:
+	+ DISCOUNT 0.9995 3x:
+FRAME_SKIP_RATE 11 3x:
+Default         12 3x:
+FRAME_SKIP_RATE 13 3x:
+
+TARGET_NETWORK_STEPS 1    3x:
+TARGET_NETWORK_STEPS 50   3x:
+TARGET_NETWORK_STEPS 100  3x:
+Default              1.5k 3x:
+TARGET_NETWORK_STEPS 10k  3x:
+TARGET_NETWORK_STEPS 20k  3x:
+TARGET_NETWORK_STEPS 40k  3x:
+
+DISCOUNT 0.825 3x:
+Default  0.85  3x:
+DISCOUNT 0.875 3x:
+
+NOISE_AT_HALF_TRAINING 0.02  3x:
+Default                0.01  3x:
+NOISE_AT_HALF_TRAINING 0.005 3x:
+
+HIDDEN_ALL 250   5x:
+HIDDEN_ALL 450   5x:
+Default          500   5x:
+HIDDEN_ALL 550   5x:
+HIDDEN_ALL 1000  5x:
+
+Default     "Default"        5x:
+INITIALIZER "glorot_uniform" 5x:
+INITIALIZER "glorot_normal"  5x:
+
+NUM_GREEDY_BOTS 1 3x:	
+	+ use model trained before on pellets	
+NUM_NN_BOTS 2     3x:	
+	+ use model trained before on pellets	
+
+
+ENABLE_EJECT True 3x:	
+ENABLE_SPLIT True 3x:
+
+ACTIVATION_FUNC_HIDDEN "elu":
+	ELU_ALPHA 0.001 3x:
+	ELU_ALPHA 0.01  3x:
+	ELU_ALPHA 0.1   3x:
+	ELU_ALPHA 1     3x:
+
+EXPLORATION_STRATEGY "Boltzmann":
+	TEMPERATURE 15 3x:
+	Default     10 3x:
+	TEMPERATURE 5  3x:
+	TEMPERATURE 1  3x:
+
+	TEMPERATURE_AT_END_TRAINING 0.0025 3x:
+	Default                     0.005  3x:
+	TEMPERATURE_AT_END_TRAINING 0.01   3x:
+
+
+
+Actor-Critic:
+	Default 5x:
+
+	NUM_NN_BOTS 2 5x:				
+	NUM_GREEDY_BOTS 1 5x:
+
+	ALPHA   0.0002   5x:
+	Default 0.0001   5x:
+	ALPHA   0.00005  5x:
+
+	FRAME_SKIP_RATE 6  5x:
+	FRAME_SKIP_RATE 9  5x:
+	Default         12 5x:
+	FRAME_SKIP_RATE 15 5x:
+
+	MAX_TRAINING_STEPS 50k  5x:
+	MAX_TRAINING_STEPS 75k  5x:				
+	Default            100k 5x:
+	MAX_TRAINING_STEPS 125k 5x:		
+	MAX_TRAINING_STEPS 200k 5x:		
+
+	INITIALIZER "glorot_uniform" 5x:		
+	INITIALIZER "glorot_normal"  5x:
+
+	
+	ALPHA_POLICY 0.000025 5x:
+	Default      0.00005  5x:
+	ALPHA_POLICY 0.0001   5x:
+
+	#Hard to compare, as they do not have the same network initialization
+	HIDDEN_ALL_POLICY 50  5x:
+	Default		  100 5x:
+	HIDDEN_ALL_POLICY 200 5x:
+
+	POLICY_OUTPUT_ACTIVATION_FUNC "relu_max" 5x:
+
+	ACTIVATION_FUNC_HIDDEN_POLICY "elu"     5x:		
+	ACTIVATION_FUNC_HIDDEN_POLICY "sigmoid" 5x:		
+
+
+
+

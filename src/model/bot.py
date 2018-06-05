@@ -109,6 +109,10 @@ class Bot(object):
 
         self.reset()
 
+    def saveInitialModels(self, path):
+        if self.learningAlg is not None:
+            self.learningAlg.save(path, "init_")
+
     def saveModel(self, path):
         self.learningAlg.save(path)
 
@@ -240,7 +244,15 @@ class Bot(object):
                 else:
                     gridView, mass, fovSize = self.getGridStateRepresentation()
                     gridView = gridView.flatten()
-                    stateRepr = numpy.concatenate((gridView, [mass, fovSize]))
+                    additionalFeatures = []
+                    if self.parameters.USE_FOVSIZE:
+                        additionalFeatures.append(fovSize)
+                    if self.parameters.USE_TOTALMASS:
+                        additionalFeatures.append(mass)
+                    if len(additionalFeatures) > 0:
+                        stateRepr = numpy.concatenate((gridView, additionalFeatures))
+                    else:
+                        stateRepr = gridView
 
             else:
                 stateRepr = self.getSimpleStateRepresentation()
@@ -288,6 +300,11 @@ class Bot(object):
         virusCells = self.field.getVirusesInFov(fovPos, fovSize)
         virusSHT.insertAllFloatingPointObjects(virusCells)
 
+        # Calculate mass of biggest cell:
+        if self.parameters.NORMALIZE_GRID_BY_MAX_MASS:
+            allCells = numpy.concatenate((totalPellets, playerCells, enemyCells, virusCells))
+            biggestCellMass = max(allCells, key = lambda cell: cell.getMass()).getMass()
+
         # Initialize grid squares with zeros:
         gsBiggestEnemyCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
         gsBiggestOwnCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
@@ -314,23 +331,28 @@ class Bot(object):
                         for pellet in pelletsInGS:
                             pelletCount += 1
                             pelletMassSum += pellet.getMass()
+                            if NORMALIZE_GRID_BY_MAX_MASS:
+                                pelletMassSum /= biggestCellMass
                         gsPelletMass[c][r] = pelletMassSum
 
-                    # TODO: add relative fov pos of closest pellet to allow micro management
 
                     # Create Enemy Cell mass representation
                     # Make the visionGrid's enemy cell representation a percentage. The player's mass
                     # in proportion to the biggest enemy cell's mass in each grid square.
                     enemiesInGS = enemySHT.getBucketContent(count)
                     if enemiesInGS:
-                        biggestEnemyInCell = max(enemiesInGS, key=lambda cell: cell.getMass())
-                        gsBiggestEnemyCellMass[c][r] = biggestEnemyInCell.getMass()
+                        biggestEnemyInCellMass = max(enemiesInGS, key=lambda cell: cell.getMass()).getMass()
+                        if NORMALIZE_GRID_BY_MAX_MASS:
+                            biggestEnemyInCellMass /= biggestCellMass
+                        gsBiggestEnemyCellMass[c][r] = biggestEnemyInCellMass
 
                     # Create Own Cell mass representation
                     playerCellsInGS = playerSHT.getBucketContent(count)
                     if playerCellsInGS:
-                        biggestFriendInCell = max(playerCellsInGS, key=lambda cell: cell.getMass())
-                        gsBiggestOwnCellMass[c][r] = biggestFriendInCell.getMass()
+                        biggestFriendInCell = max(playerCellsInGS, key=lambda cell: cell.getMass()).getMass()
+                        if NORMALIZE_GRID_BY_MAX_MASS:
+                            biggestFriendInCell /= biggestCellMass
+                        gsBiggestOwnCellMass[c][r] = biggestFriendInCell
                     # TODO: also add a count grid for own cells?
 
                     # Create Virus Cell representation
@@ -338,6 +360,8 @@ class Bot(object):
                         virusesInGS = virusSHT.getBucketContent(count)
                         if virusesInGS:
                             biggestVirus = max(virusesInGS, key=lambda virus: virus.getRadius()).getMass()
+                            if NORMALIZE_GRID_BY_MAX_MASS:
+                                biggestVirus /= biggestCellMass
                             gsVirus[c][r] = biggestVirus
 
                 # Create Wall representation
@@ -355,11 +379,22 @@ class Bot(object):
             print("counted pellets: ", pelletCount)
             print(" ")
 
-        gridView[0] = gsPelletMass
-        gridView[1] = gsBiggestOwnCellMass
-        gridView[2] = gsWalls
-        gridView[3] = gsBiggestEnemyCellMass
-        gridView[4] = gsVirus
+        count = 0
+        if self.parameters.ENABLE_PELLET_GRID:
+            gridView[count] = gsPelletMass
+            count += 1
+        if self.parameters.ENABLE_SELF_GRID:
+            gridView[count] = gsBiggestOwnCellMass
+            count += 1
+        if self.parameters.ENABLE_WALL_GRID:
+            gridView[count] = gsWalls
+            count += 1
+        if self.parameters.ENABLE_ENEMY_GRID:
+            gridView[count] = gsBiggestEnemyCellMass
+            count += 1
+        if self.parameters.ENABLE_VIRUS_GRID:
+            gridView[count] = gsVirus
+            count += 1
 
         # Add total Mass of player and field size:
         totalMass = self.player.getTotalMass()

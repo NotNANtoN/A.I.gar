@@ -117,7 +117,7 @@ class ValueNetwork(object):
             path = modelName
             self.loadedModelName = modelName
             self.model = load_model(path + "value_model.h5")
-            self.target_model = load_model(path + "/value_model.h5")
+            self.target_model = load_model(path + "value_model.h5")
 
     def predict(self, state):
         return self.model.predict(numpy.array([state]))[0][0]
@@ -131,9 +131,9 @@ class ValueNetwork(object):
     def train(self, inputs, targets):
         self.model.train_on_batch(inputs, targets)
 
-    def save(self, path):
+    def save(self, path, name):
         self.target_model.set_weights(self.model.get_weights())
-        self.target_model.save(path + "value_model.h5")
+        self.target_model.save(path + name + "value_model.h5")
 
 
 class PolicyNetwork(object):
@@ -271,8 +271,8 @@ class PolicyNetwork(object):
         else:
             self.model.train_on_batch(numpy.array([inputs]), numpy.array([targets]))
 
-    def save(self, path):
-        self.model.save(path + "actor" + "_model.h5")
+    def save(self, path, name = ""):
+        self.model.save(path + name + "actor" + "_model.h5")
 
     def getTarget(self, action, state):
         if self.discrete:
@@ -366,12 +366,14 @@ class ActorCritic(object):
             target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive)
             inputs_critic[sample_idx] = old_s
             targets_critic[sample_idx] = target
+
         # Debug info:
-        if __debug__:
-            old_s, a, r, new_s, _ = batch[-1]
-            alive = new_s is not None
-            target, self.latestTDerror = self.calculateTargetAndTDE(old_s, r, new_s, alive)
-            self.qValues.append(target)
+        old_s, a, r, new_s, _ = batch[-1]
+        alive = new_s is not None
+        target, self.latestTDerror = self.calculateTargetAndTDE(old_s, r, new_s, alive)
+        self.qValues.append(target)
+
+        # Train:
         self.critic.train(inputs_critic, targets_critic)
 
 #TODO: check critic training, the resulting values are weirdly negative for mass 200
@@ -389,15 +391,13 @@ class ActorCritic(object):
         if self.acType == "CACLA":
             if td_e > 0:
                 mu_s = self.actor.predict(old_s)
-                target = mu_s + (a - mu_s) #/ self.std ** 2
+                target = mu_s + (a - mu_s)
             elif td_e < 0 and self.parameters.CACLA_UPDATE_ON_NEGATIVE_TD:
                 mu_s = self.actor.predict(old_s)
                 target = mu_s - (a - mu_s)
-
         elif self.acType == "Standard":
             mu_s = self.actor.predict(old_s)
-            target = mu_s + td_e * (a - mu_s) #/ self.std ** 2
-        # TODO: Do we need to clip targets to 0-1 range??? How does backprop work if it wants to tune the network to attain unachievable results?
+            target = mu_s + td_e * (a - mu_s)
 
         return target
 
@@ -467,9 +467,9 @@ class ActorCritic(object):
             self.critic.load(path)
             self.actor.load(path)
 
-    def save(self, path):
-        self.actor.save(path)
-        self.critic.save(path)
+    def save(self, path, name = ""):
+        self.actor.save(path, name)
+        self.critic.save(path, name)
 
     def setNoise(self, val):
         self.std = val

@@ -16,27 +16,32 @@ from .parameters import *
 def createDiscreteActions(numActions, enableSplit, enableEject):
     actions = []
     # Add standing still action:
-    actions.append([0.5, 0.5, False, False])
+    actions.append([0.5, 0.5, 0, 0])
     # Add all other actions:
     degPerAction = 360 / numActions
     for degreeCount in range(numActions):
         degree = math.radians(degreeCount * degPerAction)
         x = math.cos(degree)
         y = math.sin(degree)
-        action = [x, y, False, False]
+        action = [x, y, 0, 0]
         actions.append(action)
         if enableSplit:
-            splitAction = [x, y, True, False]
+            splitAction = [x, y, 1, 0]
             actions.append(splitAction)
         if enableEject:
-            ejectAction = [x, y, False, True]
+            ejectAction = [x, y, 0, 1]
             actions.append(ejectAction)
     return actions
 
+
+
 class Network(object):
+
+
 
     def __init__(self, trainMode, modelName, parameters, loadModel):
         self.parameters = parameters
+
         self.trainMode = trainMode
 
         self.actions = createDiscreteActions(self.parameters.NUM_ACTIONS, self.parameters.ENABLE_SPLIT, self.parameters.ENABLE_EJECT)
@@ -79,8 +84,7 @@ class Network(object):
         self.learningRate = self.parameters.ALPHA
         self.optimizer = self.parameters.OPTIMIZER
         if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-            eluAlpha = self.parameters.ELU_ALPHA
-            self.activationFuncHidden = lambda x: keras.activations.elu(x, eluAlpha)
+            self.activationFuncHidden = "linear" #keras.layers.ELU(alpha=eluAlpha)
         else:
             self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN
         self.activationFuncLSTM = self.parameters.ACTIVATION_FUNC_LSTM
@@ -91,13 +95,20 @@ class Network(object):
         self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3
 
 
+        if self.parameters.USE_ACTION_AS_INPUT:
+            inputDim = self.stateReprLen + 4
+            outputDim = 1
+        else:
+            inputDim = self.stateReprLen
+            outputDim = self.num_actions
+
         if self.parameters.EXP_REPLAY_ENABLED:
-            input_shape_lstm = (self.parameters.MEMORY_TRACE_LEN, self.stateReprLen)
+            input_shape_lstm = (self.parameters.MEMORY_TRACE_LEN, inputDim)
             stateful_training = False
             self.batch_len = self.parameters.MEMORY_BATCH_LEN
 
         else:
-            input_shape_lstm = (1, self.stateReprLen)
+            input_shape_lstm = (1, inputDim)
             stateful_training = True
             self.batch_len = 1
 
@@ -112,7 +123,7 @@ class Network(object):
         if self.gpus > 1:
             with tf.device("/cpu:0"):
                 self.valueNetwork = Sequential()
-                self.valueNetwork.add(Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
+                self.valueNetwork.add(Dense(self.hiddenLayer1, input_dim=inputDim, activation=self.activationFuncHidden,
                                            bias_initializer=initializer, kernel_initializer=initializer))
                 if self.hiddenLayer2 > 0:
                     self.valueNetwork.add(Dense(self.hiddenLayer2, activation=self.activationFuncHidden, bias_initializer=initializer
@@ -208,20 +219,26 @@ class Network(object):
                     dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
                 else:
+
                     self.input = Input(shape=(self.stateReprLen,))
                     dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)(self.input)
-                    # self.valueNetwork.add(hidden1)
+                if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                    self.valueNetwork =(keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Hidden 2
                 if self.hiddenLayer2 > 0:
                     dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                     # self.valueNetwork.add(hidden2)
+                    if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                        self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Hidden 3
                 if self.hiddenLayer3 > 0:
                     dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                     # self.valueNetwork.add(hidden3)
+                    if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                        self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Output layer
                 self.output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                           , kernel_initializer=initializer)(dense_layer)
@@ -258,7 +275,7 @@ class Network(object):
                           , kernel_initializer=initializer)
                     self.valueNetwork.add(hidden3)
                 # Output layer
-                output = LSTM(self.num_actions, activation=self.activationFuncOutput,
+                output = LSTM(outputDim, activation=self.activationFuncOutput,
                      return_sequences=True, stateful=stateful_training, batch_size=self.batch_len, bias_initializer=initializer
                           , kernel_initializer=initializer)
                 self.valueNetwork.add(output)
@@ -379,6 +396,13 @@ class Network(object):
 
             return self.valueNetwork.predict(state)[0]
 
+    def predictTargetQValues(self, state):
+        if self.parameters.USE_ACTION_AS_INPUT:
+            return [self.predict_target_network(numpy.concatenate((state,act))) for act in self.actions]
+        else:
+            return self.predict_target_network(state)
+
+
     def predict_target_network(self, state, len_batch = 1):
         if self.parameters.NEURON_TYPE == "LSTM":
             if self.parameters.EXP_REPLAY_ENABLED:
@@ -391,14 +415,17 @@ class Network(object):
         return self.actionNetwork.predict(numpy.array([numpy.array([trace])]))[0]
 
     def predict_action(self, state):
-        if self.parameters.NEURON_TYPE == "MLP":
-            return self.predict(state)
+        if self.parameters.USE_ACTION_AS_INPUT:
+            return [self.predict(numpy.concatenate((state,act))) for act in self.actions]
         else:
-            return self.predict_action_network(state)
+            if self.parameters.NEURON_TYPE == "MLP":
+                return self.predict(state)
+            else:
+                return self.predict_action_network(state)
 
-    def saveModel(self, path):
+    def saveModel(self, path, name = ""):
         self.targetNetwork.set_weights(self.valueNetwork.get_weights())
-        self.targetNetwork.save(path + "model.h5")
+        self.targetNetwork.save(path + name + "model.h5")
 
     def setEpsilon(self, val):
         self.epsilon = val
