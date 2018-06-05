@@ -212,9 +212,9 @@ class Network(object):
                                                 strides=(self.stride_3, self.stride_3), activation='relu',
                                                 data_format='channels_first')(self.input[grid]))
                         tower[grid] = Flatten()(tower[grid])
-                        self.towerModel.append(Model(self.input[grid], tower[grid]))
+                        # self.towerModel.append(Model(self.input[grid], tower[grid]))
 
-                    self.valueNetwork = keras.layers.concatenate([i.output for i in self.towerModel], axis=1)
+                    self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
 
             # Fully connected layers
             if self.parameters.NEURON_TYPE == "MLP":
