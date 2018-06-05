@@ -373,10 +373,10 @@ class Network(object):
             else:
                 return self.valueNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
         if self.parameters.CNN_REPRESENTATION:
-            stateRepr = numpy.zeros((len(state), 1,  len(state[0]), len(state[0])))
+            stateRepr = numpy.zeros((len(state), 1, 1,  len(state[0]), len(state[0])))
 
             for gridIdx, grid in enumerate(state):
-                stateRepr[gridIdx][0] = grid
+                stateRepr[gridIdx][0][0] = grid
 
             #stateRepr = numpy.zeros((len(state), 1, len(state[0]), len(state[0])))
 
@@ -384,10 +384,9 @@ class Network(object):
             #    stateRepr[gridIdx][0] = grid
 
 
-            print("State Repr: ", stateRepr)
-            print("State Repr[0]: ", stateRepr[0])
             print("State shape setting:", (len(state), 1, len(state[0]), len(state[0])))
             print("Shape after setting:", numpy.shape(stateRepr))
+            print("Number of dimensions: ", numpy.ndim(stateRepr))
 
             # print(numpy.shape(state))
             # shape = [1]
@@ -407,7 +406,7 @@ class Network(object):
             # print(numpy.shape(values))
             # print(values)
 
-            print(numpy.ndim(stateRepr))
+
             return self.valueNetwork.predict(list(stateRepr))[0]
         else:
             shape = [1]
