@@ -212,9 +212,9 @@ class Network(object):
                                                 strides=(self.stride_3, self.stride_3), activation='relu',
                                                 data_format='channels_first')(self.input[grid]))
                         tower[grid] = Flatten()(tower[grid])
-                        self.towerModel.append(Model(self.input[grid], tower[grid]))
+                        # self.towerModel.append(Model(self.input[grid], tower[grid]))
 
-                    self.valueNetwork = keras.layers.concatenate([i.output for i in self.towerModel], axis=1)
+                    self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
 
             # Fully connected layers
             if self.parameters.NEURON_TYPE == "MLP":
@@ -377,7 +377,7 @@ class Network(object):
 
             for gridIdx, grid in enumerate(state):
                 stateRepr[gridIdx][0] = grid
-            print("State Repr: ", stateRepr)
+            # print("State Repr: ", stateRepr)
             print("State Repr[0]: ", stateRepr[0])
             print("State shape setting:", (len(state), 1, len(state[0]), len(state[0])))
             print("Shape after setting:", numpy.shape(stateRepr))
@@ -400,7 +400,7 @@ class Network(object):
             # print(numpy.shape(values))
             # print(values)
 
-            return self.valueNetwork.predict(stateRepr[0])[0]
+            return self.valueNetwork.predict(stateRepr)[0]
         else:
             shape = [1]
             shape.extend(numpy.shape(state))
