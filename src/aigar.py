@@ -3,7 +3,7 @@ import sys
 import importlib
 from controller.controller import Controller
 from model.model import *
-from model.network import *
+from model.network import Network
 from model.qLearning import *
 from model.nsSarsa import *
 from model.expectedSarsa import *

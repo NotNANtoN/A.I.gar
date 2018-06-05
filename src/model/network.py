@@ -2,10 +2,11 @@ import heapq
 import keras
 keras.backend.set_image_dim_ordering('tf')
 import numpy
+numpy.set_printoptions(threshold=numpy.nan)
 import tensorflow as tf
 import keras.backend as K
-from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten
-from keras.models import Sequential
+from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten, Input
+from keras.models import Sequential, Model
 from keras.utils.training_utils import multi_gpu_model
 from keras.models import load_model, save_model
 
@@ -65,6 +66,15 @@ class Network(object):
             self.stride_3 = self.parameters.CNN_LAYER_3_STRIDE
             self.filterNum_3 = self.parameters.CNN_LAYER_3_FILTER_NUM
 
+            if self.parameters.CNN_USE_LAYER_1:
+                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+            elif self.parameters.CNN_USE_LAYER_2:
+                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+            else:
+                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+        else:
+            self.stateReprLen = self.parameters.STATE_REPR_LEN
+
         # ANN
         self.learningRate = self.parameters.ALPHA
         self.optimizer = self.parameters.OPTIMIZER
@@ -80,7 +90,6 @@ class Network(object):
         self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2
         self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3
 
-        self.stateReprLen = self.parameters.STATE_REPR_LEN
 
         if self.parameters.EXP_REPLAY_ENABLED:
             input_shape_lstm = (self.parameters.MEMORY_TRACE_LEN, self.stateReprLen)
@@ -115,71 +124,116 @@ class Network(object):
                                        , kernel_initializer=initializer))
                 self.valueNetwork = multi_gpu_model(self.valueNetwork, gpus=self.gpus)
         else:
-            self.valueNetwork = Sequential()
+            # self.valueNetwork = Sequential()
 
             # CNN
             if self.parameters.CNN_REPRESENTATION:
-                if self.parameters.CNN_USE_LAYER_1:
-                    inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-                    self.CNN_input_1 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
-                    cnn1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
-                                  strides=(self.stride_1, self.stride_1), activation='relu', input_shape=self.CNN_input_1,
-                                  data_format = 'channels_first')
-                    self.valueNetwork.add(cnn1)
-
-                if self.parameters.CNN_USE_LAYER_2:
+                if self.parameters.CNN_PIXEL_REPRESENTATION:
                     if self.parameters.CNN_USE_LAYER_1:
-                        cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                      strides=(self.stride_2, self.stride_2), activation='relu')
-                    else:
-                        inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
-                        self.CNN_input_2 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
-                        cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                      strides=(self.stride_2, self.stride_2), activation='relu', input_shape=self.CNN_input_2,
-                                      data_format='channels_first')
-                    self.valueNetwork.add(cnn2)
+                        inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+                        self.CNN_input_1 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
+                        cnn1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                      strides=(self.stride_1, self.stride_1), activation='relu', input_shape=self.CNN_input_1,
+                                      data_format = 'channels_first')
+                        self.valueNetwork.add(cnn1)
 
-                if self.parameters.CNN_USE_LAYER_2:
-                    cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                  strides=(self.stride_3, self.stride_3), activation='relu')
+                    if self.parameters.CNN_USE_LAYER_2:
+                        if self.parameters.CNN_USE_LAYER_1:
+                            cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                          strides=(self.stride_2, self.stride_2), activation='relu')
+                        else:
+                            inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+                            self.CNN_input_2 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
+                            cnn2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                          strides=(self.stride_2, self.stride_2), activation='relu', input_shape=self.CNN_input_2,
+                                          data_format='channels_first')
+                        self.valueNetwork.add(cnn2)
+
+                    if self.parameters.CNN_USE_LAYER_2:
+                        cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                      strides=(self.stride_3, self.stride_3), activation='relu')
+                    else:
+                        inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                        self.CNN_input_3 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
+                        cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                      strides=(self.stride_3, self.stride_3), activation='relu', input_shape=self.CNN_input_3,
+                                      data_format='channels_first')
+                    self.valueNetwork.add(cnn3)
+                    self.valueNetwork.add(Flatten())
+
+                # Not pixel input
                 else:
-                    inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
-                    self.CNN_input_3 = (self.parameters.NUM_OF_GRIDS, inputLen, inputLen)
-                    cnn3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                  strides=(self.stride_3, self.stride_3), activation='relu', input_shape=self.CNN_input_3,
-                                  data_format='channels_first')
-                self.valueNetwork.add(cnn3)
-                self.valueNetwork.add(Flatten())
+                    tower = []
+                    self.input = []
+                    self.towerModel = []
+                    for grid in range(self.parameters.NUM_OF_GRIDS):
+                        if self.parameters.CNN_USE_LAYER_1:
+                            inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+                            self.input.append(Input(shape=(1, inputLen, inputLen)))
+                            tower.append(Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                          strides=(self.stride_1, self.stride_1), activation='relu',
+                                                data_format='channels_first')(self.input[grid]))
+
+                        if self.parameters.CNN_USE_LAYER_2:
+                            if self.parameters.CNN_USE_LAYER_1:
+                                tower[grid] = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                              strides=(self.stride_2, self.stride_2), activation='relu',
+                                                    data_format='channels_first')(tower[grid])
+                            else:
+                                inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+                                self.input.append(Input(shape=(1, inputLen, inputLen)))
+                                tower.append(Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                              strides=(self.stride_2, self.stride_2), activation='relu',
+                                                    data_format='channels_first')(self.input[grid]))
+
+                        if self.parameters.CNN_USE_LAYER_2:
+                            tower[grid] = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                          strides=(self.stride_3, self.stride_3), activation='relu',
+                                                    data_format='channels_first')(tower[grid])
+                        else:
+                            inputLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                            self.input.append(Input(shape=(1, inputLen, inputLen)))
+                            tower.append(Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                          strides=(self.stride_3, self.stride_3), activation='relu',
+                                                data_format='channels_first')(self.input[grid]))
+                        tower[grid] = Flatten()(tower[grid])
+                        self.towerModel.append(Model(self.input[grid], tower[grid]))
+
+                    self.valueNetwork = keras.layers.concatenate([i.output for i in self.towerModel], axis=1)
 
             # Fully connected layers
-            hidden1 = None
-            hidden2 = None
-            hidden3 = None
-            output = None
-
             if self.parameters.NEURON_TYPE == "MLP":
                 # Hidden Layer 1
                 if self.parameters.CNN_REPRESENTATION:
-                    hidden1 = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)
+                    dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
                 else:
-                    hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)
-                self.valueNetwork.add(hidden1)
+                    self.input = Input(shape=(self.stateReprLen,))
+                    dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(self.input)
+                    # self.valueNetwork.add(hidden1)
                 # Hidden 2
                 if self.hiddenLayer2 > 0:
-                    hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)
-                    self.valueNetwork.add(hidden2)
+                    dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
+                    # self.valueNetwork.add(hidden2)
                 # Hidden 3
                 if self.hiddenLayer3 > 0:
-                    hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)
-                    self.valueNetwork.add(hidden3)
+                    dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
+                    # self.valueNetwork.add(hidden3)
                 # Output layer
-                output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
-                          , kernel_initializer=initializer)
-                self.valueNetwork.add(output)
+                self.output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
+                          , kernel_initializer=initializer)(dense_layer)
+
+                #Define functional model
+                if self.parameters.CNN_REPRESENTATION:
+                    input_shape = [i.input for i in self.towerModel]
+                    print(input_shape)
+                    self.valueNetwork = Model(inputs=self.input, outputs=self.output)
+                else:
+                    self.valueNetwork = Model(inputs=self.input, outputs=self.output)
+                # self.valueNetwork.add(output)
 
             elif self.parameters.NEURON_TYPE == "LSTM":
                 # Hidden Layer 1
@@ -298,7 +352,32 @@ class Network(object):
                 return self.valueNetwork.predict(state, batch_size=batch_len)
             else:
                 return self.valueNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
-        return self.valueNetwork.predict(numpy.array([state]))[0]
+        if self.parameters.CNN_REPRESENTATION:
+            print(numpy.shape(state))
+            shape = [1]
+            shape.extend(numpy.shape(state)[1:])
+            # shape.extend([1])
+            # print(shape, "AAAAAAAAAAAAAAAAAAAAAAAA")
+            # shape = numpy.shape(state)
+            print(numpy.shape(state[0]), "AAAAAAAAAAAAAAAAAAAAAAAA")
+            # state = [i.reshape(shape) for i in state]
+            # print(numpy.shape(state[0]))
+            # print(self.valueNetwork.input)
+            # values = [self.towerModel[i].predict(state[i]) for i in range(len(self.towerModel))]
+            # values = [state[i] for i in range(len(self.towerModel))]
+            values = state.reshape(5,1,20,20)
+
+            print(numpy.shape(values))
+            print(values)
+            values = self.valueNetwork.predict(list(values))
+            return values[0]
+        else:
+            shape = [1]
+            shape.extend(numpy.shape(state))
+            # print(shape, "AAAAAAAAAAAAAAAAAAAAAAAA")
+            state = state.reshape(shape)
+
+            return self.valueNetwork.predict(state)[0]
 
     def predict_target_network(self, state, len_batch = 1):
         if self.parameters.NEURON_TYPE == "LSTM":
