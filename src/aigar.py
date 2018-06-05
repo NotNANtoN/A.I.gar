@@ -279,8 +279,11 @@ def cloneModel(model):
 
 def updateTestResults(testResults):
     clonedModel = cloneModel(model)
+    originalNoise = clonedModel.getNNBot().getLearningAlg().getNoise()
     clonedModel.getNNBot().getLearningAlg().setNoise(0)
     currentEval = testModel(clonedModel, 5, clonedModel.resetLimit, model.getPath(), "test", False)
+    clonedModel.getNNBot().getLearningAlg().setNoise(originalNoise)
+
     meanScore = currentEval[2]
     stdDev = currentEval[3]
     testResults.append((meanScore, stdDev))

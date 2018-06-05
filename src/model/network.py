@@ -370,24 +370,35 @@ class Network(object):
             else:
                 return self.valueNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
         if self.parameters.CNN_REPRESENTATION:
-            print(numpy.shape(state))
-            shape = [1]
-            shape.extend(numpy.shape(state)[1:])
+            stateRepr = numpy.zeros((len(state), 1, len(state[0]), len(state[0]) ))
+
+            for gridIdx, grid in enumerate(state):
+                stateRepr[gridIdx][0] = grid
+            print("State Repr: ", stateRepr)
+            print("State Repr[0]: ", stateRepr[0])
+            print("State shape setting:", (len(state), 1, len(state[0]), len(state[0])))
+            print("Shape after setting:", numpy.shape(stateRepr))
+
+
+            #print(numpy.shape(state))
+            #shape = [1]
+            #shape.extend(numpy.shape(state)[1:])
+
             # shape.extend([1])
             # print(shape, "AAAAAAAAAAAAAAAAAAAAAAAA")
             # shape = numpy.shape(state)
-            print(numpy.shape(state[0]), "AAAAAAAAAAAAAAAAAAAAAAAA")
+            #print(numpy.shape(state[0]), "AAAAAAAAAAAAAAAAAAAAAAAA")
             # state = [i.reshape(shape) for i in state]
             # print(numpy.shape(state[0]))
             # print(self.valueNetwork.input)
             # values = [self.towerModel[i].predict(state[i]) for i in range(len(self.towerModel))]
             # values = [state[i] for i in range(len(self.towerModel))]
-            values = state.reshape(5,1,20,20)
+            #values = state.reshape(5,1,20,20)
 
-            print(numpy.shape(values))
-            print(values)
-            values = self.valueNetwork.predict(list(values))
-            return values[0]
+            #print(numpy.shape(values))
+            #print(values)
+
+            return self.valueNetwork.predict(stateRepr[0])[0]
         else:
             shape = [1]
             shape.extend(numpy.shape(state))
