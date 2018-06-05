@@ -74,6 +74,15 @@ def fix_seeds(seedNum):
         K.set_session(sess)
 
 
+def setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode):
+    seedNumber = None
+    if model_in_subfolder and not loadModel:
+        folders = [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]
+        seedNumber = len(folders) * 10
+    if seedNumber and enableTrainMode:
+        fix_seeds(seedNumber)
+
+
 def algorithmNumberToName(val):
     if val == 0:
         return "Q-Learning"
@@ -507,13 +516,7 @@ if __name__ == '__main__':
 
     Bot.init_exp_replayer(parameters)
 
-    seedNumber = None
-    if model_in_subfolder and not loadModel:
-        folders = [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]
-        seedNumber = len(folders)
-    if seedNumber and enableTrainMode:
-        pass
-        fix_seeds(seedNumber)
+    setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode)
 
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
 
