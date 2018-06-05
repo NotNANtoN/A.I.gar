@@ -228,21 +228,21 @@ class Network(object):
                     dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer)(self.input)
                 if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                    self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+                    dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Hidden 2
                 if self.hiddenLayer2 > 0:
                     dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                     # self.valueNetwork.add(hidden2)
                     if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                        self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+                        dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Hidden 3
                 if self.hiddenLayer3 > 0:
                     dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                     # self.valueNetwork.add(hidden3)
                     if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                        self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+                        dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Output layer
                 self.output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                                     , kernel_initializer=initializer)(dense_layer)
