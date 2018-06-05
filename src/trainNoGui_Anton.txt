@@ -2,10 +2,10 @@
 0
 10000
 0
-2
+0
 1
-Default
-"AC-test"
+CNN_REPRESENTATION
+True
 0
 0
 1
