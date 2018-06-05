@@ -251,9 +251,7 @@ class Network(object):
                 if self.parameters.CNN_REPRESENTATION:
                     input_shape = [i.input for i in self.towerModel]
                     print(input_shape)
-                    self.valueNetwork = Model(inputs=self.input, outputs=self.output)
-                else:
-                    self.valueNetwork = Model(inputs=self.input, outputs=self.output)
+                self.valueNetwork = Model(inputs=self.input, outputs=self.output)
                 # self.valueNetwork.add(output)
 
             elif self.parameters.NEURON_TYPE == "LSTM":

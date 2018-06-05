@@ -215,6 +215,9 @@ class QLearn(object):
     def getNoiseLevel(self):
         return self.epsilon
 
+    def getNoise(self):
+        return self.epsilon
+
     def setNoise(self, val):
         self.epsilon = val
 
@@ -276,6 +279,9 @@ class QLearn(object):
 
     def setTemperature(self, val):
         self.temperature = val
+
+    def getTemperature(self):
+        return self.temperature
 
     def getNetwork(self):
         return self.network

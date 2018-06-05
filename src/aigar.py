@@ -281,8 +281,16 @@ def updateTestResults(testResults):
     clonedModel = cloneModel(model)
     originalNoise = clonedModel.getNNBot().getLearningAlg().getNoise()
     clonedModel.getNNBot().getLearningAlg().setNoise(0)
+
+    if clonedModel.getNNBot().getLearningAlg() != "AC":
+        originalTemp = clonedModel.getNNBot().getLearningAlg().getTemperature()
+        clonedModel.getNNBot().getLearningAlg().setTemperature(0)
+
+
     currentEval = testModel(clonedModel, 5, clonedModel.resetLimit, model.getPath(), "test", False)
     clonedModel.getNNBot().getLearningAlg().setNoise(originalNoise)
+    if clonedModel.getNNBot().getLearningAlg() != "AC":
+        clonedModel.getNNBot().getLearningAlg().setTemperature(originalTemp)
 
     meanScore = currentEval[2]
     stdDev = currentEval[3]
