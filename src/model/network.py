@@ -384,7 +384,8 @@ class Network(object):
             #    stateRepr[gridIdx][0] = grid
 
 
-            print("State Repr: ", stateRepr)
+            # print("State Repr: ", stateRepr)
+            print(numpy.shape(state))
             print("State Repr[0]: ", stateRepr[0])
             print("State shape setting:", (len(state), 1, len(state[0]), len(state[0])))
             print("Shape after setting:", numpy.shape(stateRepr))
