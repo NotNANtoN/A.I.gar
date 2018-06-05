@@ -11,6 +11,21 @@ from .spatialHashTable import spatialHashTable
 # It always contains a certain number of viruses and collectibles and regulates their number and spawnings
 
 
+def adjustCellSize(cell, mass, hashtable):
+    hashtable.deleteObject(cell)
+    cell.grow(mass)
+    hashtable.insertObject(cell)
+
+
+def randomSize():
+    maxRand = 50
+    maxPelletSize = 4
+    sizeRand = numpy.random.randint(0, maxRand)
+    if sizeRand > (maxRand - maxPelletSize):
+        return maxRand - sizeRand
+    return 1
+
+
 class Field(object):
     def __init__(self, virusEnabled):
         self.size = 0
@@ -289,7 +304,7 @@ class Field(object):
     def spawnPellet(self):
         xPos = numpy.random.randint(0, self.size)
         yPos = numpy.random.randint(0, self.size)
-        size = self.randomSize()
+        size = randomSize()
         pellet = Cell(xPos, yPos, size, None)
         pellet.setName("Pellet")
         self.addPellet(pellet)
@@ -316,14 +331,14 @@ class Field(object):
         self.eatCell(playerCell, self.playerHashTable, virus, self.virusHashTable, self.viruses)
         self.playerCellAteVirus(playerCell)
 
-    def eatCell(self, eatingCell, eatingCellHashtable, cell, cellHashtable, list):
-        self.adjustCellSize(eatingCell, cell.getMass(), eatingCellHashtable)
-        list.remove(cell)
+    def eatCell(self, eatingCell, eatingCellHashtable, cell, cellHashtable, cellList):
+        adjustCellSize(eatingCell, cell.getMass(), eatingCellHashtable)
+        cellList.remove(cell)
         cellHashtable.deleteObject(cell)
         cell.setAlive(False)
 
     def eatPlayerCell(self, largerCell, smallerCell):
-        self.adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashTable)
+        adjustCellSize(largerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 
     def playerCellAteVirus(self, playerCell):
@@ -334,7 +349,7 @@ class Field(object):
             return
         massPerCell = VIRUS_EXPLOSION_BASE_MASS + (playerCell.getMass() / numberOfNewCells - VIRUS_EXPLOSION_BASE_MASS) * 0.2
         playerCell.resetMergeTime(0.8)
-        self.adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
+        adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
         for cellIdx in range(numberOfNewCells):
             cellPos = playerCell.getPos()
             newCell = Cell(cellPos[0], cellPos[1], massPerCell, player)
@@ -356,7 +371,7 @@ class Field(object):
         else:
             biggerCell = secondCell
             smallerCell = firstCell
-        self.adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashTable)
+        adjustCellSize(biggerCell, smallerCell.getMass(), self.playerHashTable)
         self.deletePlayerCell(smallerCell)
 
     def deletePlayerCell(self, playerCell):
@@ -366,15 +381,6 @@ class Field(object):
         if not player.getCells():
             self.deadPlayers.append(player)
             player.setDead()
-
-
-    def randomSize(self):
-        maxRand = 50
-        maxPelletSize = 4
-        sizeRand = numpy.random.randint(0, maxRand)
-        if sizeRand > (maxRand - maxPelletSize):
-            return maxRand - sizeRand
-        return 1
 
     def addPellet(self, pellet):
         self.pelletHashTable.insertObject(pellet)
@@ -392,12 +398,7 @@ class Field(object):
         self.playerHashTable.insertObject(playerCell)
         playerCell.getPlayer().addCell(playerCell)
 
-    def adjustCellSize(self, cell, mass, hashtable):
-        hashtable.deleteObject(cell)
-        cell.grow(mass)
-        hashtable.insertObject(cell)
-
-    def adjustCellPos(self, cell, newPos, hashtable):
+    def adjustCellPos(self, cell, newPos):
         #hashtable.deleteObject(cell)
         x = min(self.size, max(0, newPos[0]))
         y = min(self.size, max(0, newPos[1]))
@@ -413,7 +414,8 @@ class Field(object):
     def getVirusEnabled(self):
         return self.virusEnabled
 
-    def getPortionOfCellsInFov(self, cells, fovPos, fovSize):
+    @staticmethod
+    def getPortionOfCellsInFov(cells, fovPos, fovSize):
         return [cell for cell in cells if cell.isInFov(fovPos,fovSize)]
 
     def getPlayerCellsInFov(self, fovPos, fovSize):
@@ -440,7 +442,8 @@ class Field(object):
         blobsNearFov = self.getCellsFromHashTableInFov(self.blobHashTable, fovPos, fovSize)
         return self.getPortionOfCellsInFov(blobsNearFov, fovPos, fovSize)
 
-    def getCellsFromHashTableInFov(self, hashtable, fovPos, fovSize):
+    @staticmethod
+    def getCellsFromHashTableInFov(hashtable, fovPos, fovSize):
         return hashtable.getNearbyObjectsInArea(fovPos, fovSize / 2)
     
     def getWidth(self):
@@ -470,5 +473,6 @@ class Field(object):
     def getPlayers(self):
         return self.players
 
-    def getReward(self, player):
+    @staticmethod
+    def getReward(player):
         return player.getTotalMass()

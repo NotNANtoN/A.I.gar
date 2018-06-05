@@ -150,7 +150,7 @@ class View:
         else:
             # Necessary to avoid that collectibles are drawn as little X's when the fov is huge
             pygame.draw.circle(screen, color, pos, rad)
-        if player != None or (__debug__ and cell.getName() == "Virus"):
+        if player is not None or (__debug__ and cell.getName() == "Virus"):
             font = pygame.font.SysFont(None, int(rad / 2))
             name = font.render(cell.getName(), True, (0,0,0))
             textPos = [pos[0] - name.get_width() / 2, pos[1] - name.get_height() / 2]

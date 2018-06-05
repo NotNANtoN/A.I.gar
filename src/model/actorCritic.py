@@ -431,35 +431,7 @@ class ActorCritic(object):
             if __debug__:
                 print("Predicted action after training:\t", numpy.round(self.actor.predict(inputs[-1]), 2))
 
-    # This is deprecated:
-    def train(self, batch):
-        inputs_critic = []
-        targets_critic = []
-        total_weight_changes_actor = 0
-        for sample in batch:
-            # Calculate input and target for critic
-            old_s, a, r, new_s = sample
-            alive = new_s is not None
-            old_state_value = self.critic.predict(old_s)
-            target = r
-            if alive:
-                # The target is the reward plus the discounted prediction of the value network
-                updated_prediction = self.critic.predict(new_s)
-                target += self.parameters.discount * updated_prediction
-            td_error = target - old_state_value
-            inputs_critic.append(old_s)
-            targets_critic.append(target)
 
-            # Calculate weight change of actor:
-            std_dev = self.std
-            actor_action = self.actor.predict(old_s)
-            gradient_of_log_prob_target_actor = actor_action + (a - actor_action) / (std_dev * std_dev)
-            gradient = self.actor.getGradient(old_s, gradient_of_log_prob_target_actor)
-            single_weight_change_actor = gradient * td_error
-            total_weight_changes_actor += single_weight_change_actor
-
-        self.critic.train(inputs_critic, targets_critic)
-        self.actor.train(total_weight_changes_actor)
 
     def load(self, modelName):
         if modelName is not None:
@@ -470,6 +442,7 @@ class ActorCritic(object):
     def save(self, path, name = ""):
         self.actor.save(path, name)
         self.critic.save(path, name)
+
 
     def setNoise(self, val):
         self.std = val
@@ -482,6 +455,9 @@ class ActorCritic(object):
 
     def resetQValueList(self):
         self.qValues = []
+
+    def getNoise(self):
+        return self.std
 
     def getNoiseLevel(self):
         return self.std

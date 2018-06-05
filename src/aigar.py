@@ -25,8 +25,8 @@ def fix_seeds(seedNum):
     # https://docs.python.org/3.4/using/cmdline.html#envvar-PYTHONHASHSEED
     # https://github.com/keras-team/keras/issues/2280#issuecomment-306959926
 
-    #import os
-    #os.environ['PYTHONHASHSEED'] = '0'
+    # import os
+    # os.environ['PYTHONHASHSEED'] = '0'
 
     # The below is necessary for starting Numpy generated random numbers
     # in a well-defined initial state.
@@ -39,7 +39,7 @@ def fix_seeds(seedNum):
     # The below is necessary for starting core Python generated random numbers
     # in a well-defined state.
 
-    #rn.seed(12345)
+    # rn.seed(12345)
 
     # Force TensorFlow to use single thread.
     # Multiple threads are a potential source of
@@ -57,7 +57,6 @@ def fix_seeds(seedNum):
         # For further details, see: https://www.tensorflow.org/api_docs/python/tf/set_random_seed
 
         tf.set_random_seed(seedNum)
-
 
         sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
         K.set_session(sess)
@@ -78,7 +77,7 @@ def setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, ena
     seedNumber = None
     if model_in_subfolder and not loadModel:
         folders = [i for i in os.listdir(modelPath) if os.path.isdir(modelPath + "/" + i)]
-        seedNumber = len(folders) * 10
+        seedNumber = len(folders)
     if seedNumber and enableTrainMode:
         fix_seeds(seedNumber)
 
@@ -179,9 +178,9 @@ def fitsLimitations(number, limit):
 def defineScreenSize(humansNr):
     # Define screen size (to allow splitscreen)
     if humansNr == 2:
-        return int(SCREEN_WIDTH * humansNr + humansNr -1), int(SCREEN_HEIGHT)
+        return int(SCREEN_WIDTH * humansNr + humansNr - 1), int(SCREEN_HEIGHT)
     if humansNr == 3:
-        return int(SCREEN_WIDTH * humansNr * 2/3) + humansNr -1, int(SCREEN_HEIGHT * 2/3)
+        return int(SCREEN_WIDTH * humansNr * 2 / 3) + humansNr - 1, int(SCREEN_HEIGHT * 2 / 3)
 
     return SCREEN_WIDTH, SCREEN_HEIGHT
 
@@ -192,17 +191,17 @@ def createHumans(numberOfHumans, model1):
         model1.createHuman(name)
 
 
-def createBots(number, model, type, parameters, algorithm = None, loadModel = None):
+def createBots(number, model, botType, parameters, algorithm=None, loadModel=None):
     learningAlg = None
-    if type == "NN":
+    if botType == "NN":
         Bot.num_NNbots = number
         if algorithm not in [2, 3]:
             network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
 
         for i in range(number):
             # Create algorithm instance
-            #Discrete algorithms
-            if algorithm in [0,1,4,5]:
+            # Discrete algorithms
+            if algorithm in [0, 1, 4, 5]:
                 if algorithm == 0:
                     learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
                 elif algorithm == 1:
@@ -212,7 +211,7 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
                 elif algorithm == 5:
                     learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, network, parameters)
 
-            #AC algorithms
+            # AC algorithms
             elif algorithm == 2:
                 learningAlg = ActorCritic(parameters, numberOfNNBots, False, model.getPath() if loadModel else None)
             elif algorithm == 3:
@@ -220,23 +219,22 @@ def createBots(number, model, type, parameters, algorithm = None, loadModel = No
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
-            model.createBot(type, learningAlg, parameters)
-    elif type == "Greedy":
+            model.createBot(botType, learningAlg, parameters)
+    elif botType == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
-            model.createBot(type, None, parameters)
+            model.createBot(botType, None, parameters)
 
 
-
-def testModel(testingModel, n_training, reset_time, modelPath, name, plotting = True):
+def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=True):
     masses = []
     meanMasses = []
     maxMasses = []
     bot = testingModel.getNNBot()
     print("Testing ", name, "...")
     testingModel.initialize(False)
-    #viewTestModel = View(testModel, screenWidth, screenHeight)
-    #viewTestModel.draw()
+    # viewTestModel = View(testModel, screenWidth, screenHeight)
+    # viewTestModel.draw()
     for test in range(n_training):
         bot.resetMassList()
         testingModel.resetModel()
@@ -266,7 +264,8 @@ def testModel(testingModel, n_training, reset_time, modelPath, name, plotting = 
 
         exportTestResults(meanMassPerTimeStep, modelPath, "Mean_Mass_" + name)
         labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
-                  "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath, "subPath": "Mean_Mass_" + name}
+                  "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath,
+                  "subPath": "Mean_Mass_" + name}
         plot(masses, reset_time, 1, labels)
     return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
 
@@ -276,6 +275,7 @@ def cloneModel(model):
     for bot in model.getBots():
         clone.createBot(bot.getType(), bot.getLearningAlg(), bot.parameters)
     return clone
+
 
 def updateTestResults(testResults):
     clonedModel = cloneModel(model)
@@ -304,7 +304,6 @@ def plotTesting(testResults, path, timeBetween, end):
     y = [x[0] for x in testResults]
     ysigma = [x[1] for x in testResults]
 
-
     y_lower_bound = [y[i] - ysigma[i] for i in range(len(y))]
     y_upper_bound = [y[i] + ysigma[i] for i in range(len(y))]
 
@@ -312,7 +311,7 @@ def plotTesting(testResults, path, timeBetween, end):
     plt.clf()
     fig = plt.gcf()
     ax = plt.gca()
-    #fig, ax = plt.subplots(1)
+    # fig, ax = plt.subplots(1)
     ax.plot(x, y, lw=2, label="testing mass", color='blue')
     ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor='blue', alpha=0.5,
                     label="+/- sigma")
@@ -326,9 +325,10 @@ def plotTesting(testResults, path, timeBetween, end):
     ax.set_title(title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval")
     ax.grid()
     print("PATH: ", path)
-    fig.savefig(path + title +".pdf")
+    fig.savefig(path + title + ".pdf")
 
     plt.close()
+
 
 def runTests(model):
     np.random.seed()
@@ -349,7 +349,7 @@ def runTests(model):
     evaluations.append(pelletEvaluation)
     # Greedy Testing:
     if len(model.getBots()) > 1:
-        greedyModel = Model(False, False, False, 0 , False)
+        greedyModel = Model(False, False, False, 0, False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
         greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
@@ -376,7 +376,7 @@ def runTests(model):
             meanMaxScore = str(round(evaluation[4], 1))
             stdMax = str(round(evaluation[5], 1))
             data += name + " Highscore: " + maxScore + " Mean: " + meanScore + " StdMean: " + stdMean \
-                    +" Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
+                    + " Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
         file.write(data)
 
 
@@ -403,7 +403,7 @@ if __name__ == '__main__':
         numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
         if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
             createHumans(numberOfHumans, model)
-            if numberOfHumans <= 2 and numberOfHumans > 0:
+            if 2 >= numberOfHumans > 0:
                 humanTraining = int(input("Do you want to train the network using human input? (1 == yes)\n"))
                 mouseEnabled = not humanTraining
             if numberOfHumans > 0 and not humanTraining:
@@ -413,7 +413,6 @@ if __name__ == '__main__':
             spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
             if spectate == 1:
                 model.addPlayerSpectator()
-
 
     modelName = None
     modelPath = None
@@ -478,8 +477,8 @@ if __name__ == '__main__':
         parameters = importlib.import_module('.networkParameters', package="model")
 
         algorithm = int(input("What learning algorithm do you want to use?\n" + \
-        "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
-        "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
+                              "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
+                              "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
     tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
     if tweaking == 1:
         while True:
@@ -505,7 +504,7 @@ if __name__ == '__main__':
     if not humanTraining:
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
     model.setTrainingEnabled(enableTrainMode == 1)
-    #if enableTrainMode:
+    # if enableTrainMode:
     #    maxTrainSteps = str(input("For how many steps do you want to train?\n"))
     #    paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
     #    modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
@@ -515,14 +514,11 @@ if __name__ == '__main__':
     numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
     numberOfBots = numberOfNNBots + numberOfGreedyBots
 
-
-
     Bot.init_exp_replayer(parameters)
 
     setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode)
 
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
-
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
@@ -530,7 +526,7 @@ if __name__ == '__main__':
     model.addDataFilesToDictionary()
 
     if numberOfNNBots == 0:
-         model.setTrainingEnabled(False)
+        model.setTrainingEnabled(False)
 
     if numberOfBots == 0 and not viewEnabled:
         modelMustHavePlayers()
@@ -560,7 +556,7 @@ if __name__ == '__main__':
                 testResults = updateTestResults(testResults)
         testResults = updateTestResults(testResults)
         meanMassesOfTestResults = [val[0] for val in testResults]
-        exportTestResults(meanMassesOfTestResults, model.getPath(),"testMassOverTime")
+        exportTestResults(meanMassesOfTestResults, model.getPath(), "testMassOverTime")
         plotTesting(testResults, model.getPath(), smallPart * 10, maxSteps)
         print("Training done.")
         print("")
@@ -575,7 +571,6 @@ if __name__ == '__main__':
             createCombinedModelGraphs(os.path.join(modelPath))
 
         print("Total average time per update: ", round(numpy.mean(model.timings), 5))
-
 
         bots = model.getBots()
         for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
@@ -596,10 +591,3 @@ if __name__ == '__main__':
             variance = numpy.std(massList)
             print("Median = ", median, " Mean = ", mean, " Std = ", variance)
             print("")
-
-
-
-
-
-
-

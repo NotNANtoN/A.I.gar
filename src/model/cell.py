@@ -2,6 +2,15 @@ import numpy
 import math
 from .parameters import *
 
+
+def squareDist(pos1, pos2):
+    return (pos1[0] - pos2[0]) * (pos1[0] - pos2[0])  + (pos1[1] - pos2[1]) *  (pos1[1] - pos2[1])
+
+
+def updateDirection(x, v, maxX):
+    return min(maxX, max(0, x + v))
+
+
 class Cell(object):
     _cellId = 0
 
@@ -24,7 +33,7 @@ class Cell(object):
         self.x = x
         self.y = y
         self.pos = [x,y]
-        if self.player == None:
+        if self.player is None:
             self.name = ""
             self.color = (numpy.random.randint(50, 200), numpy.random.randint(50, 200), numpy.random.randint(50, 200))
             self.id = -1
@@ -77,7 +86,7 @@ class Cell(object):
     def prepareEject(self):
         self.blobToBeEjected = True
 
-    def eject(self, commandPoint):
+    def eject(self):
         #blobSpawnPos can be None if commandPoint is in center of cell, in which case nothing is ejected
         self.mass -= EJECTEDBLOB_BASE_MASS
         self.blobToBeEjected = False
@@ -119,14 +128,11 @@ class Cell(object):
         if self.mergeTime > 0:
             self.mergeTime -= 1
 
-    def updateDirection(self, x, v, maxX):
-        return min(maxX, max(0, x + v))
-
     def updatePos(self, maxX, maxY):
         xSpeed = self.velocity[0] + self.splitVelocity[0]
         ySpeed = self.velocity[1] + self.splitVelocity[1]
-        self.x = self.updateDirection(self.x, xSpeed, maxX)
-        self.y = self.updateDirection(self.y, ySpeed, maxY)
+        self.x = updateDirection(self.x, xSpeed, maxX)
+        self.y = updateDirection(self.y, ySpeed, maxY)
         self.pos = [self.x, self.y]
         if self.splitVelocityCounter and self.x == maxX or self.x == 0:
             self.splitVelocity[0] *= -1
@@ -151,9 +157,6 @@ class Cell(object):
     def squaredDistance(self, cell):
         pos2 = cell.getPos()
         return (self.x - pos2[0]) * (self.x - pos2[0]) + (self.y - pos2[1]) * (self.y - pos2[1])
-
-    def squareDist(self, pos1, pos2):
-        return (pos1[0] - pos2[0]) * (pos1[0] - pos2[0])  + (pos1[1] - pos2[1]) *  (pos1[1] - pos2[1])
 
     # Checks:
     def canEat(self, cell):

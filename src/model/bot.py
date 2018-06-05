@@ -4,7 +4,7 @@ import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 
-class ExpReplay():
+class ExpReplay:
     # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
     def __init__(self, parameters):
         self.memories = []
@@ -46,6 +46,23 @@ class ExpReplay():
 
     def getMemories(self):
         return self.memories
+
+
+def isCellData(cell):
+    return [cell.getX(), cell.getY(), cell.getRadius()]
+
+
+def checkNan(value):
+    if math.isnan(value):
+        print("ERROR: predicted reward is nan")
+        quit()
+
+
+def getRelativeCellPos(cell, left, top, size):
+    if cell is not None:
+        return [round((cell.getX() - left) / size, 5), round((cell.getY() - top) / size, 5)]
+    else:
+        return [0, 0]
 
 
 class Bot(object):
@@ -549,7 +566,7 @@ class Bot(object):
         # Add data about the closest pellet
         pelletsInFov = self.field.getPelletsInFov(midPoint, size)
         closestPellet = min(pelletsInFov, key=lambda p: p.squaredDistance(firstPlayerCell)) if pelletsInFov else None
-        closestPelletPos = self.getRelativeCellPos(closestPellet, left, top, size)
+        closestPelletPos = getRelativeCellPos(closestPellet, left, top, size)
         totalInfo += closestPelletPos
         # Add data about distances to the visible edges of the field
         width = self.field.getWidth()
@@ -576,10 +593,10 @@ class Bot(object):
         ejectChoice = None
         if len(action) > 2:
             if len(action) == 3:
-                if self.parameters.ENABLE_SPLIT == True:
+                if self.parameters.ENABLE_SPLIT:
                     ejectChoice = False
                     splitChoice = True if action[2] > 0.5 else False
-                elif self.parameters.ENABLE_EJECT == True:
+                elif self.parameters.ENABLE_EJECT:
                     ejectChoice = True if [3] > 0.5 else False
                     splitChoice = False
             else:
@@ -610,7 +627,7 @@ class Bot(object):
         if cellsInFov:
             bestCell = max(cellsInFov, key=lambda p: p.getMass() / (
                 p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
-            bestCellPos = self.getRelativeCellPos(bestCell, left, top, size)
+            bestCellPos = getRelativeCellPos(bestCell, left, top, size)
             self.currentAction[0] = bestCellPos[0]
             self.currentAction[1] = bestCellPos[1]
         else:
@@ -626,12 +643,9 @@ class Bot(object):
         if randNumEject > self.ejectLikelihood:
             self.currentAction[3] = True
 
-    def isCellData(self, cell):
-        return [cell.getX(), cell.getY(), cell.getRadius()]
-
     def isRelativeCellData(self, cell, left, top, size):
-        return self.getRelativeCellPos(cell, left, top, size) + \
-               ([round(cell.getRadius() / size if cell.getRadius() <= size else 1, 5)] if cell != None else [0])
+        return getRelativeCellPos(cell, left, top, size) + \
+               ([round(cell.getRadius() / size if cell.getRadius() <= size else 1, 5)] if cell is not None else [0])
 
     def getMassOverTime(self):
         return self.totalMasses
@@ -641,17 +655,6 @@ class Bot(object):
 
     def getLastReward(self):
         return self.lastReward
-
-    def getRelativeCellPos(self, cell, left, top, size):
-        if cell != None:
-            return [round((cell.getX() - left) / size, 5), round((cell.getY() - top) / size, 5)]
-        else:
-            return [0, 0]
-
-    def checkNan(self, value):
-        if math.isnan(value):
-            print("ERROR: predicted reward is nan")
-            quit()
 
     def getCellDataOwnPlayer(self, left, top, size):
         cells = self.player.getCells()

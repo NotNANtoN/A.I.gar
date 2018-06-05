@@ -2,6 +2,15 @@ import numpy
 import heapq
 import math
 
+
+def boltzmannDist(values, temp):
+    maxVal = max(values)
+    shiftedVals = [value - maxVal for value in values]
+    distribution_values = [math.e ** (value / temp) for value in shiftedVals]
+    sum = numpy.sum(distribution_values)
+    return [value / sum for value in distribution_values]
+
+
 class QLearn(object):
     def __repr__(self):
         return "Q-learning"
@@ -237,20 +246,13 @@ class QLearn(object):
                 return explore, newActionIdx
         return False, None
 
-    def boltzmannDist(self, values, temp):
-        maxVal = max(values)
-        shiftedVals = [value - maxVal for value in values]
-        distribution_values = [math.e ** (value / temp) for value in shiftedVals]
-        sum = numpy.sum(distribution_values)
-        return [value / sum for value in distribution_values]
-
     def decideMove(self, newState, bot):
         # Take random action with probability 1 - epsilon
         explore, newActionIdx = self.decideExploration(bot)
         if not explore:
             q_Values = self.network.predict_action(newState)
             if self.parameters.EXPLORATION_STRATEGY == "Boltzmann" and self.temperature != 0:
-                q_Values = self.boltzmannDist(q_Values, self.temperature)
+                q_Values = boltzmannDist(q_Values, self.temperature)
                 action_value = numpy.random.choice(q_Values, p=q_Values)
                 newActionIdx = numpy.argmax(q_Values == action_value)
             else:
@@ -271,9 +273,6 @@ class QLearn(object):
 
     def save(self, path, name = ""):
         self.network.saveModel(path, name)
-
-    def setNoise(self, val):
-        self.epsilon = val
 
     def setTemperature(self, val):
         self.temperature = val

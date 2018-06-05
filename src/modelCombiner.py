@@ -268,17 +268,17 @@ def getMeanAndStDev(allList, maxLength):
     mean_list = []
     stDev_list = []
     for i in range(maxLength):
-        sum = 0
+        summed = 0
         num_lists = 0
         for j in range(len(allList)):
             if i >= len(allList[j]):
                 continue
-            sum += allList[j][i]
+            summed += allList[j][i]
             num_lists += 1
         if num_lists == 0:
             print("Number of lists is 0.")
             return
-        m = sum / num_lists
+        m = summed / num_lists
         mean_list.append(m)
         sqe = 0
         for j in range(len(allList)):

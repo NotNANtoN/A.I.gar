@@ -479,8 +479,6 @@ class Model(object):
 
 
     def visualize(self):
-        recentMeanReward = numpy.mean(self.rewards[-self.pointAveraging:])
-        recentMeanTDError = numpy.mean(self.tdErrors[-self.pointAveraging:])
         print(" ")
         print("Avg time since update start for the last ", self.pointAveraging, " steps: ", str(round(numpy.mean(self.timings[len(self.timings) - self.pointAveraging:]), 3)))
         #if len(self.rewards) > 0:
@@ -571,7 +569,6 @@ class Model(object):
             medianMass = round(numpy.median(massList),1)
             varianceMass = round(numpy.std(massList), 1)
             maxMass = round(max(massList), 1)
-            len_masses = len(massList)
             playerName = str(bot.getPlayer())
             #timeAxis = list(range(0, len_masses * self.pointAveraging, self.pointAveraging))
             plt.plot(massList)
@@ -616,10 +613,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, type, learningAlg = None, parameters = None, modelPath = None):
-        name = type + str(len(self.bots))
+    def createBot(self, botType, learningAlg = None, parameters = None, modelPath = None):
+        name = botType + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, type, self.trainingEnabled, learningAlg, parameters, modelPath)
+        bot = Bot(newPlayer, self.field, botType, self.trainingEnabled, learningAlg, parameters, modelPath)
         self.addBot(bot)
 
     def createHuman(self, name):
