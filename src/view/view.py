@@ -11,10 +11,10 @@ GREEN = (0, 255, 0)
 
 
 class View:
-    def __init__(self, model, width, height):
+    def __init__(self, model, width, height, parameters):
         self.width = width
         self.height = height
-        #self.screenDims = numpy.array([self.width, self.height])
+        self.parameters = parameters
         self.screenDims = None
         self.model = model
         self.numberOfScreens = None
@@ -222,6 +222,8 @@ class View:
         if __debug__:
             self.drawDebugInfo()
         pygame.display.update()
+        # self.screen.blit(pygame.surfarray.make_surface(self.get_cnn_inputRGB()), (0,0))
+
 
     def model_event(self):
         self.draw()
@@ -248,3 +250,10 @@ class View:
 
     def getWindowHeight(self):
         return self.height
+
+    def getFullRGB(self):
+        return pygame.surfarray.array3d(self.screen)
+
+
+
+

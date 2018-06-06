@@ -3,6 +3,7 @@ import numpy
 import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
+import view
 
 class ExpReplay:
     # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
@@ -94,16 +95,16 @@ class Bot(object):
     def __repr__(self):
         return self.type + str(self.id)
 
-    def __init__(self, player, field, bot_type, trainMode, learningAlg, parameters, modelName=None):
+    def __init__(self, player, field, bot_type, trainMode, learningAlg, parameters, rgbGenerator=None):
         if bot_type == "Greedy":
             self.id = self.greedyId
             self.greedyId += 1
         elif bot_type == "NN":
             self.id = self.nnId
             self.nnId += 1
+        self.rgbGenerator = rgbGenerator
         self.trainMode = trainMode
         self.parameters = parameters
-        self.modelName = modelName
         self.learningAlg = None
         self.lastMass = None
         if learningAlg is not None:
@@ -256,7 +257,14 @@ class Bot(object):
             if self.parameters.GRID_VIEW_ENABLED:
 
                 if self.parameters.CNN_REPRESENTATION:
-                    stateRepr = self.getGridStateRepresentation_Alternate()
+                    if self.parameters.CNN_PIXEL_REPRESENTATION:
+                        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", self.rgbGenerator)
+                        stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
+
+                        stateRepr = self.getGridStateRepresentation_Alternate()
+                    else:
+                        stateRepr = self.getGridStateRepresentation_Alternate()
+
 
                 else:
                     gridView, mass, fovSize = self.getGridStateRepresentation()
