@@ -39,7 +39,7 @@ GRID_SQUARES_PER_FOV 13 3x:		375mM 285mM
 GRID_SQUARES_PER_FOV 15 3x:		378mM 297mM
  + No Wall, enemy, virus grid	 	364mM 234mM
  + No Wall, enemy, virus grid, self 	365mM 228mM
-=> TEST: 10, 12
+=> TEST: 13, 15, 17
 
 MAX_TRAINING_STEPS 20k  3x:		253mM 126mM
 MAX_TRAINING_STEPS 50k  3x:		318mM 204mM
