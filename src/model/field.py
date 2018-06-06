@@ -174,8 +174,8 @@ class Field(object):
         newYSmallCell = smallPos[1] - yDiffScaled * (1 - massDifferenceScaling)
         newPosBig = [newXBigCell, newYBigCell]
         newPosSmall = [newXSmallCell, newYSmallCell]
-        self.adjustCellPos(biggerCell, newPosBig, self.playerHashTable)
-        self.adjustCellPos(smallerCell, newPosSmall, self.playerHashTable)
+        self.adjustCellPos(biggerCell, newPosBig)
+        self.adjustCellPos(smallerCell, newPosSmall)
 
     def mergePlayerCells(self):
         for player in self.players:
