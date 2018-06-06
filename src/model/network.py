@@ -263,21 +263,21 @@ class Network(object):
                     dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer)(self.input)
                 if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                    self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+                    dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Hidden 2
                 if self.hiddenLayer2 > 0:
                     dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                     # self.valueNetwork.add(hidden2)
                     if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                        self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+                        dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Hidden 3
                 if self.hiddenLayer3 > 0:
                     dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                     # self.valueNetwork.add(hidden3)
                     if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                        self.valueNetwork = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+                        dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
                 # Output layer
                 self.output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
                                     , kernel_initializer=initializer)(dense_layer)
@@ -413,32 +413,6 @@ class Network(object):
             for gridIdx, grid in enumerate(state):
                 stateRepr[gridIdx][0][0] = grid
 
-            #stateRepr = numpy.zeros((len(state), 1, len(state[0]), len(state[0])))
-
-            #for gridIdx, grid in enumerate(state):
-            #    stateRepr[gridIdx][0] = grid
-
-
-            #print("Shape after setting:", numpy.shape(stateRepr))
-            #print("Number of dimensions: ", numpy.ndim(stateRepr))
-
-            # print(numpy.shape(state))
-            # shape = [1]
-            # shape.extend(numpy.shape(state)[1:])
-
-            # shape.extend([1])
-            # print(shape, "AAAAAAAAAAAAAAAAAAAAAAAA")
-            # shape = numpy.shape(state)
-            # print(numpy.shape(state[0]), "AAAAAAAAAAAAAAAAAAAAAAAA")
-            # state = [i.reshape(shape) for i in state]
-            # print(numpy.shape(state[0]))
-            # print(self.valueNetwork.input)
-            # values = [self.towerModel[i].predict(state[i]) for i in range(len(self.towerModel))]
-            # values = [state[i] for i in range(len(self.towerModel))]
-            # values = state.reshape(5,1,20,20)
-
-            # print(numpy.shape(values))
-            # print(values)
 
 
             return self.valueNetwork.predict(list(stateRepr))[0]
