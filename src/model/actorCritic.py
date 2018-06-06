@@ -450,6 +450,9 @@ class ActorCritic(object):
     def setTemperature(self, val):
         self.temperature = val
 
+    def getTemperature(self):
+        return None
+
     def reset(self):
         self.latestTDerror = None
 

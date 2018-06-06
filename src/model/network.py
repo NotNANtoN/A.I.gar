@@ -14,9 +14,17 @@ from keras.models import load_model, save_model
 
 from .parameters import *
 
+def is_square(apositiveint):
+  x = apositiveint // 2
+  seen = set([x])
+  while x * x != apositiveint:
+    x = (x + (apositiveint // x)) // 2
+    if x in seen: return False
+    seen.add(x)
+  return True
 
-def createDiscreteActions(numActions, enableSplit, enableEject):
-    actions = [[0.5, 0.5, 0, 0]]
+def createDiscreteActionsCircle(numActions, enableSplit, enableEject):
+    actions = []
     # Add standing still action:
     # Add all other actions:
     degPerAction = 360 / numActions
@@ -35,6 +43,28 @@ def createDiscreteActions(numActions, enableSplit, enableEject):
     return actions
 
 
+def createDiscreteActionsSquare(numActions, enableSplit, enableEject):
+    if not is_square(numActions):
+        print("Number of Actions has to be a perfect square for this mode.")
+        quit()
+    actionsPerSide = int(math.sqrt(numActions))
+
+    actions = []
+    for row in range(actionsPerSide):
+        for col in range(actionsPerSide):
+            x = col / actionsPerSide + 1 / actionsPerSide / 2
+            y = row / actionsPerSide + 1 / actionsPerSide / 2
+            action = [x, y, 0, 0]
+            actions.append(action)
+            if enableSplit:
+                splitAction = [x, y, 1, 0]
+                actions.append(splitAction)
+            if enableEject:
+                ejectAction = [x, y, 0, 1]
+                actions.append(ejectAction)
+    return actions
+
+
 class Network(object):
 
     def __init__(self, trainMode, modelName, parameters, loadModel):
@@ -42,8 +72,13 @@ class Network(object):
 
         self.trainMode = trainMode
 
-        self.actions = createDiscreteActions(self.parameters.NUM_ACTIONS, self.parameters.ENABLE_SPLIT,
-                                             self.parameters.ENABLE_EJECT)
+
+        if parameters.SQUARE_ACTIONS:
+            self.actions = createDiscreteActionsSquare(self.parameters.NUM_ACTIONS, self.parameters.ENABLE_SPLIT,
+                                                 self.parameters.ENABLE_EJECT)
+        else:
+            self.actions = createDiscreteActionsCircle(self.parameters.NUM_ACTIONS, self.parameters.ENABLE_SPLIT,
+                                                       self.parameters.ENABLE_EJECT)
         self.num_actions = len(self.actions)
 
         self.loadedModelName = None
@@ -380,18 +415,11 @@ class Network(object):
 
             for gridIdx, grid in enumerate(state):
                 stateRepr[gridIdx][0][0] = grid
-            #
-            # print(numpy.shape(state))
-            # print("State Repr[0]: ", stateRepr[0])
-            # print("State shape setting:", (len(state), 1, len(state[0]), len(state[0])))
-            # print("Shape after setting:", numpy.shape(stateRepr))
-            # print("Number of dimensions: ", numpy.ndim(stateRepr))
 
             return self.valueNetwork.predict(list(stateRepr))[0]
         else:
             shape = [1]
             shape.extend(numpy.shape(state))
-            # print(shape, "AAAAAAAAAAAAAAAAAAAAAAAA")
             state = state.reshape(shape)
 
             return self.valueNetwork.predict(state)[0]
