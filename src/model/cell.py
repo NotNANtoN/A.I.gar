@@ -3,13 +3,6 @@ import math
 from .parameters import *
 
 
-def squareDist(pos1, pos2):
-    return (pos1[0] - pos2[0]) * (pos1[0] - pos2[0])  + (pos1[1] - pos2[1]) *  (pos1[1] - pos2[1])
-
-
-def updateDirection(x, v, maxX):
-    return min(maxX, max(0, x + v))
-
 
 class Cell(object):
     _cellId = 0
@@ -62,6 +55,14 @@ class Cell(object):
         angle = math.atan2(yDiff, xDiff)
         self.velocity[0] =  self.getReducedSpeed() * speedModifier * math.cos(angle)
         self.velocity[1] =  self.getReducedSpeed() * speedModifier * math.sin(angle)
+
+    @staticmethod
+    def squareDist(pos1, pos2):
+        return (pos1[0] - pos2[0]) * (pos1[0] - pos2[0]) + (pos1[1] - pos2[1]) * (pos1[1] - pos2[1])
+
+    @staticmethod
+    def updateDirection(x, v, maxX):
+        return min(maxX, max(0, x + v))
 
     def calculateAngle(self, point):
         xDiff = point[0] - self.x
@@ -131,8 +132,8 @@ class Cell(object):
     def updatePos(self, maxX, maxY):
         xSpeed = self.velocity[0] + self.splitVelocity[0]
         ySpeed = self.velocity[1] + self.splitVelocity[1]
-        self.x = updateDirection(self.x, xSpeed, maxX)
-        self.y = updateDirection(self.y, ySpeed, maxY)
+        self.x = self.updateDirection(self.x, xSpeed, maxX)
+        self.y = self.updateDirection(self.y, ySpeed, maxY)
         self.pos = [self.x, self.y]
         if self.splitVelocityCounter and self.x == maxX or self.x == 0:
             self.splitVelocity[0] *= -1

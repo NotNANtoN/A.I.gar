@@ -23,30 +23,31 @@ ENABLE_EJECT = False
 NOISE_AT_HALF_TRAINING = 0.01
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
 
-# State represenation parameters:
+# State representation parameters:
 NORMALIZE_GRID_BY_MAX_MASS = False
 ENABLE_PELLET_GRID = True
 ENABLE_SELF_GRID = True
-ENABLE_WALL_GRID = True
-ENABLE_VIRUS_GRID = True
-ENABLE_ENEMY_GRID = True
+ENABLE_WALL_GRID = True if NUM_GREEDY_BOTS + NUM_NN_BOTS > 1 else False
+ENABLE_VIRUS_GRID = False
+ENABLE_ENEMY_GRID = True if NUM_GREEDY_BOTS + NUM_NN_BOTS > 1 else False
 USE_FOVSIZE = True
-USE_TOTALMASS = True
+USE_TOTALMASS = False
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
 NUM_OF_GRIDS = ENABLE_PELLET_GRID + ENABLE_SELF_GRID + ENABLE_WALL_GRID + ENABLE_VIRUS_GRID + ENABLE_ENEMY_GRID
 STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + USE_FOVSIZE + USE_TOTALMASS
 
-INITIALIZER = "Default" # "glorot_uniform" or "glorot_normal"
+INITIALIZER = "glorot_uniform" #"Default" or "glorot_uniform" or "glorot_normal"
 NEURON_TYPE = "MLP"
-HIDDEN_ALL = 500
-HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 500
-HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 500
-HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 500
+HIDDEN_ALL = 250
+HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 250
+HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 250
+HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 250
 
 
 # Q-learning
 ALPHA = 0.0001
-NUM_ACTIONS = 8 # That number plus 1 (for standing still)
+SQUARE_ACTIONS = True
+NUM_ACTIONS = 16 # That number plus 1 (for standing still)
 OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'elu' 
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
@@ -60,8 +61,8 @@ TD = 0
 Exploration = True
 EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
 EXPLORATION_STRATEGY = "e-Greedy" # "Boltzmann" or "e-Greedy"
-TEMPERATURE = 5
-TEMPERATURE_AT_END_TRAINING = 0.005
+TEMPERATURE = 7
+TEMPERATURE_AT_END_TRAINING = 0.0025
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 
 # Actor-critic:

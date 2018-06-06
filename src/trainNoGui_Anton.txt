@@ -1,11 +1,15 @@
+1
 0
 0
 10000
 0
 0
 1
-CNN_REPRESENTATION
-True
+Default
+"Action - Test"
+1
+NUM_ACTIONS
+121
 0
 0
 1
