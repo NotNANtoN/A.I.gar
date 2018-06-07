@@ -674,9 +674,10 @@ class Bot(object):
         if self.lastMass is None:
             return None
         if not self.player.getIsAlive():
-            return -1 * self.lastMass * self.parameters.DEATH_FACTOR + self.parameters.DEATH_TERM
-        currentMass = self.player.getTotalMass()
-        reward = currentMass - self.lastMass
+            reward = -1 * self.lastMass * self.parameters.DEATH_FACTOR + self.parameters.DEATH_TERM
+        else:
+            currentMass = self.player.getTotalMass()
+            reward = currentMass - self.lastMass
         return reward * self.parameters.REWARD_SCALE
 
     def getFrameSkipRate(self):
