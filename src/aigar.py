@@ -11,6 +11,7 @@ from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
 from view.view import View
+from model.rgbGenerator import *
 from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
 
 import numpy as np
@@ -195,6 +196,9 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
     learningAlg = None
     if botType == "NN":
         Bot.num_NNbots = number
+        rgbGenerator = None
+        if parameters.CNN_PIXEL_REPRESENTATION and parameters.CNN_REPRESENTATION:
+            rgbGenerator = RGBGenerator(model, parameters)
         if algorithm not in [2, 3]:
             network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
 
@@ -219,7 +223,7 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
-            model.createBot(botType, learningAlg, parameters)
+            model.createBot(botType, learningAlg, parameters, rgbGenerator)
     elif botType == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
@@ -545,7 +549,7 @@ if __name__ == '__main__':
     # model.setScreenSize(screenWidth, screenHeight)
 
     if guiEnabled:
-        view = View(model, screenWidth, screenHeight)
+        view = View(model, screenWidth, screenHeight, parameters)
         controller = Controller(model, viewEnabled, view, mouseEnabled)
         view.draw()
         while controller.running:

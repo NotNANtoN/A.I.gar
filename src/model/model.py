@@ -456,8 +456,6 @@ class Model(object):
                 data += "Grid - " + str(parameters.GRID_SQUARES_PER_FOV) + "x" +  str(parameters.GRID_SQUARES_PER_FOV)  + "\n"
         data += "Experience Replay - " + ("Enabled" if parameters.EXP_REPLAY_ENABLED else "Disabled") + "\n"
         data += "Target Network steps until update - " + str(parameters.TARGET_NETWORK_STEPS) + "\n"
-
-        data += "Name of model that was loaded - " + (bot.modelName if bot.modelName else "None") + "\n"
         data += "\n"
         # ANN:
         data += "ANN:\n"
@@ -615,10 +613,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, botType, learningAlg = None, parameters = None, modelPath = None):
+    def createBot(self, botType, learningAlg = None, parameters = None, rgbGenerator = None):
         name = botType + str(len(self.bots))
         newPlayer = self.createPlayer(name)
-        bot = Bot(newPlayer, self.field, botType, self.trainingEnabled, learningAlg, parameters, modelPath)
+        bot = Bot(newPlayer, self.field, botType, self.trainingEnabled, learningAlg, parameters, rgbGenerator)
         self.addBot(bot)
 
     def createHuman(self, name):
