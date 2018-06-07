@@ -292,11 +292,9 @@ class ActorCritic(object):
     def __repr__(self):
         return "AC"
 
-    def __init__(self, parameters, num_bots, discrete, modelName=None):
+    def __init__(self, parameters, num_bots, discrete):
         self.acType = parameters.ACTOR_CRITIC_TYPE
         self.num_bots = num_bots
-        self.actor = PolicyNetwork(parameters, discrete, modelName)
-        self.critic = ValueNetwork(parameters, modelName)
         self.parameters = parameters
         self.std = self.parameters.GAUSSIAN_NOISE
         self.noise_decay_factor = self.parameters.NOISE_DECAY
@@ -306,6 +304,21 @@ class ActorCritic(object):
         # Bookkeeping:
         self.latestTDerror = None
         self.qValues = []
+        self.actor = None
+        self.critic = None
+
+    def initializeNetwork(self, loadPath, networks=None):
+        if networks is None or networks == {}:
+            self.actor = PolicyNetwork(self.parameters, loadPath)
+            self.critic = ValueNetwork(self.parameters, loadPath)
+            if networks is None:
+                networks = {}
+            networks["Actor"] = self.actor
+            networks["Critic"] = self.critic
+        else:
+            self.actor = networks["Actor"]
+            self.critic = networks["Critic"]
+        return networks
 
     def updateNoise(self):
         self.std *= self.noise_decay_factor

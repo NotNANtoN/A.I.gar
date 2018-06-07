@@ -194,35 +194,32 @@ def createHumans(numberOfHumans, model1):
 
 def createBots(number, model, botType, parameters, algorithm=None, loadModel=None):
     learningAlg = None
+    loadPath = model.getPath() if loadModel else None
     if botType == "NN":
         Bot.num_NNbots = number
         rgbGenerator = None
         if parameters.CNN_PIXEL_REPRESENTATION and parameters.CNN_REPRESENTATION:
             rgbGenerator = RGBGenerator(model, parameters)
-        if algorithm not in [2, 3]:
-            network = Network(enableTrainMode, model.getPath(), parameters, loadModel)
 
+        networks = {}
         for i in range(number):
             # Create algorithm instance
-            # Discrete algorithms
-            if algorithm in [0, 1, 4, 5]:
-                if algorithm == 0:
-                    learningAlg = QLearn(numberOfNNBots, numberOfHumans, network, parameters)
-                elif algorithm == 1:
-                    learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, network, parameters)
-                elif algorithm == 4:
-                    learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, network, parameters)
-                elif algorithm == 5:
-                    learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, network, parameters)
-
-            # AC algorithms
+            if algorithm == 0:
+                learningAlg = QLearn(numberOfNNBots, numberOfHumans, parameters)
+            elif algorithm == 1:
+                learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, parameters)
             elif algorithm == 2:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, False, model.getPath() if loadModel else None)
+                learningAlg = ActorCritic(parameters, numberOfNNBots, False)
             elif algorithm == 3:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, True, model.getPath() if loadModel else None)
+                learningAlg = ActorCritic(parameters, numberOfNNBots, True)
+            elif algorithm == 4:
+                learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, parameters)
+            elif algorithm == 5:
+                learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, parameters)
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
+            networks = learningAlg.initializeNetwork(loadPath, networks)
             model.createBot(botType, learningAlg, parameters, rgbGenerator)
     elif botType == "Greedy":
         Bot.num_Greedybots = number
