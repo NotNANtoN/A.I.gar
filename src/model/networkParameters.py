@@ -19,9 +19,12 @@ MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
-
 NOISE_AT_HALF_TRAINING = 0.01
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
+#Reward function:
+REWARD_SCALE = 1
+DEATH_TERM = 0
+DEATH_FACTOR = 1
 
 # State representation parameters:
 NORMALIZE_GRID_BY_MAX_MASS = False
