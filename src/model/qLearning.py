@@ -25,15 +25,28 @@ class QLearn(object):
         self.qValues = []
         self.output_len = network.num_actions
         if self.parameters.CNN_REPRESENTATION:
-            if self.parameters.CNN_USE_LAYER_1:
-                self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_1,
-                                  self.parameters.CNN_SIZE_OF_INPUT_DIM_1)
-            elif self.parameters.CNN_USE_LAYER_2:
-                self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_2,
-                                  self.parameters.CNN_SIZE_OF_INPUT_DIM_2)
+            if self.parameters.CNN_PIXEL_REPRESENTATION:
+                channels = 3
+                if self.parameters.CNN_USE_LAYER_1:
+                    self.input_len = (self.parameters.CNN_SIZE_OF_INPUT_DIM_1,
+                                      self.parameters.CNN_SIZE_OF_INPUT_DIM_1, channels)
+                elif self.parameters.CNN_USE_LAYER_2:
+                    self.input_len = (self.parameters.CNN_SIZE_OF_INPUT_DIM_2,
+                                      self.parameters.CNN_SIZE_OF_INPUT_DIM_2, channels)
+                else:
+                    self.input_len = ( self.parameters.CNN_SIZE_OF_INPUT_DIM_3,
+                                      self.parameters.CNN_SIZE_OF_INPUT_DIM_3, channels)
             else:
-                self.input_len = (self.parameters.NUM_OF_GRIDS, self.parameters.CNN_SIZE_OF_INPUT_DIM_3,
-                                  self.parameters.CNN_SIZE_OF_INPUT_DIM_3)
+                channels = self.parameters.NUM_OF_GRIDS
+                if self.parameters.CNN_USE_LAYER_1:
+                    self.input_len = (channels, self.parameters.CNN_SIZE_OF_INPUT_DIM_1,
+                                      self.parameters.CNN_SIZE_OF_INPUT_DIM_1)
+                elif self.parameters.CNN_USE_LAYER_2:
+                    self.input_len = (channels, self.parameters.CNN_SIZE_OF_INPUT_DIM_2,
+                                      self.parameters.CNN_SIZE_OF_INPUT_DIM_2)
+                else:
+                    self.input_len = (channels, self.parameters.CNN_SIZE_OF_INPUT_DIM_3,
+                                      self.parameters.CNN_SIZE_OF_INPUT_DIM_3)
         elif self.parameters.USE_ACTION_AS_INPUT:
             self.input_len = parameters.STATE_REPR_LEN + 4
             self.output_len = 1
@@ -110,12 +123,16 @@ class QLearn(object):
         batch_len = len(batch)
         # In the case of CNN, self.input_len has several dimensions
         if self.parameters.CNN_REPRESENTATION:
+
             inputDims = [batch_len]
             for dimension in self.input_len:
                 inputDims.append(dimension)
             inputs = numpy.zeros(inputDims)
+            # print("\n", numpy.shape(inputs), "inputs")
         else:
             inputs = numpy.zeros((batch_len, self.input_len))
+            # print("\n", numpy.shape(inputs), "inputs")
+
         targets = numpy.zeros((batch_len, self.output_len))
 
 
@@ -127,8 +144,22 @@ class QLearn(object):
                 inputs[sample_idx] = stateAction
                 targets[sample_idx] = self.calculateTargetForAction(new_s, r, new_s is not None)
             else:
+                # print(sample_idx)
+                # print(numpy.shape(old_s), "old_s")
+
                 inputs[sample_idx] = old_s
+
                 targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
+        if self.parameters.CNN_REPRESENTATION:
+            # print(numpy.shape(inputs), "before")
+
+            stateRepr = numpy.zeros((len(old_s), batch_len, 1, len(old_s[0]), len(old_s[0])))
+            # print(numpy.shape(stateRepr), "before")
+
+            for gridIdx, grid in enumerate(old_s):
+                stateRepr[gridIdx][0][0] = grid
+            inputs = list(stateRepr)
+            # print(numpy.shape(inputs), "after")
         self.network.trainOnBatch(inputs, targets)
 
     def train_LSTM_batch(self, batch):

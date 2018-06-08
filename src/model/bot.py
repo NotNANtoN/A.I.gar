@@ -258,13 +258,16 @@ class Bot(object):
 
                 if self.parameters.CNN_REPRESENTATION:
                     if self.parameters.CNN_PIXEL_REPRESENTATION:
-                        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", self.rgbGenerator)
                         stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
 
-                        stateRepr = self.getGridStateRepresentation_Alternate()
+                        # stateRepr = self.getGridStateRepresentation_Alternate()
                     else:
                         stateRepr = self.getGridStateRepresentation_Alternate()
-
+                        # arr = numpy.zeros((len(stateRepr), 1, 1, len(stateRepr[0]), len(stateRepr[0])))
+                        #
+                        # for gridIdx, grid in enumerate(stateRepr):
+                        #     arr[gridIdx][0][0] = grid
+                        # stateRepr = arr
 
                 else:
                     gridView, mass, fovSize = self.getGridStateRepresentation()
@@ -278,9 +281,13 @@ class Bot(object):
                         stateRepr = numpy.concatenate((gridView, additionalFeatures))
                     else:
                         stateRepr = gridView
-
+                    shape = [1]
+                    shape.extend(numpy.shape(stateRepr))
+                    stateRepr = stateRepr.reshape(shape)
             else:
                 stateRepr = self.getSimpleStateRepresentation()
+
+
         return stateRepr
 
 
@@ -538,12 +545,25 @@ class Bot(object):
             print("counted pellets: ", pelletCount)
             print(" ")
 
-        gridView[0] = gsPelletMass
-        gridView[1] = gsBiggestOwnCellMass
-        gridView[2] = gsWalls
-        gridView[3] = gsBiggestEnemyCellMass
-        gridView[4] = gsSizeRepresentation
-        # gridView[5] = gsVirus
+        count = 0
+        if self.parameters.ENABLE_PELLET_GRID:
+            gridView[count] = gsPelletMass
+            count += 1
+        if self.parameters.ENABLE_SELF_GRID:
+            gridView[count] = gsBiggestOwnCellMass
+            count += 1
+        if self.parameters.ENABLE_WALL_GRID:
+            gridView[count] = gsWalls
+            count += 1
+        if self.parameters.ENABLE_ENEMY_GRID:
+            gridView[count] = gsBiggestEnemyCellMass
+            count += 1
+        if self.parameters.ENABLE_VIRUS_GRID:
+            gridView[count] = gsVirus
+            count += 1
+        if self.parameters.ENABLE_SIZE_GRID:
+            gridView[count] = gsSizeRepresentation
+            count += 1
 
         return gridView
 
