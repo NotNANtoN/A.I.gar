@@ -562,6 +562,8 @@ class Model(object):
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             avg_step = int(self.resetLimit / self.pointAveraging)
+            if avg_step == 0:
+                avg_step = int(len(massList) / 10) + 1
             massList = [numpy.mean(massList[idx:idx+avg_step]) for idx in range(0, len(massList), avg_step)]
             meanMass = round(numpy.mean(massList),1)
             medianMass = round(numpy.median(massList),1)

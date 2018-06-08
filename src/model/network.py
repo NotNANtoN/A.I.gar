@@ -66,12 +66,8 @@ def createDiscreteActionsSquare(numActions, enableSplit, enableEject):
 
 
 class Network(object):
-
-    def __init__(self, trainMode, modelName, parameters, loadModel):
+    def __init__(self, parameters, modelName = None):
         self.parameters = parameters
-
-        self.trainMode = trainMode
-
 
         if parameters.SQUARE_ACTIONS:
             self.actions = createDiscreteActionsSquare(self.parameters.NUM_ACTIONS, self.parameters.ENABLE_SPLIT,
@@ -343,7 +339,7 @@ class Network(object):
             self.actionNetwork.compile(loss='mse', optimizer=optimizer)
 
         print(self.valueNetwork.summary())
-        if loadModel:
+        if modelName is not None:
             self.load(modelName)
 
     def reset_general(self, model):
@@ -450,9 +446,6 @@ class Network(object):
 
     def setFrameSkipRate(self, value):
         self.frameSkipRate = value
-
-    def getTrainMode(self):
-        return self.trainMode
 
     def getParameters(self):
         return self.parameters

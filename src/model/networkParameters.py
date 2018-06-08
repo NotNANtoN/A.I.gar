@@ -19,9 +19,12 @@ MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
-
-NOISE_AT_HALF_TRAINING = 0.01
+NOISE_AT_HALF_TRAINING = 0.02
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
+#Reward function:
+REWARD_SCALE = 1
+DEATH_TERM = 0
+DEATH_FACTOR = 1
 
 # State representation parameters:
 NORMALIZE_GRID_BY_MAX_MASS = False
@@ -48,7 +51,7 @@ HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 250
 # Q-learning
 ALPHA = 0.0001
 SQUARE_ACTIONS = True
-NUM_ACTIONS = 16 # That number plus 1 (for standing still)
+NUM_ACTIONS = 25
 OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'elu' 
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too

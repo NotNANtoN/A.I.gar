@@ -131,7 +131,7 @@ class Field(object):
     def performEjections(self, player):
         for cell in player.getCells():
             if cell.getBlobToBeEjected():
-                blobSpawnPos = cell.eject(player.getCommandPoint())
+                blobSpawnPos = cell.eject()
                 # Blobs are given a player such that cells of player who eject them don't instantly reabsorb them
                 blob = Cell(blobSpawnPos[0], blobSpawnPos[1], EJECTEDBLOB_BASE_MASS * 0.8, None)
 

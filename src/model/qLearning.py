@@ -1,29 +1,29 @@
 import numpy
 import heapq
 import math
-
+from .network import Network
 
 def boltzmannDist(values, temp):
     maxVal = max(values)
     shiftedVals = [value - maxVal for value in values]
     distribution_values = [math.e ** (value / temp) for value in shiftedVals]
-    sum = numpy.sum(distribution_values)
-    return [value / sum for value in distribution_values]
+    distSum = numpy.sum(distribution_values)
+    return [value / distSum for value in distribution_values]
 
 
 class QLearn(object):
     def __repr__(self):
         return "Q-learning"
 
-    def __init__(self, numOfNNbots, numOfHumans, network, parameters):
+    def __init__(self, numOfNNbots, numOfHumans, parameters):
         self.num_NNbots = numOfNNbots
         self.num_humans = numOfHumans
-        self.network = network
+        self.network = None
         self.temporalDifference = parameters.TD
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
-        self.output_len = network.num_actions
+        self.output_len = self.parameters.NUM_ACTIONS
         if self.parameters.CNN_REPRESENTATION:
             if self.parameters.CNN_PIXEL_REPRESENTATION:
                 channels = 3
@@ -56,6 +56,16 @@ class QLearn(object):
         self.discrete = True
         self.epsilon = parameters.EPSILON
         self.temperature = parameters.TEMPERATURE
+
+    def initializeNetwork(self, loadPath, networks = None):
+        if networks is None or networks == {}:
+            self.network = Network(self.parameters, loadPath)
+            if networks is None:
+                networks = {}
+            networks["Q"] = self.network
+        else:
+            self.network = networks["Q"]
+        return networks
 
     def load(self, modelName):
         if modelName is not None:

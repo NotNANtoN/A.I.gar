@@ -6,6 +6,7 @@ import numpy as np
 import fnmatch
 import math
 import numpy
+import scipy.stats
 
 POINT_AVERAGING = 500
 RESET_INTERVAL = 10000
@@ -125,6 +126,7 @@ def plotFinalTests(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
 
     allMassesOverTime = {}
+    allMaxLengths = {}
     maxLength = 0
 
     for model in modelList:
@@ -145,17 +147,20 @@ def plotFinalTests(path):
 
             with open(testingMassPath, 'r') as f:
                 meanVals = list(map(float, f))
-                maxLength = len(meanVals)
+                allMaxLengths[file] = len(meanVals)
                 allMassesOverTime[file].append(meanVals)
 
+
     for test in allMassesOverTime:
+        print("Keyword: ", test)
         masses = allMassesOverTime[test]
+        maxLength = allMaxLengths[test]
 
 
         labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training steps",
-                  "yLabel": "Mass Mean Value", "title": "Mass", "path": path,
+                  "yLabel": "Mass Mean Value", "title": test[:-4], "path": path,
                   "subPath": "Final_testing_" + test[:-4]}
-        plot(masses, maxLength, 1, labels)
+        plot(masses, maxLength, 1, labels, showConfInt = True)
 
 
 def plotTestingMassOverTime(path):
@@ -180,7 +185,7 @@ def plotTestingMassOverTime(path):
 
     labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training Time (%)",
               "yLabel": "Testing Mass Mean Value", "title": "Mass", "path": path, "subPath": "Mean_Testing_Mass_During_training"}
-    plot(allMeans, maxLength, 10, labels)
+    plot(allMeans, maxLength, 10, labels, showConfInt=True)
 
 
 def plotMassesOverTime(path):
@@ -265,6 +270,7 @@ def getTimeAxis(maxLength, avgLength):
 
 
 def getMeanAndStDev(allList, maxLength):
+    print("Shape of allList: ", numpy.shape(allList))
     mean_list = []
     stDev_list = []
     for i in range(maxLength):
@@ -276,8 +282,8 @@ def getMeanAndStDev(allList, maxLength):
             summed += allList[j][i]
             num_lists += 1
         if num_lists == 0:
-            print("Number of lists is 0.")
-            return
+            print("Number of lists is 0 for idx ", i, " and max length ", maxLength)
+            quit()
         m = summed / num_lists
         mean_list.append(m)
         sqe = 0
@@ -292,7 +298,8 @@ def getMeanAndStDev(allList, maxLength):
     return mean_list, stDev_list
 
 
-def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None):
+def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None, showConfInt = True):
+    print("Plotting ", labels["title"], "...")
     x = getTimeAxis(maxLength, avgLength)
     y, ysigma = getMeanAndStDev(ylist, maxLength)
     if y is None or ysigma is None:
@@ -309,7 +316,7 @@ def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None):
                     label=labels["sigmaLabel"])
     ax.set_xlabel(labels["xLabel"])
     yLabel = labels["yLabel"]
-    title = labels["title"]
+    title = labels["title"].replace("_", " ")
     path = labels["path"] + "/" + labels["subPath"]
     if y2list is not None:
         y2, y2sigma = getMeanAndStDev(y2list, maxLength)
@@ -323,16 +330,26 @@ def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None):
         path += "_and_" + labels2["subPath"]
 
     meanY = numpy.mean(y)
-    meanSigma = numpy.std(y)
+
+
     ax.legend(loc='upper left')
     ax.set_ylabel(yLabel)
-    ax.set_title(title + " mean value (" + str(round(meanY,1)) + ") $\pm$ $\sigma$ interval")
+    if showConfInt:
+        meanOfRuns = [numpy.mean(run) for run in ylist]
+        meanVal = np.mean(meanOfRuns)
+        stdVal = scipy.stats.sem(meanOfRuns)
+        confInt = scipy.stats.t.interval(0.95, len(meanOfRuns) - 1, loc=meanVal,
+                                         scale=stdVal)
+        title = title + " averaged over " + str(len(meanOfRuns)) +  " runs. Mean: " + str(round(meanY,1)) +\
+                " Std: " + str(round(stdVal, 1)) + "\nConfInt95%: "+ str(np.round(confInt, 1))
+
+
+    else:
+        title = title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval"
+    ax.set_title(title)
     ax.grid()
     fig.savefig(path + ".pdf")
     plt.close()
-
-
-# TODO: MAKE TRAIN STEP TIME CALCULATION
 
 
 

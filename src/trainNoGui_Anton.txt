@@ -1,15 +1,14 @@
+0
+0
+100
+0
+2
 1
-0
-0
-10000
-0
-0
+NUM_NN_BOTS
+2
 1
-Default
-"Action - Test"
-1
-NUM_ACTIONS
-121
+MAX_TRAINING_STEPS
+100
 0
 0
 1
