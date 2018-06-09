@@ -134,14 +134,10 @@ class QLearn(object):
         # In the case of CNN, self.input_len has several dimensions
         if self.parameters.CNN_REPRESENTATION:
 
-            inputDims = [batch_len]
-            for dimension in self.input_len:
-                inputDims.append(dimension)
+            inputDims = numpy.array([batch_len] + list(self.input_len))
             inputs = numpy.zeros(inputDims)
-            # print("\n", numpy.shape(inputs), "inputs")
         else:
             inputs = numpy.zeros((batch_len, self.input_len))
-            # print("\n", numpy.shape(inputs), "inputs")
 
         targets = numpy.zeros((batch_len, self.output_len))
 
@@ -154,22 +150,16 @@ class QLearn(object):
                 inputs[sample_idx] = stateAction
                 targets[sample_idx] = self.calculateTargetForAction(new_s, r, new_s is not None)
             else:
-                # print(sample_idx)
-                # print(numpy.shape(old_s), "old_s")
-
                 inputs[sample_idx] = old_s
 
                 targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
-        if self.parameters.CNN_REPRESENTATION:
-            # print(numpy.shape(inputs), "before")
+        if self.parameters.CNN_REPRESENTATION and not self.parameters.CNN_PIXEL_REPRESENTATION:
 
             stateRepr = numpy.zeros((len(old_s), batch_len, 1, len(old_s[0]), len(old_s[0])))
-            # print(numpy.shape(stateRepr), "before")
 
             for gridIdx, grid in enumerate(old_s):
                 stateRepr[gridIdx][0][0] = grid
             inputs = list(stateRepr)
-            # print(numpy.shape(inputs), "after")
         self.network.trainOnBatch(inputs, targets)
 
     def train_LSTM_batch(self, batch):

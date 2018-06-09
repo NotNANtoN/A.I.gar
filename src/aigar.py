@@ -11,7 +11,6 @@ from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
 from view.view import View
-from model.rgbGenerator import *
 from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
 
 import numpy as np
@@ -197,10 +196,6 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
     loadPath = model.getPath() if loadModel else None
     if botType == "NN":
         Bot.num_NNbots = number
-        rgbGenerator = None
-        if parameters.CNN_PIXEL_REPRESENTATION and parameters.CNN_REPRESENTATION:
-            rgbGenerator = RGBGenerator(model, parameters)
-
         networks = {}
         for i in range(number):
             # Create algorithm instance
@@ -220,7 +215,7 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
                 print("Please enter a valid algorithm.\n")
                 quit()
             networks = learningAlg.initializeNetwork(loadPath, networks)
-            model.createBot(botType, learningAlg, parameters, rgbGenerator)
+            model.createBot(botType, learningAlg, parameters)
     elif botType == "Greedy":
         Bot.num_Greedybots = number
         for i in range(number):
@@ -561,8 +556,8 @@ if __name__ == '__main__':
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 10% of training
-            # if step % (smallPart * 10) == 0:
-            #     testResults = updateTestResults(testResults)
+            if step % (smallPart * 10) == 0:
+                testResults = updateTestResults(testResults)
         testResults = updateTestResults(testResults)
         meanMassesOfTestResults = [val[0] for val in testResults]
         exportTestResults(meanMassesOfTestResults, model.getPath(), "testMassOverTime")

@@ -14,7 +14,7 @@ MEMORY_BATCH_LEN = 32
 
 # General RL:
 FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-MAX_TRAINING_STEPS = 100000
+MAX_TRAINING_STEPS = 50
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
@@ -33,7 +33,7 @@ ENABLE_SELF_GRID = True
 ENABLE_WALL_GRID = True if NUM_GREEDY_BOTS + NUM_NN_BOTS > 1 else False
 ENABLE_VIRUS_GRID = False
 ENABLE_ENEMY_GRID = True if NUM_GREEDY_BOTS + NUM_NN_BOTS > 1 else False
-ENABLE_SIZE_GRID = True
+ENABLE_SIZE_GRID = False
 USE_FOVSIZE = True
 USE_TOTALMASS = False
 GRID_SQUARES_PER_FOV = 11 #11 is pretty good so far.
@@ -91,7 +91,7 @@ MEMORY_TRACE_LEN = 15 # The length of memory traces retrieved via exp replay
 
 # CNN
 CNN_REPRESENTATION = False
-CNN_PIXEL_REPRESENTATION = False
+# Handcraft representation
 CNN_USE_LAYER_1 = False
 CNN_LAYER_1 = 5
 CNN_LAYER_1_STRIDE = 2
@@ -109,3 +109,15 @@ CNN_LAYER_3_STRIDE = 2
 CNN_LAYER_3_FILTER_NUM = 32
 CNN_SIZE_OF_INPUT_DIM_3 = 42
 
+# Pixel representation
+CNN_PIXEL_REPRESENTATION = False
+CNN_PIXEL_USE_LAYER_1 = False
+CNN_PIXEL_LAYER_1_FILTER_NUM = 10
+CNN_PIXEL_SIZE_OF_INPUT_DIM_1 = 200
+
+CNN_PIXEL_USE_LAYER_2 = True
+CNN_PIXEL_LAYER_2_FILTER_NUM = 4
+CNN_PIXEL_SIZE_OF_INPUT_DIM_2 = 84
+
+CNN_PIXEL_LAYER_3_FILTER_NUM = 16
+CNN_PIXEL_SIZE_OF_INPUT_DIM_3 = 84
