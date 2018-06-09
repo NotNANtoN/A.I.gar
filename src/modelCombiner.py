@@ -122,21 +122,21 @@ def plotTDErrorAndMean(path):
 
 
 def plotFinalTests(path):
-
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
 
     allMassesOverTime = {}
     allMaxLengths = {}
-    maxLength = 0
 
     for model in modelList:
-        modelPath = path + "/" + model
+        modelPath = path + "/" + model + "/data/"
         for file in os.listdir(modelPath):
-            if not fnmatch.fnmatch(file, "Mean_Mass_*") or not fnmatch.fnmatch(file, "*.txt"):
+            if not fnmatch.fnmatch(file, "*Mean_Mass_*") or not fnmatch.fnmatch(file, "*.txt"):
                 continue
 
             testingMassPath = modelPath + "/" + file
 
+            meanMassIdx = file.find("Mean_Mass")
+            file = file[meanMassIdx:]
             # Create empty list if it is not yet there
             try:
                 allMassesOverTime[file]
@@ -156,7 +156,6 @@ def plotFinalTests(path):
         masses = allMassesOverTime[test]
         maxLength = allMaxLengths[test]
 
-
         labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training steps",
                   "yLabel": "Mass Mean Value", "title": test[:-4], "path": path,
                   "subPath": "Final_testing_" + test[:-4]}
@@ -171,7 +170,7 @@ def plotTestingMassOverTime(path):
 
 
     for model in modelList:
-        modelPath = path + "/" + model
+        modelPath = path + "/" + model + "/data/"
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, "testMassOverTime.txt"):
                 continue

@@ -29,6 +29,28 @@ EXP_STRAT "Boltzmann:
 	MAX_STEPS 75k: 	402mM 19std 327mM
 MAX_STEPS 75K: 		400mM 13std 306mM
 
+NUM_NN_BOTS 3:
+	Default            3x: 110 193 275 | 145 305 465 | 156 181 205
+
+	Default	     1     3x: 110 193 275 | 145 305 465 | 156 181 205
+	DEATH_FACTOR 10    3x: 24  190 356 | 204 475 746 | 123 169 215
+	DEATH_FACTOR 100   3x: 14  31  48  | -39 87  212 | 41  58  52
+	DEATH_FACTOR 10000 3x: 7   24  41  | 9   36  63  | 17  28  39
+	=> 10 is best so far. Increasing punishment for death seems good. TEST: 5, 10, 20
+
+	Default 0          3x: 110 193 275 | 145 305 465 | 156 181 205
+	DEATH_TERM -1000   3x: 116 174 232 |-220 292 805 | 106 161 215
+	DEATH_TERM -10000  3x: -51 36  123 |-100 57  216 | -6  31  68
+	=> these two numbers do not really improve performance. TEST: -10, -100, -500
+
+
+	REWARD_SCALE 0.1   3x: 117 147 176 | 8   176 344 | 165 192 218
+	REWARD_SCALE 0.5   3x: 179 225 272 |-19  356 730 | 156 200 244
+	Default      1     3x: 110 193 275 | 145 305 465 | 156 181 205
+	REWARD_SCALE 2     3x: 117 208 300 | 14  521 1029| 177 209 240
+	REWARD_SCALE 5     3x: 257 291 326 | 158 440 721 | 140 178 216
+	REWARD_SCALE 20    3x: 238 276 315 |-148 520 1189| 196 220 245
+	=> increases seems good. NEW: 2 TEST: 5, 10 
 
 
 

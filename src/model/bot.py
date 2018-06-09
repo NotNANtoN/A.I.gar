@@ -111,6 +111,9 @@ class Bot(object):
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
             self.trainMode = trainMode
+            if not self.trainMode:
+                self.learningAlg.setNoise(0)
+                self.learningAlg.setTemperature(0)
 
         self.type = bot_type
         self.player = player
@@ -225,10 +228,6 @@ class Bot(object):
     def setExploring(self, val):
         self.player.setExploring(val)
 
-    def setTrainingEnabled(self, val):
-        self.trainMode = val
-        self.learningAlg.setNoise(0)
-        self.learningAlg.setTemperature(0)
 
     def setMassesOverTime(self, array):
         self.totalMasses = array

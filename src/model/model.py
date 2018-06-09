@@ -486,14 +486,13 @@ class Model(object):
         print("Step: ", self.counter)
         if self.trainingEnabled:
             print("Noise level: ", round(self.getCurrentNoise(),4))
-        self.printBotStds()
         self.printBotMasses()
         print(" ")
 
     def getCurrentNoise(self):
         for bot in self.bots:
             if bot.getType() == "NN":
-                return bot.getLearningAlg().getNoiseLevel()
+                return bot.getLearningAlg().getNoise()
         return None
 
     def printBotStds(self):
