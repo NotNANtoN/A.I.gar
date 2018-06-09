@@ -380,7 +380,7 @@ class Model(object):
         self.plotQValuesOverTime()
 
     def exportData(self):
-        path = self.path
+        path = self.path + "/data/"
         # Mean TD error export
         subPath = path + self.dataFiles["Error"]
         with open(subPath, "a") as f:
@@ -516,11 +516,11 @@ class Model(object):
 
     def plotTDError(self):
         path = self.path
-        errorListPath = self.path + self.dataFiles["Error"]
+        errorListPath = self.path + "/data/" + self.dataFiles["Error"]
         with open(errorListPath, 'r') as f:
             errorList = list(map(float, f))
 
-        rewardListPath = self.path + self.dataFiles["Reward"]
+        rewardListPath = self.path + "/data/" + self.dataFiles["Reward"]
         with open(rewardListPath, 'r') as f:
             rewardList = list(map(float, f))
         timeAxis = list(range(0, len(errorList) * self.pointAveraging, self.pointAveraging))
@@ -536,7 +536,7 @@ class Model(object):
 
     def plotMassesOverTime(self):
         for bot_idx, bot in enumerate(self.bots):
-            massListPath = self.path + self.dataFiles[str(bot) + "_mass"]
+            massListPath = self.path + "/data/" +  self.dataFiles[str(bot) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             meanMass = round(numpy.mean(massList),1)
@@ -558,7 +558,7 @@ class Model(object):
 
     def plotMassesOverTimeClean(self):
         for bot_idx, bot in enumerate(self.bots):
-            massListPath = self.path + self.dataFiles[str(bot) + "_mass"]
+            massListPath = self.path + "/data/" + self.dataFiles[str(bot) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             avg_step = int(self.resetLimit / self.pointAveraging)
@@ -582,7 +582,7 @@ class Model(object):
 
     def plotQValuesOverTime(self):
         for bot_idx, bot in enumerate([bot for bot in self.bots if bot.getType() == "NN"]):
-            qValueListPath = self.path + self.dataFiles[str(bot) + "_qValue"]
+            qValueListPath = self.path + "/data/" +  self.dataFiles[str(bot) + "_qValue"]
             f = open(qValueListPath, 'r')
             q = f.readlines()
             qValueList = []

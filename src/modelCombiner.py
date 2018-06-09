@@ -23,7 +23,6 @@ def createCombinedModelGraphs(path):
     print("Combining test results..")
     combineTestResults(path)
     print("###############################")
-    # TODO: combine test results
 
 def combineTestResults(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
@@ -80,7 +79,7 @@ def plotTDErrorAndMean(path):
     maxLength = 0
     for model in modelList:
         print(model)
-        modelPath = path + "/" + model
+        modelPath = path + "/" + model + "/data/"
         errorListPath = modelPath + "/tdErrors.txt"
         if not os.path.isfile(errorListPath):
             print("-- Model does not have tdError.txt --")
@@ -167,8 +166,6 @@ def plotTestingMassOverTime(path):
 
     allMeans = []
     maxLength = 0
-
-
     for model in modelList:
         modelPath = path + "/" + model + "/data/"
         for file in os.listdir(modelPath):
@@ -180,7 +177,6 @@ def plotTestingMassOverTime(path):
                 meanVals = list(map(float, f))
                 maxLength = len(meanVals)
                 allMeans.append(meanVals)
-
 
     labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training Time (%)",
               "yLabel": "Testing Mass Mean Value", "title": "Mass", "path": path, "subPath": "Mean_Testing_Mass_During_training"}
@@ -195,7 +191,7 @@ def plotMassesOverTime(path):
     massListPresent = False
     for model in modelList:
         print(model)
-        modelPath = path + "/" + model
+        modelPath = path + "/" + model + "/data/"
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'meanMassOverTimeNN*'):
                 continue
@@ -242,7 +238,7 @@ def plotQValuesOverTime(path):
     massListPresent = False
     for model in modelList:
         print(model)
-        modelPath = path + "/" + model
+        modelPath = path + "/" + model + "/data/"
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'meanQValuesOverTimeNN*'):
                 continue

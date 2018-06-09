@@ -98,10 +98,10 @@ class ValueNetwork(object):
             self.target_model = load_model(path + "value_model.h5")
 
     def predict(self, state):
-        return self.model.predict(numpy.array([state]))[0][0]
+        return self.model.predict(state)[0][0]
 
     def predict_target_model(self, state):
-        return self.target_model.predict(numpy.array([state]))[0][0]
+        return self.target_model.predict(state)[0][0]
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -238,10 +238,10 @@ class PolicyNetwork(object):
             self.model = load_model(path + "actor_model.h5")
 
     def predict(self, state):
-        return self.model.predict(numpy.array([state]))[0]
+        return self.model.predict(state)[0]
 
     def predict_target_model(self, state):
-        return self.target_model.predict(numpy.array([state]))[0]
+        return self.target_model.predict(state)[0]
 
 
     def train(self, inputs, targets):
@@ -312,10 +312,10 @@ class ActionValueNetwork(object):
             self.target_model = load_model(path + "actionValue_model.h5")
 
     def predict(self, state, action):
-        return self.model.predict(numpy.array([numpy.concatenate((state, action))]))[0][0]
+        return self.model.predict(numpy.array([numpy.concatenate((state[0], action))]))[0][0]
 
     def predict_target_model(self, state, action):
-        return self.target_model.predict(numpy.array([numpy.concatenate((state, action))]))[0][0]
+        return self.target_model.predict(numpy.array([numpy.concatenate((state[0], action))]))[0][0]
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -384,7 +384,7 @@ class ActorCritic(object):
             self.actor  = networks["MU(S)"]
             if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
                 self.critic = networks["Q(S,A)"]
-                self.combinedActorCritic = self.createCombinedActorCritic(self.actor, self.critic)
+                self.combinedActorCritic = self.createCombinedActorCritic(self.actor.model, self.critic.model)
             else:
                 self.critic = networks["V(S)"]
         for network in networks:
@@ -426,7 +426,7 @@ class ActorCritic(object):
         # Calculate input and target for actor
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
-            oldPrediction = self.combinedActorCritic.predict(numpy.array([old_s]))[0]
+            oldPrediction = self.combinedActorCritic.predict(old_s)[0]
             inputs[sample_idx] = old_s
             targets[sample_idx] = oldPrediction + self.parameters.DPG_Q_VAL_INCREASE
         self.combinedActorCritic.train_on_batch(inputs, targets)
@@ -443,7 +443,7 @@ class ActorCritic(object):
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
             alive = new_s is not None
-            _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
+            _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive)
             target = self.calculateTarget_Actor(old_s, a, td_e)
             if target is not None:
                 inputs[count] = old_s
@@ -507,7 +507,7 @@ class ActorCritic(object):
             target = r
             if alive:
                 target += self.parameters.DISCOUNT * self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
-            inputs_critic[sample_idx]  = numpy.concatenate([old_s, a])
+            inputs_critic[sample_idx]  = numpy.concatenate([old_s[0], a])
             targets_critic[sample_idx] = target
         self.qValues.append(target)
         self.critic.train(inputs_critic, targets_critic)

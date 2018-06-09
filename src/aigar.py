@@ -567,7 +567,7 @@ if __name__ == '__main__':
                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
         testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 0))
         meanMassesOfTestResults = [val[0] for val in testResults]
-        exportTestResults(meanMassesOfTestResults, model.getPath(), "testMassOverTime")
+        exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
         plotTesting(testResults, model.getPath(), smallPart * 10, maxSteps)
         print("Training done.")
         print("")
@@ -594,7 +594,7 @@ if __name__ == '__main__':
                     print(attribute, " = ", getattr(parameters, attribute))
             print("")
             print("Mass Info for ", player, ":")
-            massListPath = model.getPath() + model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
+            massListPath = model.getPath() + "/data/" +  model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             mean = numpy.mean(massList)
