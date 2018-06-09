@@ -89,41 +89,38 @@ class Network(object):
 
         # CNN
         if self.parameters.CNN_REPRESENTATION:
-            if self.parameters.CNN_PIXEL_REPRESENTATION:
+            # if self.parameters.CNN_PIXEL_REPRESENTATION:
+            #     if self.parameters.CNN_PIXEL_INCEPTION:
+            #
+            #         self.filterNum_1 = self.parameters.CNN_PIXEL_LAYER_1_FILTER_NUM
+            #         self.filterNum_2 = self.parameters.CNN_PIXEL_LAYER_2_FILTER_NUM
+            #         self.filterNum_3 = self.parameters.CNN_PIXEL_LAYER_3_FILTER_NUM
+            #
+            #         if self.parameters.CNN_PIXEL_USE_LAYER_1:
+            #             self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_1
+            #         elif self.parameters.CNN_USE_LAYER_2:
+            #             self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_2
+            #         else:
+            #             self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_3
+            # else:
+            self.kernelLen_1 = self.parameters.CNN_LAYER_1
+            self.stride_1 = self.parameters.CNN_LAYER_1_STRIDE
+            self.filterNum_1 = self.parameters.CNN_LAYER_1_FILTER_NUM
 
-                # self.filterNum_3x3 = self.parameters.CNN_LAYER_1_FILTER_NUM
-                # self.filterNum_5x5 = self.parameters.CNN_LAYER_2_FILTER_NUM
-                # self.filterNum_1x1 = self.parameters.CNN_LAYER_3_FILTER_NUM
+            self.kernelLen_2 = self.parameters.CNN_LAYER_2
+            self.stride_2 = self.parameters.CNN_LAYER_2_STRIDE
+            self.filterNum_2 = self.parameters.CNN_LAYER_2_FILTER_NUM
 
-                self.filterNum_1 = self.parameters.CNN_LAYER_1_FILTER_NUM
-                self.filterNum_2 = self.parameters.CNN_LAYER_2_FILTER_NUM
-                self.filterNum_3 = self.parameters.CNN_LAYER_3_FILTER_NUM
+            self.kernelLen_3 = self.parameters.CNN_LAYER_3
+            self.stride_3 = self.parameters.CNN_LAYER_3_STRIDE
+            self.filterNum_3 = self.parameters.CNN_LAYER_3_FILTER_NUM
 
-                if self.parameters.CNN_PIXEL_USE_LAYER_1:
-                    self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_1
-                elif self.parameters.CNN_USE_LAYER_2:
-                    self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_2
-                else:
-                    self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_3
+            if self.parameters.CNN_USE_LAYER_1:
+                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+            elif self.parameters.CNN_USE_LAYER_2:
+                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
             else:
-                self.kernelLen_1 = self.parameters.CNN_LAYER_1
-                self.stride_1 = self.parameters.CNN_LAYER_1_STRIDE
-                self.filterNum_1 = self.parameters.CNN_LAYER_1_FILTER_NUM
-
-                self.kernelLen_2 = self.parameters.CNN_LAYER_2
-                self.stride_2 = self.parameters.CNN_LAYER_2_STRIDE
-                self.filterNum_2 = self.parameters.CNN_LAYER_2_FILTER_NUM
-
-                self.kernelLen_3 = self.parameters.CNN_LAYER_3
-                self.stride_3 = self.parameters.CNN_LAYER_3_STRIDE
-                self.filterNum_3 = self.parameters.CNN_LAYER_3_FILTER_NUM
-
-                if self.parameters.CNN_USE_LAYER_1:
-                    self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-                elif self.parameters.CNN_USE_LAYER_2:
-                    self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
-                else:
-                    self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
         else:
             self.stateReprLen = self.parameters.STATE_REPR_LEN
 
@@ -188,20 +185,47 @@ class Network(object):
             # CNN
             if self.parameters.CNN_REPRESENTATION:
                 if self.parameters.CNN_PIXEL_REPRESENTATION:
+                    if self.parameters.CNN_PIXEL_INCEPTION:
 
-                    self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
+                        self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
 
-                    tower_1 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
-                    tower_1 = Conv2D(self.filterNum_2, (3, 3), padding='same', activation='relu')(tower_1)
+                        tower_1 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
+                        tower_1 = Conv2D(self.filterNum_2, (3, 3), padding='same', activation='relu')(tower_1)
 
-                    tower_2 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
-                    tower_2 = Conv2D(self.filterNum_2, (5, 5), padding='same', activation='relu')(tower_2)
+                        tower_2 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
+                        tower_2 = Conv2D(self.filterNum_2, (5, 5), padding='same', activation='relu')(tower_2)
 
-                    tower_3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(self.input)
-                    tower_3 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(tower_3)
+                        tower_3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(self.input)
+                        tower_3 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(tower_3)
 
-                    self.valueNetwork = keras.layers.concatenate([tower_1, tower_2, tower_3], axis=3)
-                    self.valueNetwork = keras.layers.Flatten()(self.valueNetwork)
+                        self.valueNetwork = keras.layers.concatenate([tower_1, tower_2, tower_3], axis=3)
+                        self.valueNetwork = keras.layers.Flatten()(self.valueNetwork)
+                    else:
+                        self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
+                        if self.parameters.CNN_USE_LAYER_1:
+                            conv1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                                strides=(self.stride_1, self.stride_1), activation='relu',
+                                                data_format='channels_last')(self.input)
+
+                        if self.parameters.CNN_USE_LAYER_2:
+                            if self.parameters.CNN_USE_LAYER_1:
+                                conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                     strides=(self.stride_2, self.stride_2), activation='relu',
+                                                     data_format='channels_last')(conv1)
+                            else:
+                                conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                    strides=(self.stride_2, self.stride_2), activation='relu',
+                                                    data_format='channels_last')(self.input)
+
+                        if self.parameters.CNN_USE_LAYER_2:
+                            conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                                 strides=(self.stride_3, self.stride_3), activation='relu',
+                                                 data_format='channels_last')(conv2)
+                        else:
+                            conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                                strides=(self.stride_3, self.stride_3), activation='relu',
+                                                data_format='channels_last')(self.input)
+                        self.valueNetwork = Flatten()(conv3)
 
                 # Not pixel input
                 else:
