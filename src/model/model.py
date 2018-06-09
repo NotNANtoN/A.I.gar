@@ -9,6 +9,7 @@ from .bot import Bot
 from .field import Field
 from .parameters import *
 from .player import Player
+from model.rgbGenerator import *
 
 import linecache
 import os
@@ -612,9 +613,10 @@ class Model(object):
         self.addPlayer(newPlayer)
         return newPlayer
 
-    def createBot(self, botType, learningAlg = None, parameters = None, rgbGenerator = None):
+    def createBot(self, botType, learningAlg = None, parameters = None):
         name = botType + str(len(self.bots))
         newPlayer = self.createPlayer(name)
+        rgbGenerator = RGBGenerator(self.field, parameters)
         bot = Bot(newPlayer, self.field, botType, self.trainingEnabled, learningAlg, parameters, rgbGenerator)
         self.addBot(bot)
 
