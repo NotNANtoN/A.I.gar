@@ -1,40 +1,38 @@
 Q-learning:
 
 Default 10x:
-NUM_NN_BOTS 2 10x:
-NUM_GREEDY_BOTS 1 10x:
+NUM_NN_BOTS 2 6x:
 
 NUM_ACTIONS 16 3x:
 Default     25 3x:
-NUM_ACTIONS 36 3x:
+NUM_ACTIONS 36 5x:
 
 REWARD_SCALE 1 3x:
 REWARD_SCALE 4 3x:
 
 NUM_NN_BOTS 2:
-	Default     0  10x:
+	Default     0   6x:
 	DEATH_TERM -10  3x:
 	DEATH_TERM -100 3x:
 	DEATH_TERM -500 3x:
 
 	Default      1 10x:
+	DEATH_FACTOR 2  3x:
 	DEATH_FACTOR 5  3x:
 	DEATH_FACTOR 10 3x:
-	DEATH_FACTOR 15 3x:
 
 ACTOR_CRITIC_TYPE "CACLA":
 	Default 10x:
 	
-	ALPHA 0.0002  3x:
-	ALPHA 0.00005 3x:
+	ALPHA 0.0002  5x:
+	ALPHA 0.00005 5x:
 
 	MAX_TRAINING_STEPS 50k  3x:
 	MAX_TRAINING_STEPS 75k  3x:
 	Default	           100k 3x:
 	MAX_TRAINING_STEPS 125k 3x:
-	MAX_TRAINING_STEPS 200k 3x:
 
-	
+
 	ALPHA_POLICY 0.000025 5x:
 	Default      0.00005  5x:
 	ALPHA_POLICY 0.0001   5x:
@@ -53,9 +51,10 @@ ACTOR_CRITIC_TYPE "DPG":
 
 	SOFT_TARGET_UPDATES True:
 		DPG_TAU 0.0005 3x:
-		Default        3x:
-		DPG_TAU 0.01   3x:
+		Default 0.001  3x:
 		DPG_TAU 0.002  3x:
+		DPG_TAU 0.01   3x:
+
 		DPG_TAU 0.1    3x:
 
 
