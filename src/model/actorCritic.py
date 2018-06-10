@@ -487,8 +487,7 @@ class ActorCritic(object):
             alive = new_s is not None
             target = r
             if alive:
-                #TODO: Change back to using target models
-                target += self.parameters.DISCOUNT * self.critic.predict(new_s, numpy.array([self.actor.predict(new_s)]))
+                target += self.parameters.DISCOUNT * self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
             inputs_critic_states[sample_idx]  = old_s
             inputs_critic_actions[sample_idx] = a
             targets_critic[sample_idx] = target
