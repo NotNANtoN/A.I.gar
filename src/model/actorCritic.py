@@ -241,7 +241,7 @@ class PolicyNetwork(object):
         return self.model.predict(state)[0]
 
     def predict_target_model(self, state):
-        return self.target_model.predict(state)[0]
+        return self.target_model.predict(state)
 
 
     def train(self, inputs, targets):
@@ -286,14 +286,18 @@ class ActionValueNetwork(object):
             return
 
         initializer = keras.initializers.glorot_uniform()
-        input = keras.layers.Input((self.stateReprLen + self.num_actions_inputs,))
-        previousLayer = input
-        for neuronNumber in layers:
+        inputState = keras.layers.Input((self.stateReprLen,))
+        inputAction = keras.layers.Input((self.num_actions_inputs,))
+        previousLayer = inputState
+        for idx, neuronNumber in enumerate(layers):
+            if idx == parameters.DPG_FEED_ACTION_IN_LAYER - 1:
+                mergeLayer = keras.layers.concatenate([previousLayer, inputAction])
+                previousLayer = mergeLayer
             previousLayer = Dense(neuronNumber, activation=self.activationFuncHidden, bias_initializer=initializer,
                           kernel_initializer=initializer)(previousLayer)
 
         output = Dense(1, activation="linear", bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
-        self.model = keras.models.Model(inputs=input, outputs=output)
+        self.model = keras.models.Model(inputs=[inputState, inputAction], outputs=output)
 
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
@@ -312,10 +316,10 @@ class ActionValueNetwork(object):
             self.target_model = load_model(path + "actionValue_model.h5")
 
     def predict(self, state, action):
-        return self.model.predict(numpy.array([numpy.concatenate((state[0], action))]))[0][0]
+        return self.model.predict([state, action])[0][0]
 
     def predict_target_model(self, state, action):
-        return self.target_model.predict(numpy.array([numpy.concatenate((state[0], action))]))[0][0]
+        return self.target_model.predict([state, action])[0][0]
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -347,8 +351,9 @@ class ActorCritic(object):
         self.noise_decay_factor = self.parameters.NOISE_DECAY
         self.steps = 0
         self.input_len = parameters.STATE_REPR_LEN
-        if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
-            self.input_len += 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
+        self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
+
+
         # Bookkeeping:
         self.latestTDerror = None
         self.qValues = []
@@ -359,10 +364,11 @@ class ActorCritic(object):
     def createCombinedActorCritic(self, actor, critic):
         for layer in critic.layers:
             layer.trainable = False
-        mergeLayer = keras.layers.concatenate([actor.inputs[0], actor.outputs[0]])
-        nonTrainableCritic = critic(mergeLayer)
+        #mergeLayer = keras.layers.concatenate([actor.inputs[0], actor.outputs[0]])
+        nonTrainableCritic = critic([actor.inputs[0], actor.outputs[0]])
         combinedModel = keras.models.Model(inputs=actor.inputs, outputs=nonTrainableCritic)
         combinedModel.compile(optimizer="Adam", loss="mse")
+        combinedModel.summary()
         return combinedModel
 
     def initializeNetwork(self, loadPath, networks=None):
@@ -473,14 +479,13 @@ class ActorCritic(object):
         action = self.actor.predict(state)
         noisyAction = self.applyNoise(action)
 
-        if __debug__:
+        if __debug__ and bot.player.getSelected():
             print("")
-            if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
+            if self.parameters.ACTOR_CRITIC_TYPE == "DPG" and self.getNoise() != 0:
                 print("Evaluation of current state-action Q(s,a): ", round(self.critic.predict(state, noisyAction), 2))
             else:
                 print("Evaluation of current state V(s): ", round(self.critic.predict(state), 2))
             print("Current action:\t", numpy.round(noisyAction, 2))
-            print("")
 
         return None, noisyAction
 
@@ -498,7 +503,8 @@ class ActorCritic(object):
     def train_critic_DPG(self, batch):
         target, td_e = None, None
         len_batch = len(batch)
-        inputs_critic = numpy.zeros((len_batch, self.input_len))
+        inputs_critic_states = numpy.zeros((len_batch, self.input_len))
+        inputs_critic_actions = numpy.zeros((len_batch, self.action_len))
         targets_critic = numpy.zeros((len_batch, 1))
 
         for sample_idx, sample in enumerate(batch):
@@ -507,8 +513,10 @@ class ActorCritic(object):
             target = r
             if alive:
                 target += self.parameters.DISCOUNT * self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
-            inputs_critic[sample_idx]  = numpy.concatenate([old_s[0], a])
+            inputs_critic_states[sample_idx]  = old_s
+            inputs_critic_actions[sample_idx] = a
             targets_critic[sample_idx] = target
+        inputs_critic = [inputs_critic_states, inputs_critic_actions]
         self.qValues.append(target)
         self.critic.train(inputs_critic, targets_critic)
 

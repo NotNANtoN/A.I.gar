@@ -89,15 +89,16 @@ HIDDEN_LAYER_2_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_3_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 
 # Deterministic Policy Gradient (DPG):
-DPG_TAU                 = 0.001 # How quickly the weights of the target networks are updated
-DPG_CRITIC_LAYERS       = (250, 250, 250)
-DPG_CRITIC_ALPHA        = 0.0001
-DPG_CRITIC_FUNC         = "relu"
-DPG_CRITIC_WEIGHT_DECAY = 0.001 # L2 weight decay parameter. TODO: implement and test whether useful
-DPG_ACTOR_LAYERS        = (100, 100, 100)
-DPG_ACTOR_ALPHA         = 0.00005
-DPG_ACTOR_FUNC          = "relu"
-DPG_Q_VAL_INCREASE      = 1
+DPG_TAU                  = 0.05 # How quickly the weights of the target networks are updated
+DPG_CRITIC_LAYERS        = (250, 250, 250)
+DPG_CRITIC_ALPHA         = 0.0001
+DPG_CRITIC_FUNC          = "relu"
+DPG_CRITIC_WEIGHT_DECAY  = 0.001 # L2 weight decay parameter. TODO: implement and test whether useful
+DPG_ACTOR_LAYERS         = (100, 100, 100)
+DPG_ACTOR_ALPHA          = 0.00005
+DPG_ACTOR_FUNC           = "relu"
+DPG_Q_VAL_INCREASE       = 1
+DPG_FEED_ACTION_IN_LAYER = 1
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"

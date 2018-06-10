@@ -15,6 +15,7 @@ RESET_INTERVAL = 10000
 def createCombinedModelGraphs(path):
     print("###############################")
     print("Generating average plots:\n")
+    print("Path: ", path)
     plotTDErrorAndMean(path)
     plotMassesOverTime(path)
     plotQValuesOverTime(path)
@@ -30,11 +31,11 @@ def combineTestResults(path):
     evaluations = {}
     keyList = []
     for model in modelList:
-        modelPath = path + "/" + model
+        modelPath = path + model + "/"
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'final_results*'):
                 continue
-            resultsPath = modelPath + "/" + file
+            resultsPath = modelPath + file
             with open(resultsPath, 'r') as f:
                 for line in f.readlines():
                     words = line.split(sep=" ")
@@ -79,8 +80,8 @@ def plotTDErrorAndMean(path):
     maxLength = 0
     for model in modelList:
         print(model)
-        modelPath = path + "/" + model + "/data/"
-        errorListPath = modelPath + "/tdErrors.txt"
+        modelPath = path + model + "/data/"
+        errorListPath = modelPath + "tdErrors.txt"
         if not os.path.isfile(errorListPath):
             print("-- Model does not have tdError.txt --")
             continue
@@ -91,7 +92,7 @@ def plotTDErrorAndMean(path):
             #errorList = np.array(errorList)
             allErrorLists.append(errorList)
 
-        rewardListPath = modelPath + "/rewards.txt"
+        rewardListPath = modelPath + "rewards.txt"
         if not os.path.isfile(rewardListPath):
             print("-- Model does not have rewards.txt --")
             continue
@@ -127,12 +128,15 @@ def plotFinalTests(path):
     allMaxLengths = {}
 
     for model in modelList:
-        modelPath = path + "/" + model + "/data/"
+        modelPath = path + model + "/data/"
+        if not os.path.isfile(modelPath):
+            print("-- Model does not have /data/--")
+            continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, "*Mean_Mass_*") or not fnmatch.fnmatch(file, "*.txt"):
                 continue
 
-            testingMassPath = modelPath + "/" + file
+            testingMassPath = modelPath + file
 
             meanMassIdx = file.find("Mean_Mass")
             file = file[meanMassIdx:]
@@ -167,11 +171,14 @@ def plotTestingMassOverTime(path):
     allMeans = []
     maxLength = 0
     for model in modelList:
-        modelPath = path + "/" + model + "/data/"
+        modelPath = path + model + "/data/"
+        if not os.path.isfile(modelPath):
+            print("-- Model does not have /data/--")
+            continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, "testMassOverTime.txt"):
                 continue
-            testingMassPath = modelPath + "/" + file
+            testingMassPath = modelPath + file
 
             with open(testingMassPath, 'r') as f:
                 meanVals = list(map(float, f))
@@ -191,12 +198,15 @@ def plotMassesOverTime(path):
     massListPresent = False
     for model in modelList:
         print(model)
-        modelPath = path + "/" + model + "/data/"
+        modelPath = path + model + "/data/"
+        if not os.path.isfile(modelPath):
+            print("-- Model does not have /data/--")
+            continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'meanMassOverTimeNN*'):
                 continue
             print(file)
-            massListPath = modelPath + "/" + file
+            massListPath = modelPath + file
             massListPresent = True
 
             with open(massListPath, 'r') as f:
@@ -238,12 +248,15 @@ def plotQValuesOverTime(path):
     massListPresent = False
     for model in modelList:
         print(model)
-        modelPath = path + "/" + model + "/data/"
+        modelPath = path + model + "/data/"
+        if not os.path.isfile(modelPath):
+            print("-- Model does not have /data/--")
+            continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'meanQValuesOverTimeNN*'):
                 continue
             print(file)
-            massListPath = modelPath + "/" + file
+            massListPath = modelPath + file
             massListPresent = True
 
             with open(massListPath, 'r') as f:
