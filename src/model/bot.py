@@ -389,7 +389,15 @@ class Bot(object):
                             gsVirus[c][r] = biggestVirus
 
                 # Create Wall representation
-                # 1s indicate a wall present in the grid square (regardless of amount of wall in square), else 0
+                # Calculate how much of the grid square is covered by walls
+                leftBorder = max(gsMidPoint[0] - gsSize / 2, 0)
+                topBorder = max(gsMidPoint[1] - gsSize / 2, 0)
+                rightBorder = min(gsMidPoint[0] + gsSize / 2, fieldSize)
+                bottomBorder = min(gsMidPoint[1] + gsSize / 2, fieldSize)
+                freeArea = (rightBorder - leftBorder) * (bottomBorder - topBorder)
+                gsWalls[c][r] = 1 - (freeArea / (gsSize ** 2))
+
+
                 if gsMidPoint[0] - gsSize / 2 < 0 or gsMidPoint[0] + gsSize / 2 > fieldSize or \
                         gsMidPoint[1] - gsSize / 2 < 0 or gsMidPoint[1] + gsSize / 2 > fieldSize:
                     gsWalls[c][r] = 1

@@ -126,29 +126,18 @@ class PolicyNetwork(object):
         self.parameters = parameters
         self.loadedModelName = None
 
-
-        if self.parameters.POLICY_OUTPUT_ACTIVATION_FUNC == "relu_max":
-            policyOutputActivationFunction = relu_max
-        elif self.parameters.POLICY_OUTPUT_ACTIVATION_FUNC == "sigmoid":
-            policyOutputActivationFunction = "sigmoid"
-        else:
-            policyOutputActivationFunction = "sigmoid"
-
         self.stateReprLen = self.parameters.STATE_REPR_LEN
-
-        self.gpus = self.parameters.GPUS
-
 
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             self.learningRate = self.parameters.DPG_ACTOR_ALPHA
+            self.layers = parameters.DPG_ACTOR_LAYERS
         else:
             self.learningRate = self.parameters.ALPHA_POLICY
+            self.layers = parameters.CACLA_ACTOR_LAYERS
 
         self.optimizer = self.parameters.OPTIMIZER_POLICY
         self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN_POLICY
-        self.hiddenLayer1 = self.parameters.HIDDEN_LAYER_1_POLICY
-        self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2_POLICY
-        self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3_POLICY
+
 
         self.num_outputs = 2  #x, y, split, eject all continuous between 0 and 1
         if self.parameters.ENABLE_SPLIT:
@@ -166,70 +155,26 @@ class PolicyNetwork(object):
             initializer = keras.initializers.glorot_normal()
         else:
             weight_initializer_range = math.sqrt(6 / (self.stateReprLen + 1))
-            initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
-                                                           maxval=weight_initializer_range, seed=None)
+            initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range, maxval=weight_initializer_range, seed=None)
 
-        if self.gpus > 1:
-            with tf.device("/cpu:0"):
-                self.model = Sequential()
-                self.model.add(
-                    Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
-                          bias_initializer=initializer, kernel_initializer=initializer))
-                if self.hiddenLayer2 > 0:
-                    self.model.add(
-                        Dense(self.hiddenLayer2, activation=self.activationFuncHidden, bias_initializer=initializer
-                              , kernel_initializer=initializer))
-                if self.hiddenLayer3 > 0:
-                    self.model.add(
-                        Dense(self.hiddenLayer3, activation=self.activationFuncHidden, bias_initializer=initializer
-                              , kernel_initializer=initializer))
-                self.model.add(
-                    Dense(self.num_outputs, activation=relu_max, bias_initializer=initializer
-                          , kernel_initializer=initializer))
-                self.model = multi_gpu_model(self.model, gpus=self.gpus)
-        else:
-            self.model = Sequential()
-            hidden1 = None
-            if self.parameters.NEURON_TYPE == "MLP":
-                hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen, activation=self.activationFuncHidden,
-                                bias_initializer=initializer, kernel_initializer=initializer)
-            elif self.parameters.NEURON_TYPE == "LSTM":
-                hidden1 = LSTM(self.hiddenLayer1, input_shape=(self.stateReprLen, 1),
-                               activation=self.activationFuncHidden,
-                               bias_initializer=initializer, kernel_initializer=initializer)
+        inputState = keras.layers.Input((self.stateReprLen,))
+        previousLayer = inputState
+        for neuronNumber in self.layers:
+            previousLayer = Dense(neuronNumber, activation=self.activationFuncHidden, bias_initializer=initializer,
+                                  kernel_initializer=initializer)(previousLayer)
 
-            self.model.add(hidden1)
-            # self.valueNetwork.add(Dropout(0.5))
-            hidden2 = None
-            if self.hiddenLayer2 > 0:
-                if self.parameters.NEURON_TYPE == "MLP":
-                    hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)
-                elif self.parameters.NEURON_TYPE == "LSTM":
-                    hidden2 = LSTM(self.hiddenLayer2, activation=self.activationFuncHidden,
-                                   bias_initializer=initializer, kernel_initializer=initializer)
-                self.model.add(hidden2)
-                # self.valueNetwork.add(Dropout(0.5))
-
-            if self.hiddenLayer3 > 0:
-                hidden3 = None
-                if self.parameters.NEURON_TYPE == "MLP":
-                    hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)
-                elif self.parameters.NEURON_TYPE == "LSTM":
-                    hidden3 = LSTM(self.hiddenLayer3, activation=self.activationFuncHidden,
-                                   bias_initializer=initializer, kernel_initializer=initializer)
-                self.model.add(hidden3)
-                # self.valueNetwork.add(Dropout(0.5))
-        self.model.add(Dense(self.num_outputs, activation=policyOutputActivationFunction, bias_initializer=initializer
-                      , kernel_initializer=initializer))
+        output = Dense(self.num_outputs, activation="sigmoid", bias_initializer=initializer, kernel_initializer=initializer)(
+            previousLayer)
+        self.model = keras.models.Model(inputs=inputState, outputs=output)
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
+
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
 
         self.model.compile(loss='mse', optimizer=optimizer)
         self.target_model.compile(loss='mse', optimizer=optimizer)
+
 
     def load(self, modelName=None):
         if modelName is not None:
@@ -362,13 +307,12 @@ class ActorCritic(object):
         self.combinedActorCritic = None
 
     def createCombinedActorCritic(self, actor, critic):
-        for layer in critic.layers:
+        for layer in critic.model.layers:
             layer.trainable = False
         #mergeLayer = keras.layers.concatenate([actor.inputs[0], actor.outputs[0]])
-        nonTrainableCritic = critic([actor.inputs[0], actor.outputs[0]])
-        combinedModel = keras.models.Model(inputs=actor.inputs, outputs=nonTrainableCritic)
-        combinedModel.compile(optimizer="Adam", loss="mse")
-        combinedModel.summary()
+        nonTrainableCritic = critic.model([actor.model.inputs[0], actor.model.outputs[0]])
+        combinedModel = keras.models.Model(inputs=actor.model.inputs, outputs=nonTrainableCritic)
+        combinedModel.compile(optimizer=keras.optimizers.Adam(lr=actor.learningRate), loss="mse")
         return combinedModel
 
     def initializeNetwork(self, loadPath, networks=None):
@@ -378,9 +322,10 @@ class ActorCritic(object):
             if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
                 self.actor = PolicyNetwork(self.parameters, loadPath)
                 self.critic = ActionValueNetwork(self.parameters, loadPath)
-                self.combinedActorCritic = self.createCombinedActorCritic(self.actor.model, self.critic.model)
+                self.combinedActorCritic = self.createCombinedActorCritic(self.actor, self.critic)
                 networks["MU(S)"] = self.actor
                 networks["Q(S,A)"] = self.critic
+                networks["Actor-Critic-Combo"] = self.combinedActorCritic
             else:
                 self.actor = PolicyNetwork(self.parameters, loadPath)
                 self.critic = ValueNetwork(self.parameters, loadPath)
@@ -390,10 +335,14 @@ class ActorCritic(object):
             self.actor  = networks["MU(S)"]
             if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
                 self.critic = networks["Q(S,A)"]
-                self.combinedActorCritic = self.createCombinedActorCritic(self.actor.model, self.critic.model)
+                self.combinedActorCritic = networks["Actor-Critic-Combo"]
             else:
                 self.critic = networks["V(S)"]
         for network in networks:
+            print(network + " summary:")
+            if network == "Actor-Critic-Combo":
+                networks[network].summary()
+                continue
             networks[network].model.summary()
         return networks
 
@@ -419,7 +368,10 @@ class ActorCritic(object):
     def learn(self, batch):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             self.train_critic_DPG(batch)
-            self.train_actor_DPG(batch)
+            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING:
+                self.train_actor_DPG(batch)
+            if self.parameters.DPG_USE_CACLA:
+                self.train_actor_batch(batch)
         else:
             self.train_critic(batch)
             self.train_actor_batch(batch)
@@ -429,13 +381,23 @@ class ActorCritic(object):
         inputs = numpy.zeros((len_batch, self.parameters.STATE_REPR_LEN))
         targets = numpy.zeros((len_batch, 1))
 
+        if self.parameters.DPG_USE_CACLA:
+            targets_CACLA = numpy.zeros((len_batch, self.actor.num_outputs))
+
+
+
         # Calculate input and target for actor
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
             oldPrediction = self.combinedActorCritic.predict(old_s)[0]
             inputs[sample_idx] = old_s
             targets[sample_idx] = oldPrediction + self.parameters.DPG_Q_VAL_INCREASE
-        self.combinedActorCritic.train_on_batch(inputs, targets)
+
+        actions = self.actor.predict(batch[-1][0])
+        loss = self.combinedActorCritic.train_on_batch(inputs, targets)
+        actionsAfter = self.actor.predict(batch[-1][0])
+        #print("Before:", numpy.round(actions,2), " After:", numpy.round(actionsAfter,2))
+
 
 
     def train_actor_batch(self, batch):
@@ -449,7 +411,7 @@ class ActorCritic(object):
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
             alive = new_s is not None
-            _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive)
+            _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
             target = self.calculateTarget_Actor(old_s, a, td_e)
             if target is not None:
                 inputs[count] = old_s
@@ -464,7 +426,13 @@ class ActorCritic(object):
                 print("Last predicted action:\t", numpy.round(self.actor.predict(inputs[-1]), 2))
                 print("Last Target:\t", numpy.round(targets[-1], 2))
                 print("Actor trained on number of samples: ", count)
+
+            actions = self.actor.predict(batch[-1][0])
             self.actor.train(inputs, targets)
+            actionsAfter = self.actor.predict(batch[-1][0])
+            #print("Before:", numpy.round(actions, 2), " After:", numpy.round(actionsAfter, 2))
+
+
             if __debug__:
                 print("Predicted action after training:\t", numpy.round(self.actor.predict(inputs[-1]), 2))
 
@@ -489,12 +457,19 @@ class ActorCritic(object):
 
         return None, noisyAction
 
-    def calculateTargetAndTDE(self, old_s, r, new_s, alive):
-        old_state_value = self.critic.predict(old_s)
+    def calculateTargetAndTDE(self, old_s, r, new_s, alive, a):
+        if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
+            old_state_value = self.critic.predict(old_s, numpy.array([a]))
+        else:
+            old_state_value = self.critic.predict(old_s)
+
         target = r
         if alive:
             # The target is the reward plus the discounted prediction of the value network
-            updated_prediction = self.critic.predict_target_model(new_s)
+            if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
+                updated_prediction = self.critic.predict_target_model(new_s, numpy.array([a]))
+            else:
+                updated_prediction = self.critic.predict_target_model(new_s)
             target += self.parameters.DISCOUNT * updated_prediction
         td_error = target - old_state_value
         return target, td_error
@@ -512,7 +487,8 @@ class ActorCritic(object):
             alive = new_s is not None
             target = r
             if alive:
-                target += self.parameters.DISCOUNT * self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
+                #TODO: Change back to using target models
+                target += self.parameters.DISCOUNT * self.critic.predict(new_s, numpy.array([self.actor.predict(new_s)]))
             inputs_critic_states[sample_idx]  = old_s
             inputs_critic_actions[sample_idx] = a
             targets_critic[sample_idx] = target
@@ -530,7 +506,7 @@ class ActorCritic(object):
         for sample_idx, sample in enumerate(batch):
             old_s, a, r, new_s, _ = sample
             alive = new_s is not None
-            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive)
+            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
             inputs_critic[sample_idx] = old_s
             targets_critic[sample_idx] = target
 
@@ -545,7 +521,7 @@ class ActorCritic(object):
 
     def calculateTarget_Actor(self, old_s, a, td_e):
         target = None
-        if self.acType == "CACLA":
+        if self.acType == "CACLA" or self.acType == "DPG":
             if td_e > 0:
                 mu_s = self.actor.predict(old_s)
                 target = mu_s + (a - mu_s)
