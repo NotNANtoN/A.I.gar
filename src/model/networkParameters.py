@@ -22,7 +22,7 @@ ENABLE_EJECT = False
 NOISE_AT_HALF_TRAINING = 0.02
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
 #Reward function:
-REWARD_SCALE = 1
+REWARD_SCALE = 2
 DEATH_TERM = 0
 DEATH_FACTOR = 1
 
@@ -42,10 +42,10 @@ STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + US
 
 INITIALIZER = "glorot_uniform" #"Default" or "glorot_uniform" or "glorot_normal"
 NEURON_TYPE = "MLP"
-HIDDEN_ALL = 250
-HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 250
-HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 250
-HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 250
+HIDDEN_ALL = 256
+HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 256
+HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 256
+HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 256
 
 
 # Q-learning
@@ -53,7 +53,7 @@ ALPHA = 0.0001
 SQUARE_ACTIONS = True
 NUM_ACTIONS = 25
 OPTIMIZER = "Adam" #SGD has much worse performance
-ACTIVATION_FUNC_HIDDEN = 'elu' 
+ACTIVATION_FUNC_HIDDEN = 'relu'
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
 ACTIVATION_FUNC_OUTPUT = 'linear'
 EXP_REPLAY_ENABLED = True
@@ -70,7 +70,12 @@ TEMPERATURE_AT_END_TRAINING = 0.0025
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 
 # Actor-critic:
-ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
+SOFT_TARGET_UPDATES = False
+CACLA_CRITIC_LAYERS = (250, 250, 250)
+CACLA_CRITIC_ALPHA  = 0.0001
+CACLA_ACTOR_LAYERS  = (100, 100, 100)
+CACLA_ACTOR_ALPHA   = 0.00005
+ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA" / "DPG". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
 CACLA_UPDATE_ON_NEGATIVE_TD = False
 POLICY_OUTPUT_ACTIVATION_FUNC = "sigmoid" # "relu_max" or "sigmoid"
 ACTOR_REPLAY_ENABLED = True
@@ -82,6 +87,17 @@ HIDDEN_ALL_POLICY = 100
 HIDDEN_LAYER_1_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_2_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
 HIDDEN_LAYER_3_POLICY = HIDDEN_ALL_POLICY if HIDDEN_ALL_POLICY else 100
+
+# Deterministic Policy Gradient (DPG):
+DPG_TAU                 = 0.001 # How quickly the weights of the target networks are updated
+DPG_CRITIC_LAYERS       = (250, 250, 250)
+DPG_CRITIC_ALPHA        = 0.0001
+DPG_CRITIC_FUNC         = "relu"
+DPG_CRITIC_WEIGHT_DECAY = 0.001 # L2 weight decay parameter. TODO: implement and test whether useful
+DPG_ACTOR_LAYERS        = (100, 100, 100)
+DPG_ACTOR_ALPHA         = 0.00005
+DPG_ACTOR_FUNC          = "relu"
+DPG_Q_VAL_INCREASE      = 1
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"

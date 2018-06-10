@@ -338,6 +338,8 @@ class Network(object):
         self.valueNetwork.compile(loss='mse', optimizer=optimizer)
         self.targetNetwork.compile(loss='mse', optimizer=optimizer)
 
+        self.model = self.valueNetwork
+
         if self.parameters.NEURON_TYPE == "LSTM":
             # We predict using only one state
             input_shape_lstm = (1, self.stateReprLen)

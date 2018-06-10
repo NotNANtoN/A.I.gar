@@ -204,12 +204,10 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
             elif algorithm == 1:
                 learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, parameters)
             elif algorithm == 2:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, False)
+                learningAlg = ActorCritic(parameters)
             elif algorithm == 3:
-                learningAlg = ActorCritic(parameters, numberOfNNBots, True)
-            elif algorithm == 4:
                 learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, parameters)
-            elif algorithm == 5:
+            elif algorithm == 4:
                 learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, parameters)
             else:
                 print("Please enter a valid algorithm.\n")
@@ -231,6 +229,10 @@ def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=Tr
     testingModel.initialize(False)
     # viewTestModel = View(testModel, screenWidth, screenHeight)
     # viewTestModel.draw()
+    plotPath = modelPath
+    modelPath += "data/"
+    if not os.path.exists(modelPath):
+        os.mkdir(modelPath)
     for test in range(n_training):
         bot.resetMassList()
         testingModel.resetModel()
@@ -244,6 +246,11 @@ def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=Tr
         meanMasses.append(meanMass)
         maxMasses.append(maxMass)
         print("Mean mass for run ", test + 1, ": ", meanMass)
+        if plotting:
+            exportTestResults(massOverTime, modelPath, "Run_" + str(test + 1) + "_Mean_Mass_" + name)
+        #else:
+        #    exportTestResults(massOverTime, modelPath, name + "_run_" + str(test + 1))
+
     meanScore = numpy.mean(meanMasses)
     stdMean = numpy.std(meanMasses)
     meanMaxScore = numpy.mean(maxMasses)
@@ -258,9 +265,9 @@ def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=Tr
             meanVal = val / n_training
             meanMassPerTimeStep.append(meanVal)
 
-        exportTestResults(meanMassPerTimeStep, modelPath, "Mean_Mass_" + name)
+        #exportTestResults(meanMassPerTimeStep, modelPath, "Mean_Mass_" + name)
         labels = {"meanLabel": "Mean Mass", "sigmaLabel": '$\sigma$ range', "xLabel": "Step number",
-                  "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": modelPath,
+                  "yLabel": "Mass mean value", "title": "Mass plot test phase", "path": plotPath,
                   "subPath": "Mean_Mass_" + name}
         plot(masses, reset_time, 1, labels)
     return name, maxScore, meanScore, stdMean, meanMaxScore, stdMax
@@ -273,18 +280,18 @@ def cloneModel(model):
     return clone
 
 
-def updateTestResults(testResults):
+def updateTestResults(testResults, model, percentage):
+    originalNoise = model.getNNBot().getLearningAlg().getNoise()
     clonedModel = cloneModel(model)
-    originalNoise = clonedModel.getNNBot().getLearningAlg().getNoise()
-    clonedModel.getNNBot().getLearningAlg().setNoise(0)
+    model.getNNBot().getLearningAlg().setNoise(0)
 
     if str(clonedModel.getNNBot().getLearningAlg()) != "AC":
         originalTemp = clonedModel.getNNBot().getLearningAlg().getTemperature()
         clonedModel.getNNBot().getLearningAlg().setTemperature(0)
 
-
     currentEval = testModel(clonedModel, 5, clonedModel.resetLimit, model.getPath(), "test", False)
     clonedModel.getNNBot().getLearningAlg().setNoise(originalNoise)
+
     if str(clonedModel.getNNBot().getLearningAlg()) != "AC":
         clonedModel.getNNBot().getLearningAlg().setTemperature(originalTemp)
 
@@ -481,8 +488,8 @@ if __name__ == '__main__':
         parameters = importlib.import_module('.networkParameters', package="model")
 
         algorithm = int(input("What learning algorithm do you want to use?\n" + \
-                              "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'CACLA' == 2,\n" + \
-                              "'Discrete ACLA' == 3, 'Tree Backup' == 4, 'Expected Sarsa' == 5\n"))
+                              "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Actor-Critic' == 2,\n" + \
+                              " 'Tree Backup' == 3, 'Expected Sarsa' == 4\n"))
     tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
     if tweaking == 1:
         while True:
@@ -557,10 +564,10 @@ if __name__ == '__main__':
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 10% of training
             if step % (smallPart * 10) == 0:
-                testResults = updateTestResults(testResults)
-        testResults = updateTestResults(testResults)
+                testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
+        testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 0))
         meanMassesOfTestResults = [val[0] for val in testResults]
-        exportTestResults(meanMassesOfTestResults, model.getPath(), "testMassOverTime")
+        exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
         plotTesting(testResults, model.getPath(), smallPart * 10, maxSteps)
         print("Training done.")
         print("")
@@ -587,7 +594,7 @@ if __name__ == '__main__':
                     print(attribute, " = ", getattr(parameters, attribute))
             print("")
             print("Mass Info for ", player, ":")
-            massListPath = model.getPath() + model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
+            massListPath = model.getPath() + "/data/" +  model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
             with open(massListPath, 'r') as f:
                 massList = list(map(float, f))
             mean = numpy.mean(massList)

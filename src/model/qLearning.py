@@ -243,9 +243,6 @@ class QLearn(object):
             else:
                 self.latestTDerror = self.calculateTDError_ExpRep_Lstm(currentExp)
 
-    def getNoiseLevel(self):
-        return self.epsilon
-
     def getNoise(self):
         return self.epsilon
 

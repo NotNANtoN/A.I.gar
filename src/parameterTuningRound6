@@ -1,0 +1,80 @@
+Q-learning:
+
+Default 10x:
+NUM_NN_BOTS 2 6x:
+
+NUM_ACTIONS 16 3x:
+Default     25 3x:
+NUM_ACTIONS 36 5x:
+
+REWARD_SCALE 1 3x:
+REWARD_SCALE 4 3x:
+
+NUM_NN_BOTS 2:
+	Default     0   6x:
+	DEATH_TERM -10  3x:
+	DEATH_TERM -100 3x:
+	DEATH_TERM -500 3x:
+
+	Default      1 10x:
+	DEATH_FACTOR 2  3x:
+	DEATH_FACTOR 5  3x:
+	DEATH_FACTOR 10 3x:
+
+ACTOR_CRITIC_TYPE "CACLA":
+	Default 10x:
+	
+	ALPHA 0.0002  5x:
+	ALPHA 0.00005 5x:
+
+	MAX_TRAINING_STEPS 50k  3x:
+	MAX_TRAINING_STEPS 75k  3x:
+	Default	           100k 3x:
+	MAX_TRAINING_STEPS 125k 3x:
+
+
+	ALPHA_POLICY 0.000025 5x:
+	Default      0.00005  5x:
+	ALPHA_POLICY 0.0001   5x:
+
+	SOFT_TARGET_UPDATES True:
+		Default 5x:
+	
+		DPG_TAU 0.0005 3x:
+		Default 0.001  5x:
+		DPG_TAU 0.002  3x:
+		DPG_TAU 0.01   3x:
+		DPG_TAU 0.1    3x:
+
+ACTOR_CRITIC_TYPE "DPG":
+	Default 5x:
+
+	SOFT_TARGET_UPDATES True:
+		DPG_TAU 0.0005 3x:
+		Default 0.001  3x:
+		DPG_TAU 0.002  3x:
+		DPG_TAU 0.01   3x:
+
+		DPG_TAU 0.1    3x:
+
+
+	DPG_CRITIC_ALPHA 0.0002  3x:
+	Default          0.0001  5x:
+	DPG_CRITIC_ALPHA 0.00005 3x:
+
+	DPG_ACTOR_ALPHA 0.000025 3x:
+	Default         0.00005  5x:
+	DPG_ACTOR_ALPHA 0.0001   3x:
+
+	Default            1  5x:
+	DPG_Q_VAL_INCREASE 2  3x:
+	DPG_Q_VAL_INCREASE 5  3x:
+	DPG_Q_VAL_INCREASE 10 3x:
+	DPG_Q_VAL_INCREASE 50 3x:
+
+	
+
+
+
+
+
