@@ -6,7 +6,7 @@ Default = False
 # Game
 PELLET_SPAWN = True
 NUM_GREEDY_BOTS = 0
-NUM_NN_BOTS = 5
+NUM_NN_BOTS = 1
 
 # Experience replay:
 MEMORY_CAPACITY = 75000 #10000 is worse
@@ -14,7 +14,7 @@ MEMORY_BATCH_LEN = 32
 
 # General RL:
 FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-MAX_TRAINING_STEPS = 10000
+MAX_TRAINING_STEPS = 100000
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
@@ -42,10 +42,10 @@ STATE_REPR_LEN = GRID_SQUARES_PER_FOV * GRID_SQUARES_PER_FOV * NUM_OF_GRIDS + US
 
 INITIALIZER = "glorot_uniform" #"Default" or "glorot_uniform" or "glorot_normal"
 NEURON_TYPE = "MLP"
-HIDDEN_ALL = 0
-HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 256
-HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 0
-HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 0
+HIDDEN_ALL = 250
+HIDDEN_LAYER_1 = HIDDEN_ALL if HIDDEN_ALL else 250
+HIDDEN_LAYER_2 = HIDDEN_ALL if HIDDEN_ALL else 250
+HIDDEN_LAYER_3 = HIDDEN_ALL if HIDDEN_ALL else 250
 
 
 # Q-learning
