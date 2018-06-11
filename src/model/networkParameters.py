@@ -85,7 +85,7 @@ OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
 
 # Deterministic Policy Gradient (DPG):
-DPG_TAU                    = 0.05 # How quickly the weights of the target networks are updated
+DPG_TAU                    = 0.001 # How quickly the weights of the target networks are updated
 DPG_CRITIC_LAYERS          = (250, 250, 250)
 DPG_CRITIC_ALPHA           = 0.0002
 DPG_CRITIC_FUNC            = "relu"
