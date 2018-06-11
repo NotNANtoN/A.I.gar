@@ -1,13 +1,13 @@
-import heapq
 import numpy
-import importlib.util
 from .parameters import *
 from .spatialHashTable import spatialHashTable
-import view
+from .replay_buffer import PrioritizedReplayBuffer
+
 
 class ExpReplay:
     # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
     def __init__(self, parameters):
+        self.buffer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA)
         self.memories = []
         self.max = parameters.MEMORY_CAPACITY
         self.batch_size = parameters.MEMORY_BATCH_LEN

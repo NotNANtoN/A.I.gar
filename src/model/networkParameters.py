@@ -9,8 +9,9 @@ NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
 
 # Experience replay:
-MEMORY_CAPACITY = 75000 #10000 is worse
+MEMORY_CAPACITY = 75000
 MEMORY_BATCH_LEN = 32
+MEMORY_ALPHA = 0.5
 
 # General RL:
 FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
@@ -19,8 +20,19 @@ MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
+# Noise and Exploration:
+NOISE_TYPE = "Gaussian"  # "Gaussian" / "Orn-Uhl"
 NOISE_AT_HALF_TRAINING = 0.02
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
+ORN_UHL_THETA = 0.15
+ORN_UHL_DT = 0.01
+ORN_UHL_MU = 0
+Exploration = True
+EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
+EXPLORATION_STRATEGY = "e-Greedy" # "Boltzmann" or "e-Greedy"
+TEMPERATURE = 7
+TEMPERATURE_AT_END_TRAINING = 0.0025
+TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 #Reward function:
 REWARD_SCALE = 2
 DEATH_TERM = 0
@@ -62,12 +74,6 @@ TARGET_NETWORK_STEPS = 1500
 DISCOUNT = 0.85 # Higher discount seems to lead to much more stable learning, less variance
 USE_ACTION_AS_INPUT = False
 TD = 0
-Exploration = True
-EPSILON = 1 if Exploration else 0 # Exploration rate. 0 == No Exploration
-EXPLORATION_STRATEGY = "e-Greedy" # "Boltzmann" or "e-Greedy"
-TEMPERATURE = 7
-TEMPERATURE_AT_END_TRAINING = 0.0025
-TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 
 # Actor-critic:
 SOFT_TARGET_UPDATES = False

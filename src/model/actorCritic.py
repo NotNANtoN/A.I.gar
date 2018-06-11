@@ -12,47 +12,6 @@ from keras import backend as K
 def relu_max(x):
     return K.relu(x, max_value=1)
 
-
-#TODO: put ornstein uhlenbeck into usable function
-class ActionNoise(object):
-    def reset(self):
-        pass
-
-
-class NormalActionNoise(ActionNoise):
-    def __init__(self, mu, sigma):
-        self.mu = mu
-        self.sigma = sigma
-
-    def __call__(self):
-        return np.random.normal(self.mu, self.sigma)
-
-    def __repr__(self):
-        return 'NormalActionNoise(mu={}, sigma={})'.format(self.mu, self.sigma)
-
-
-# Based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
-class OrnsteinUhlenbeckActionNoise(ActionNoise):
-    def __init__(self, mu, sigma, theta=.15, dt=1e-2, x0=None):
-        self.theta = theta
-        self.mu = mu
-        self.sigma = sigma
-        self.dt = dt
-        self.x0 = x0
-        self.reset()
-
-    def __call__(self):
-        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
-        self.x_prev = x
-        return x
-
-    def reset(self):
-        self.x_prev = self.x0 if self.x0 is not None else np.zeros_like(self.mu)
-
-    def __repr__(self):
-        return 'OrnsteinUhlenbeckActionNoise(mu={}, sigma={})'.format(self.mu, self.sigma)
-
-
 class ValueNetwork(object):
     def __init__(self, parameters, modelName=None):
         self.parameters = parameters
@@ -252,6 +211,7 @@ class PolicyNetwork(object):
 
 class ActionValueNetwork(object):
     def __init__(self, parameters, modelName=None):
+        self.ornUhlPrev = 0
         self.parameters = parameters
         self.loadedModelName = None
         self.stateReprLen = self.parameters.STATE_REPR_LEN
@@ -340,6 +300,7 @@ class ActorCritic(object):
         self.steps = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
+        self.ornUhlPrev = numpy.zeros(self.action_len)
 
 
         # Bookkeeping:
@@ -481,10 +442,17 @@ class ActorCritic(object):
 
     def applyNoise(self, action):
         #Gaussian Noise:
-        apply_normal_dist = [numpy.random.normal(output, self.std) for output in action]
-        return numpy.clip(apply_normal_dist, 0, 1)
-        #TODO: add Ornstein-Uhlenbeck process noise with theta=0.15 and sigma=0.2
-
+        if self.parameters.NOISE_TYPE == "Gaussian":
+            action = [numpy.random.normal(output, self.std) for output in action]
+        elif self.parameters.NOISE_TYPE == "Orn-Uhl":
+            for idx in range(len(action)):
+                noise = self.ornUhlPrev[idx] + self.parameters.ORN_UHL_THETA * (self.parameters.ORN_UHL_MU -
+                                                                                self.ornUhlPrev[idx]) \
+                        * self.parameters.ORN_UHL_DT + self.std * numpy.sqrt(self.parameters.ORN_UHL_DT) \
+                        * numpy.random.normal()
+                self.ornUhlPrev[idx] = noise
+                action[idx] += noise
+        return numpy.clip(action, 0, 1)
 
     def decideMove(self, state, bot):
         action = self.actor.predict(state)
@@ -603,6 +571,8 @@ class ActorCritic(object):
 
     def reset(self):
         self.latestTDerror = None
+        self.ornUhlPrev = numpy.zeros(self.action_len)
+
 
     def resetQValueList(self):
         self.qValues = []
