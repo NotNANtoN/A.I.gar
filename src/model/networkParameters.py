@@ -87,9 +87,9 @@ ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
 # Deterministic Policy Gradient (DPG):
 DPG_TAU                    = 0.05 # How quickly the weights of the target networks are updated
 DPG_CRITIC_LAYERS          = (250, 250, 250)
-DPG_CRITIC_ALPHA           = 0.0001
+DPG_CRITIC_ALPHA           = 0.0002
 DPG_CRITIC_FUNC            = "relu"
-DPG_CRITIC_WEIGHT_DECAY    = 0.001 # L2 weight decay parameter. TODO: implement and test whether useful
+DPG_CRITIC_WEIGHT_DECAY    = 0 #0.001 L2 weight decay parameter. Set to 0 to disable
 DPG_ACTOR_LAYERS           = (100, 100, 100)
 DPG_ACTOR_ALPHA            = 0.00001
 DPG_ACTOR_FUNC             = "relu"

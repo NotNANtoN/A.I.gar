@@ -231,6 +231,7 @@ class ActionValueNetwork(object):
             return
 
         initializer = keras.initializers.glorot_uniform()
+        regularizer = keras.regularizers.l2(self.parameters.DPG_CRITIC_WEIGHT_DECAY)
         inputState = keras.layers.Input((self.stateReprLen,))
         inputAction = keras.layers.Input((self.num_actions_inputs,))
         previousLayer = inputState
@@ -239,9 +240,11 @@ class ActionValueNetwork(object):
                 mergeLayer = keras.layers.concatenate([previousLayer, inputAction])
                 previousLayer = mergeLayer
             previousLayer = Dense(neuronNumber, activation=self.activationFuncHidden, bias_initializer=initializer,
-                          kernel_initializer=initializer)(previousLayer)
+                                  kernel_initializer=initializer, kernel_regularizer=regularizer)(previousLayer)
 
-        output = Dense(1, activation="linear", bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
+
+        output = Dense(1, activation="linear", bias_initializer=initializer, kernel_initializer=initializer,
+                       kernel_regularizer=regularizer)(previousLayer)
         self.model = keras.models.Model(inputs=[inputState, inputAction], outputs=output)
 
 
