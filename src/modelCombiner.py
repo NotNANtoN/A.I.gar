@@ -15,6 +15,8 @@ RESET_INTERVAL = 10000
 def createCombinedModelGraphs(path):
     print("###############################")
     print("Generating average plots:\n")
+    if path[-1] != "/":
+        path = path + "/"
     print("Path: ", path)
     plotTDErrorAndMean(path)
     plotMassesOverTime(path)
@@ -26,7 +28,7 @@ def createCombinedModelGraphs(path):
     print("###############################")
 
 def combineTestResults(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     evaluations = {}
     keyList = []
@@ -73,7 +75,7 @@ def combineTestResults(path):
 
 
 def plotTDErrorAndMean(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     allErrorLists = []
     allRewardLists = []
@@ -82,7 +84,7 @@ def plotTDErrorAndMean(path):
         print(model)
         modelPath = path + model + "/data/"
         errorListPath = modelPath + "tdErrors.txt"
-        if not os.path.isfile(errorListPath):
+        if not os.path.exists(errorListPath):
             print("-- Model does not have tdError.txt --")
             continue
         with open(errorListPath, 'r') as f:
@@ -93,7 +95,7 @@ def plotTDErrorAndMean(path):
             allErrorLists.append(errorList)
 
         rewardListPath = modelPath + "rewards.txt"
-        if not os.path.isfile(rewardListPath):
+        if not os.path.exists(rewardListPath):
             print("-- Model does not have rewards.txt --")
             continue
         with open(rewardListPath, 'r') as f:
@@ -122,15 +124,15 @@ def plotTDErrorAndMean(path):
 
 
 def plotFinalTests(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     allMassesOverTime = {}
     allMaxLengths = {}
 
     for model in modelList:
         modelPath = path + model + "/data/"
-        if not os.path.isfile(modelPath):
-            print("-- Model does not have /data/--")
+        if not os.path.exists(modelPath):
+            print("-- ", modelPath, " does not exist. --")
             continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, "*Mean_Mass_*") or not fnmatch.fnmatch(file, "*.txt"):
@@ -166,14 +168,14 @@ def plotFinalTests(path):
 
 
 def plotTestingMassOverTime(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     allMeans = []
     maxLength = 0
     for model in modelList:
         modelPath = path + model + "/data/"
-        if not os.path.isfile(modelPath):
-            print("-- Model does not have /data/--")
+        if not os.path.exists(modelPath):
+            print("-- ", modelPath, " does not exist. --")
             continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, "testMassOverTime.txt"):
@@ -191,7 +193,7 @@ def plotTestingMassOverTime(path):
 
 
 def plotMassesOverTime(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     allMassList = []
     maxLength = 0
@@ -199,8 +201,8 @@ def plotMassesOverTime(path):
     for model in modelList:
         print(model)
         modelPath = path + model + "/data/"
-        if not os.path.isfile(modelPath):
-            print("-- Model does not have /data/--")
+        if not os.path.exists(modelPath):
+            print("-- ", modelPath, " does not exist. --")
             continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'meanMassOverTimeNN*'):
@@ -241,7 +243,7 @@ def plotMassesOverTime(path):
 
 
 def plotQValuesOverTime(path):
-    modelList = [i for i in os.listdir(path) if os.path.isdir(path + "/" + i)]
+    modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     allQValueList = []
     maxLength = 0
@@ -249,8 +251,8 @@ def plotQValuesOverTime(path):
     for model in modelList:
         print(model)
         modelPath = path + model + "/data/"
-        if not os.path.isfile(modelPath):
-            print("-- Model does not have /data/--")
+        if not os.path.exists(modelPath):
+            print("-- ", modelPath, " does not exist. --")
             continue
         for file in os.listdir(modelPath):
             if not fnmatch.fnmatch(file, 'meanQValuesOverTimeNN*'):

@@ -14,7 +14,7 @@ MEMORY_BATCH_LEN = 32
 
 # General RL:
 FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-MAX_TRAINING_STEPS = 100000
+MAX_TRAINING_STEPS = 125000
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
@@ -97,6 +97,7 @@ DPG_Q_VAL_INCREASE         = 1
 DPG_FEED_ACTION_IN_LAYER   = 1
 DPG_USE_CACLA              = False
 DPG_USE_DPG_ACTOR_TRAINING = True
+DPG_USE_TARGET_MODELS      = True
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"
