@@ -23,7 +23,7 @@ class QLearn(object):
         self.parameters = parameters
         self.latestTDerror = None
         self.qValues = []
-        self.output_len = self.parameters.NUM_ACTIONS
+        self.output_len = self.parameters.NUM_ACTIONS * (1 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT)
         if self.parameters.CNN_REPRESENTATION:
             if self.parameters.CNN_PIXEL_REPRESENTATION:
                 channels = 3
@@ -151,7 +151,6 @@ class QLearn(object):
                 targets[sample_idx] = self.calculateTargetForAction(new_s, r, new_s is not None)
             else:
                 inputs[sample_idx] = old_s
-
                 targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
         if self.parameters.CNN_REPRESENTATION and not self.parameters.CNN_PIXEL_REPRESENTATION:
 
