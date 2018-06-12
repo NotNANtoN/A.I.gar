@@ -86,9 +86,9 @@ class View:
                     commandPoint = player.getCommandPoint()
                     pos = commandPoint[0], commandPoint[1]
                     scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
-                    pygame.gfxdraw.filled_circle(screen, int(scaledPos[0]), int(scaledPos[1]), 5, RED)
+                    pygame.gfxdraw.filled_circle(screen, int(scaledPos[0]), int(scaledPos[1]), 5, player.color)
 
-
+                # Draw Grid lines:
                 if player.getIsAlive() and player.getSelected() and bot.getType() == "NN":
                     playerFovPos = player.getFovPos()
                     playerFovSize = player.getFovSize()
@@ -132,8 +132,6 @@ class View:
         unscaledPos = numpy.array(cell.getPos())
         color = cell.getColor()
         if __debug__ and cell.getPlayer():
-            if cell.getPlayer().getSelected():
-                color = (255, 0, 0)
             if cell.getPlayer().isExploring():
                 color = (0, 255, 0)
 

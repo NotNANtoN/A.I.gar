@@ -9,19 +9,24 @@ NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
 
 # Experience replay:
+EXP_REPLAY_ENABLED = True
+PRIORITIZED_EXP_REPLAY_ENABLED = True
 MEMORY_CAPACITY = 75000
 MEMORY_BATCH_LEN = 32
-MEMORY_ALPHA = 0.5
+MEMORY_ALPHA = 0.6
+MEMORY_BETA = 0.4
 
 # General RL:
-FRAME_SKIP_RATE = 12 # Frame skipping of around 5-10 leads to good performance. 15 and 30 lead to worse performance.
-MAX_TRAINING_STEPS = 125000
+FRAME_SKIP_RATE_BOTS = 8
+FRAME_SKIP_RATE = 12 if NUM_GREEDY_BOTS + NUM_NN_BOTS == 1 else FRAME_SKIP_RATE_BOTS
+MAX_TRAINING_STEPS = 500000
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
 # Noise and Exploration:
 NOISE_TYPE = "Gaussian"  # "Gaussian" / "Orn-Uhl"
+GAUSSIAN_NOISE = 1 # Initial noise
 NOISE_AT_HALF_TRAINING = 0.02
 NOISE_DECAY = NOISE_AT_HALF_TRAINING ** (1 / (MAX_TRAINING_STEPS / 2))
 ORN_UHL_THETA = 0.15
@@ -35,8 +40,8 @@ TEMPERATURE_AT_END_TRAINING = 0.0025
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS)
 #Reward function:
 REWARD_SCALE = 2
-DEATH_TERM = 0
-DEATH_FACTOR = 1
+DEATH_TERM = -100
+DEATH_FACTOR = 2
 
 # State representation parameters:
 NORMALIZE_GRID_BY_MAX_MASS = False
@@ -68,7 +73,6 @@ OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu'
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
 ACTIVATION_FUNC_OUTPUT = 'linear'
-EXP_REPLAY_ENABLED = True
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 1500
 DISCOUNT = 0.85 # Higher discount seems to lead to much more stable learning, less variance
@@ -76,30 +80,27 @@ USE_ACTION_AS_INPUT = False
 TD = 0
 
 # Actor-critic:
-SOFT_TARGET_UPDATES = False
+SOFT_TARGET_UPDATES = True
 CACLA_CRITIC_LAYERS = (250, 250, 250)
-CACLA_CRITIC_ALPHA  = 0.0001
+CACLA_CRITIC_ALPHA  = 0.000075
 CACLA_ACTOR_LAYERS  = (100, 100, 100)
-CACLA_ACTOR_ALPHA   = 0.00005
+CACLA_ACTOR_ALPHA   = 0.0001
 ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA" / "DPG". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
 CACLA_UPDATE_ON_NEGATIVE_TD = False
-POLICY_OUTPUT_ACTIVATION_FUNC = "sigmoid" # "relu_max" or "sigmoid"
+POLICY_OUTPUT_ACTIVATION_FUNC = "sigmoid"
 ACTOR_REPLAY_ENABLED = True
-GAUSSIAN_NOISE = 1 # Initial noise
-ALPHA_POLICY = 0.00005
 OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
-
 # Deterministic Policy Gradient (DPG):
 DPG_TAU                    = 0.001 # How quickly the weights of the target networks are updated
 DPG_CRITIC_LAYERS          = (250, 250, 250)
-DPG_CRITIC_ALPHA           = 0.0002
+DPG_CRITIC_ALPHA           = 0.0005
 DPG_CRITIC_FUNC            = "relu"
-DPG_CRITIC_WEIGHT_DECAY    = 0 #0.001 L2 weight decay parameter. Set to 0 to disable
+DPG_CRITIC_WEIGHT_DECAY    = 0.001 #0.001 L2 weight decay parameter. Set to 0 to disable
 DPG_ACTOR_LAYERS           = (100, 100, 100)
 DPG_ACTOR_ALPHA            = 0.00001
 DPG_ACTOR_FUNC             = "relu"
-DPG_Q_VAL_INCREASE         = 1
+DPG_Q_VAL_INCREASE         = 2
 DPG_FEED_ACTION_IN_LAYER   = 1
 DPG_USE_CACLA              = False
 DPG_USE_DPG_ACTOR_TRAINING = True

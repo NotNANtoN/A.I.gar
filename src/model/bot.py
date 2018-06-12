@@ -1,13 +1,12 @@
 import numpy
 from .parameters import *
 from .spatialHashTable import spatialHashTable
-from .replay_buffer import PrioritizedReplayBuffer
+from .replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
 
 
 class ExpReplay:
     # TODO: extend with prioritized replay based on td_error. Make new specialized functions for this
     def __init__(self, parameters):
-        self.buffer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA)
         self.memories = []
         self.max = parameters.MEMORY_CAPACITY
         self.batch_size = parameters.MEMORY_BATCH_LEN
@@ -74,7 +73,12 @@ class Bot(object):
 
     @classmethod
     def init_exp_replayer(cls, parameters):
-        cls.expReplayer = ExpReplay(parameters)
+        if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+            cls.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
+                                                      parameters.MEMORY_BETA)
+        else:
+            cls.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
+        #cls.expReplayer = ExpReplay(parameters)
 
     @property
     def greedyId(self):
@@ -126,7 +130,12 @@ class Bot(object):
         self.memories = []
         # If using lstm the memories have to be ordered correctly in time for this bot.
         if type == "NN" and self.parameters.NEURON_TYPE == "LSTM":
-            self.expReplayer = ExpReplay(parameters)
+            #self.expReplayer = ExpReplay(parameters)
+            if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+                self.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
+                                                           parameters.MEMORY_BETA)
+            else:
+                self.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
 
         self.reset()
 
@@ -205,14 +214,16 @@ class Bot(object):
                 currentExperience = (self.oldState, action, self.lastReward, newState, False)
                 batch = []
                 if self.parameters.EXP_REPLAY_ENABLED:
-                    self.expReplayer.remember(currentExperience)
-                    if self.expReplayer.canReplay():
-                        batch = self.expReplayer.sample()
-                batch.append(currentExperience)
+                    self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
+                    if len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
+                        batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
+                #batch.append(currentExperience)
 
                 self.learningAlg.updateNoise()
-                if self.time % self.parameters.TRAINING_WAIT_TIME == 0:
-                    self.learningAlg.learn(batch)
+                if self.time % self.parameters.TRAINING_WAIT_TIME == 0 and len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
+                    idxs, priorities = self.learningAlg.learn(batch)
+                    if self.parameters.EXP_REPLAY_ENABLED and self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+                        self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-6)
                 self.learningAlg.updateNetworks(self.time)
 
             # Move
@@ -309,14 +320,6 @@ class Bot(object):
         playerSHT = spatialHashTable(fovSize, gsSize, left, top)
         totalPellets = self.field.getPelletsInFov(fovPos, fovSize)
         pelletSHT.insertAllFloatingPointObjects(totalPellets)
-        if __debug__ and self.player.getSelected():
-            print("Total pellets: ", len(totalPellets))
-            print("pellet view: ")
-            buckets = pelletSHT.getBuckets()
-            for idx in range(len(buckets)):
-                print(len(buckets[idx]), end=" ")
-                if idx != 0 and (idx + 1) % gridSquaresPerFov == 0:
-                    print(" ")
         playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
         playerSHT.insertAllFloatingPointObjects(playerCells)
         enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
@@ -338,7 +341,6 @@ class Bot(object):
         gridView = numpy.zeros((self.parameters.NUM_OF_GRIDS, gridSquaresPerFov, gridSquaresPerFov))
         # gsMidPoint is adjusted in the loops
         gsMidPoint = [left + gsSize / 2, top + gsSize / 2]
-        pelletCount = 0
         for c in range(gridSquaresPerFov):
             for r in range(gridSquaresPerFov):
                 count = r + c * gridSquaresPerFov
@@ -353,7 +355,6 @@ class Bot(object):
                     pelletsInGS = pelletSHT.getBucketContent(count)
                     if pelletsInGS:
                         for pellet in pelletsInGS:
-                            pelletCount += 1
                             pelletMassSum += pellet.getMass()
                             if NORMALIZE_GRID_BY_MAX_MASS:
                                 pelletMassSum /= biggestCellMass
@@ -377,7 +378,6 @@ class Bot(object):
                         if NORMALIZE_GRID_BY_MAX_MASS:
                             biggestFriendInCell /= biggestCellMass
                         gsBiggestOwnCellMass[c][r] = biggestFriendInCell
-                    # TODO: also add a count grid for own cells?
 
                     # Create Virus Cell representation
                     if self.field.getVirusEnabled():
@@ -390,26 +390,19 @@ class Bot(object):
 
                 # Create Wall representation
                 # Calculate how much of the grid square is covered by walls
-                leftBorder = max(gsMidPoint[0] - gsSize / 2, 0)
-                topBorder = max(gsMidPoint[1] - gsSize / 2, 0)
-                rightBorder = min(gsMidPoint[0] + gsSize / 2, fieldSize)
-                bottomBorder = min(gsMidPoint[1] + gsSize / 2, fieldSize)
+                leftBorder = min(max(gsMidPoint[0] - gsSize / 2, 0), fieldSize)
+                topBorder = min(max(gsMidPoint[1] - gsSize / 2, 0), fieldSize)
+                rightBorder = max(min(gsMidPoint[0] + gsSize / 2, fieldSize), 0)
+                bottomBorder = max(min(gsMidPoint[1] + gsSize / 2, fieldSize), 0)
                 freeArea = (rightBorder - leftBorder) * (bottomBorder - topBorder)
-                gsWalls[c][r] = 1 - (freeArea / (gsSize ** 2))
-
-
-                if gsMidPoint[0] - gsSize / 2 < 0 or gsMidPoint[0] + gsSize / 2 > fieldSize or \
-                        gsMidPoint[1] - gsSize / 2 < 0 or gsMidPoint[1] + gsSize / 2 > fieldSize:
-                    gsWalls[c][r] = 1
+                gsWalls[c][r] = round(1 - (freeArea / (gsSize ** 2)), 3)
 
                 # Increment grid square position horizontally
                 gsMidPoint[0] += gsSize
             # Reset horizontal grid square, increment grid square position
             gsMidPoint[0] = left + gsSize / 2
             gsMidPoint[1] += gsSize
-        if __debug__ and self.player.getSelected():
-            print("counted pellets: ", pelletCount)
-            print(" ")
+
 
         count = 0
         if self.parameters.ENABLE_PELLET_GRID:

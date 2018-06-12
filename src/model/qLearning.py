@@ -99,8 +99,9 @@ class QLearn(object):
         old_q_values = self.network.predict(old_s)
         alive = (new_s is not None)
         updated_action_value = self.calculateTargetForAction(new_s, r, alive)
+        td_e = updated_action_value - old_q_values[a]
         old_q_values[a] = updated_action_value
-        return old_q_values
+        return old_q_values, td_e
 
     def calculateTDError(self, experience):
         old_s, a, r, new_s, _ = experience
@@ -130,7 +131,7 @@ class QLearn(object):
         return td_error
 
     def train(self, batch):
-        batch_len = len(batch)
+        batch_len = len(batch[0])
         # In the case of CNN, self.input_len has several dimensions
         if self.parameters.CNN_REPRESENTATION:
 
@@ -141,25 +142,35 @@ class QLearn(object):
 
         targets = numpy.zeros((batch_len, self.output_len))
 
+        idxs =  batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
+        priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
 
-        for sample_idx, sample in enumerate(batch):
-            old_s, a, r, new_s, _ = sample
+        #print("one priority: " , priorities[0])
+
+        for sample_idx in range(batch_len):
+            old_s, a, r, new_s, _ = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx], batch[4][sample_idx]
             # No new state: dead
             if self.parameters.USE_ACTION_AS_INPUT:
                 stateAction =  numpy.concatenate((old_s, self.network.getActions()[a]))  #old_s.extend(a)
                 inputs[sample_idx] = stateAction
-                targets[sample_idx] = self.calculateTargetForAction(new_s, r, new_s is not None)
+                updatedValue = self.calculateTargetForAction(new_s, r, new_s is not None)
+                oldValue = self.network.predict(numpy.concatenate((old_s, self.network.getActions()[a])))
+                td_e = updatedValue - oldValue
+                targets[sample_idx] = updatedValue
             else:
                 inputs[sample_idx] = old_s
-                targets[sample_idx] = self.calculateTarget(old_s, a, r, new_s)
+                targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s)
+            priorities[sample_idx] = td_e
+
         if self.parameters.CNN_REPRESENTATION and not self.parameters.CNN_PIXEL_REPRESENTATION:
-
             stateRepr = numpy.zeros((len(old_s), batch_len, 1, len(old_s[0]), len(old_s[0])))
-
             for gridIdx, grid in enumerate(old_s):
                 stateRepr[gridIdx][0][0] = grid
             inputs = list(stateRepr)
+
         self.network.trainOnBatch(inputs, targets)
+
+        return idxs, priorities
 
     def train_LSTM_batch(self, batch):
         len_batch = len(batch)
@@ -232,15 +243,10 @@ class QLearn(object):
         if self.parameters.NEURON_TYPE == "LSTM":
             self.train_LSTM(batch)
         else:
-            self.train(batch)
+            idxs, priorities =  self.train(batch)
 
-        #Book keeping. batch[-1] is the current experience:
-        if not self.parameters.NEURON_TYPE == "LSTM":
-            currentExp = batch[-1]
-            if self.parameters.NEURON_TYPE == "MLP" or not self.parameters.EXP_REPLAY_ENABLED:
-                self.latestTDerror = self.calculateTDError(currentExp)
-            else:
-                self.latestTDerror = self.calculateTDError_ExpRep_Lstm(currentExp)
+        self.latestTDerror = priorities[-1]
+        return idxs, priorities
 
     def getNoise(self):
         return self.epsilon

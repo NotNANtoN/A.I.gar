@@ -289,7 +289,8 @@ def updateTestResults(testResults, model, percentage):
         originalTemp = clonedModel.getNNBot().getLearningAlg().getTemperature()
         clonedModel.getNNBot().getLearningAlg().setTemperature(0)
 
-    currentEval = testModel(clonedModel, 5, clonedModel.resetLimit, model.getPath(), "test", False)
+    currentEval = testModel(clonedModel, 5, 10000 if not clonedModel.resetLimit else clonedModel.resetLimit,
+                            model.getPath(), "test", False)
     clonedModel.getNNBot().getLearningAlg().setNoise(originalNoise)
 
     if str(clonedModel.getNNBot().getLearningAlg()) != "AC":

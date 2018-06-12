@@ -18,8 +18,7 @@ class ValueNetwork(object):
         self.loadedModelName = None
 
         self.stateReprLen = self.parameters.STATE_REPR_LEN
-
-        self.learningRate = self.parameters.ALPHA_POLICY
+        self.learningRate = self.parameters.CACLA_CRITIC_ALPHA
         self.optimizer = self.parameters.OPTIMIZER_POLICY
         self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN
         self.activationFuncOutput = self.parameters.ACTIVATION_FUNC_OUTPUT
@@ -131,7 +130,7 @@ class PolicyNetwork(object):
             self.learningRate = self.parameters.DPG_ACTOR_ALPHA
             self.layers = parameters.DPG_ACTOR_LAYERS
         else:
-            self.learningRate = self.parameters.ALPHA_POLICY
+            self.learningRate = self.parameters.CACLA_ACTOR_ALPHA
             self.layers = parameters.CACLA_ACTOR_LAYERS
 
         self.optimizer = self.parameters.OPTIMIZER_POLICY
