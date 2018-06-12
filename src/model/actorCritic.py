@@ -378,6 +378,7 @@ class ActorCritic(object):
         else:
             idxs, priorities = self.train_critic(batch)
             self.train_actor_batch(batch, priorities)
+        self.latestTDerror = numpy.mean(priorities[-1])
         return idxs, priorities
 
     def train_actor_DPG(self, batch):

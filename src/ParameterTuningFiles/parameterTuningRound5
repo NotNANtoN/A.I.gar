@@ -1,0 +1,58 @@
+This was a rather unplanned session, do not ever do that again. Plan out what tests we want to do and test each new parameter setting once to avoid failed jobs.
+
+Q-learning:
+
+Default     16   3x: 404mM 20std 324mM
+NUM_ACTIONS 25   3x: 410mM 11std 327mM
+NUM_ACTIONS 36   3x: 412mM 16std 313mM
+	+NOISE_AT_HALF 0.02: 407mM 13std 324mM
+		+ENABLE_VIRUS, NUM_GREEDY=4, MAX_STEPS=150k: 83mM 17std pellet, 198mM 102std greedy
+			+ENABLE_SPLIT:			     700mM 270std pellet, 224mM 145std gree
+NUM_ACTIONS 49   3x: 407mM 27std 316mM
+NUM_ACTIONS 64   3x: 403mM 18std 319mM
+NUM_ACTIONS 121  3x: 389mM 27std 293mM
+NUM_ACTIONS 256  3x: 351mM 87std 286mM
+NUM_ACTIONS 900  3x: 213mM 56std 172mM
+NUM_ACTIONS 2500 3x: 159mM 47std 84mM
+=> NEW: 25 TEST: 16, 36
+
+NOISE_AT_HALF_TRAINING 0.02   3x: 410mM 14std 331mM
+Default 	       0.01   3x: 404mM 20std 324mM
+NOISE_AT_HALF_TRAINING 0.0075 3x: 400mM 22std 322mM
+NOISE_AT_HALF_TRAINING 0.005  3x: 390mM 26std 325mM
+=> NEW: 0.02 TEST: 0.01, 0.03
+
+
+EXP_STRAT "Boltzmann:
+	Default:	401mM 23std 321mM
+	MAX_STEPS 50k: 	386mM 20std 281mM
+	MAX_STEPS 75k: 	402mM 19std 327mM
+MAX_STEPS 75K: 		400mM 13std 306mM
+
+NUM_NN_BOTS 3:
+	Default            3x: 110 193 275 | 145 305 465 | 156 181 205
+
+	Default	     1     3x: 110 193 275 | 145 305 465 | 156 181 205
+	DEATH_FACTOR 10    3x: 24  190 356 | 204 475 746 | 123 169 215
+	DEATH_FACTOR 100   3x: 14  31  48  | -39 87  212 | 41  58  52
+	DEATH_FACTOR 10000 3x: 7   24  41  | 9   36  63  | 17  28  39
+	=> 10 is best so far. Increasing punishment for death seems good. TEST: 5, 10, 20
+
+	Default 0          3x: 110 193 275 | 145 305 465 | 156 181 205
+	DEATH_TERM -1000   3x: 116 174 232 |-220 292 805 | 106 161 215
+	DEATH_TERM -10000  3x: -51 36  123 |-100 57  216 | -6  31  68
+	=> these two numbers do not really improve performance. TEST: -10, -100, -500
+
+
+	REWARD_SCALE 0.1   3x: 117 147 176 | 8   176 344 | 165 192 218
+	REWARD_SCALE 0.5   3x: 179 225 272 |-19  356 730 | 156 200 244
+	Default      1     3x: 110 193 275 | 145 305 465 | 156 181 205
+	REWARD_SCALE 2     3x: 117 208 300 | 14  521 1029| 177 209 240
+	REWARD_SCALE 5     3x: 257 291 326 | 158 440 721 | 140 178 216
+	REWARD_SCALE 20    3x: 238 276 315 |-148 520 1189| 196 220 245
+	=> increases seems good. NEW: 2 TEST: 5, 10 
+
+
+
+
+

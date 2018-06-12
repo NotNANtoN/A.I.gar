@@ -1,0 +1,145 @@
+!!! All jobs were started with NUM_ACTIONS=16
+So yeah... let's wait for the results.
+
+Q-learning:
+Default: NUM_ACTIONS=16, ALPHA=0.0001, FRAME_SKIP_RATE=11, TARGET_NETWORK_STEPS=1500, DISCOUNT=0.85, NOISE_AT_HALF_TRAINING=0.05, HIDDEN_LAYER_ALL=500, INITIALIZER="Default"
+Default 5x:			392mM 586mM max avg
+
+MAX_TRAINING_STEPS 150000 3x:	405mM 605mM max avg
+MAX_TRAINING_STEPS 50000 3x:
+MAX_TRAINING_STEPS 20000 3x:
+=> TEST: 20k, 50k, 75k, 125k
+
+USE_ACTION_AS_INPUT True 5x:	372mM 559mM max avg - 10 times slower!
+=> TEST with NUM_ACTIONS=8
+
+NUM_ACTIONS 4  3x:		76 mM
+NUM_ACTIONS 6  3x:		277mM
+NUM_ACTIONS 8  3x:		386mM 586mM max avg 304mM train
+NUM_ACTIONS 10 3x:		381mM 562mM max avg
+NUM_ACTIONS 12 3x:		399mM 591mM max avg
+NUM_ACTIONS 16 3x:		406mM 601mM max avg 313mM train
+=> NEW: 8 TEST: 9, 12, 16, 32
+
+ALPHA 0.00025  3x: 		373mM 
+ALPHA 0.000075 3x:		376mM 
+=> TEST: 0.0002, 0.00005
+
+FRAME_SKIP_RATE 10 3x:		387mM 577mM max avg
+FRAME_SKIP_RATE 12 3x:		406mM 603mM max avg
+FRAME_SKIP_RATE 13 3x:		392mM 588mM max avg
+=> NEW: 12 TEST: 11, 13 (less in comb with ac)
+
+TARGET_NETWORK_STEPS 2000  3x:	388mM 585mM max avg
+TARGET_NETWORK_STEPS 3000  3x:	386mM 574mM max avg
+TARGET_NETWORK_STEPS 5000  3x:	396mM 594mM max avg
+TARGET_NETWORK_STEPS 10000 3x:	378mM 571mM max avg
+=> TEST: 0, 50, 100, 50000, 100000, 1000000
+
+DISCOUNT 0.6 3x:		336mM 
+DISCOUNT 0.7 3x:		379mM 576mM max avg
+DISCOUNT 0.8 3x:		389mM 583mM max avg
+TEST: 0.825, 0.875
+
+NOISE_AT_HALF_TRAINING 0.01  3x:406mM 600mM max avg
+NOISE_AT_HALF_TRAINING 0.005 3x:403mM 589mM max avg
+NOISE_AT_HALF_TRAINING 0.001 3x:381mM 578mM max avg
+=> around 0.01 seems good. NEW: 0.01 TEST: 0.015, 0.0075, 0.02, 0.005
+
+HIDDEN_LAYER_ALL 50  3x:	341mM 518mM max avg
+HIDDEN_LAYER_ALL 100 3x:	389mM 588mM max avg
+HIDDEN_LAYER_ALL 200 3x:	412mM 610mM max avg
+=> TEST: 250, 1000, 450, 550
+
+INITIALIZER "glorot_uniform" 3x:412mM 612mM max avg
+INITIALIZER "glorot_normal"  3x:397mM 587mM max avg
+=> TEST: again, 5x
+
+NUM_GREEDY_BOTS 1 3x:		203mM 312mM max avg. vs greedy: 377mM 867mM max avg
+NUM_GREEDY_BOTS 2 3x:		150mM 235mM max avg. vs greedy: 183mM 486mM max avg
+NUM_NN_BOTS 2     3x:		265mM 411mM max avg. vs greedy: 297mM 781mM max avg
+=> TEST: again.train only against one greedy, compare with training against NN
+
+ENABLE_EJECT True 3x:		247mM 397mM max avg
+ENABLE_SPLIT True 3x:		1960mM 3300 max avg
+=> TEST: again
+
+
+ACTIVATION_FUNC_HIDDEN "elu":
+	ELU_ALPHA 1    3x:	402mM 590mM max avg
+	ELU_ALPHA 0.5  3x:	391mM 586mM max avg
+	ELU_ALPHA 0.1  3x: 	398mM 596mM max avg
+	ELU_ALPHA 0.01 3x:	411mM 613mM max avg
+	ELU_ALPHA 0.005 	391mM 586mM max avg
+=> TEST: 0.01, 0.1, 1 5x
+
+EXPLORATION_STRATEGY "Boltzmann":
+(default: TEMP=10, AT_END=0.01)
+	Default       3x:			386mM 574mM max avg - 345mM train
+	TEMPERATURE 7 3x:			393mM 587mM max avg
+	TEMPERATURE 5 3x:			397mM 584mM max avg
+	TEMPERATURE 3 3x:			386mM 585mM max avg
+	TEMPERATURE 1 3x:			398mM 588mM max avg
+	TEMPERATURE_AT_END_TRANING 0.005 3x:	401mM 591mM max avg - 350mM train
+	TEMPERATURE_AT_END_TRANING 0.001 3x: 	399mM 587mM max avg - 351mM train
+=> NEW: TEMPERATUR_AT_END_TRAINING=0.005 TEST: TEMPERATURE=[5,1] AT_END=[0.0025, 0.01]
+
+
+ACTOR CRITIC:
+	TEST:ALPHA=[0.0002, 0.00005]
+
+	Default 5x: 					302.6mM 4.5/5 (ALPHA=0.0001, HIDDEN_ALL = 100)
+	NUM_NN_BOTS 2 5x:				188  mM pellets 203 mM vs 1 Greedy
+	NUM_GREEDY_BOTS 1 5x:				185  mM pellets 184 mM vs 1 Greedy
+	=> training vs itself seems better. TEST: again	
+	
+
+	CACLA_UPDATE_ON_NEGATIVE_TD True 5x:		66.3 mM 1.5/5 150mM on success
+	=> seems useless
+
+	MAX_TRAINING_STEPS 150000 5x:			268  mM 4/5
+	=> more steps seem not beneficial. TEST: 75000, 125000
+
+	ENABLE_SPLIT True 5x:				996  mM - max: 2.4k
+
+	INITIALIZER "glorot_uniform" 5x:		138.8mM 2/5
+	INITIALIZER "glorot_normal"  5x:		142  mM 2/5   350mM of successfull
+	=> inconclusive... TEST: again	
+
+	ALPHA_POLICY 0.00001  5x:			251.4mM
+	ALPHA_POLICY 0.000005 5x:			150.8mM
+	ALPHA_POLICY 0.000001 5x:			48.4 mM
+	=> decreasing seems to hurt performance. TEST: 0.00005, 0.0002
+	
+
+	HIDDEN_ALL_POLICY 25 5x:			269  mM 4/5
+	HIDDEN_ALL_POLICY 50 5x:			284  mM 4/5   352mM of successfull
+	HIDDEN_ALL_POLICY 75 5x:			132  mM 2/5   320mM of successfull
+	HIDDEN_ALL_POLICY 125 5x:			250  mM 3.5/5
+	=> super inconclusive... TEST: 25, 50, 500	
+	
+	POLICY_OUTPUT_ACTIVATION_FUNC "sigmoid" 5x:	359  mM 5/5
+	=> NEW: use it! TEST: setting it to false
+
+	ACTIVATION_FUNC_HIDDEN_POLICY "elu" 5x:		324.4mM
+	ACTIVATION_FUNC_HIDDEN_POLICY "sigmoid" 5x:	208.3mM 3/5 340mM on success
+	=> elu seems more stable? NEW: use "elu" TEST: "relu" and "sigmoid", ELU_ALPHA=[0.1,0.01,1]
+
+
+NEURON_TYPE "LSTM":
+	Default 5x: 			not done
+	MAX_TRAINING_STEPS 150000 5x:
+	INITIALIZER "glorot_uniform" 5x:
+	INITIALIZER "glorot_normal"  5x:15mM, two kind of succeeded
+	NUM_NN_BOTS 2 5x:
+	NUM_GREEDY_BOTS 1 5x:
+	ALPHA 0.00001 5x:
+	ALPHA 0.00005 5x:		5.9mM, all failed
+	TRACE_MIN 2 5x:
+	MEMORY_TRACE_LEN 12 5x:		106mM
+	MEMORY_TRACE_LEN 8  5x:		21mM
+	MEMORY_TRACE_LEN 5  5x:		20mM
+	
+
+
+

@@ -1,0 +1,186 @@
+!!! All of the runs were run with 0 noise. The temp was still decreasing properly.
+
+Q-learning:
+
+
+Default 3x: 			392mM 298mM
+Default 5x:			364mM 286mM
+3x: 				380mM 297mM
+3x:				379mM 279mM
+Avg:				380mM 287mM
+		+/- max:	~10   ~20
+
+Inverted:
+NORMALIZE_GRID_BY_MAX_MASS True 3x:			367mM 296mM
+NORMALIZE_GRID_BY_MAX_MASS True;USE_TOTALMASS False 3x:
+ENABLE_PELLET_GRID False 1x:				133mM 72 mM
+ENABLE_SELF_GRID   False 3x:				374mM 296mM
+ENABLE_WALL_GRID   False 3x:				379mM 292mM
+ENABLE_VIRUS_GRID  False 3x:				363mM 281mM
+ENABLE_ENEMY_GRID  False 3x:				370mM 275mM
+USE_FOVSIZE False 3x:					377mM 296mM
+USE_TOTALMASS False 3x:					380mM 287mM
+
+Pellet:
+	WALL;VIRUS;ENEMY;FOVSIZE;TOTALMASS False 3x:		375mM 264mM
+	SELF;WALL;VIRUS;ENEMY;FOVSIZE False 3x:			265mM 180mM
+	SELF;WALL;VIRUS;ENEMY;FOVSIZE;TOTALMASS False 3x:	312mM 252mM
+	SELF;WALL;VIRUS;ENEMY;TOTALMASS False 3x:		365mM 254mM
+=> NEW: for pellet: Disable all grids except Pellet and Self and wall. Do not use totalmass
+
+Greedy:
+	WALL False 3x:
+	VIRUS False 3x:
+	SELF False 3x:
+
+GRID_SQUARES_PER_FOV 9  3x:		357mM 258mM
+Default              11 3x:
+GRID_SQUARES_PER_FOV 13 3x:		375mM 285mM
+GRID_SQUARES_PER_FOV 15 3x:		378mM 297mM
+ + No Wall, enemy, virus grid	 	364mM 234mM
+ + No Wall, enemy, virus grid, self 	365mM 228mM
+=> TEST: 13, 15, 17
+
+MAX_TRAINING_STEPS 20k  3x:		253mM 126mM
+MAX_TRAINING_STEPS 50k  3x:		318mM 204mM
+Default            100k 3x:
+MAX_TRAINING_STEPS 200k 3x:		396mM 329mM
+MAX_TRAINING_STEPS 500k 3x:		387mM 350mM
+TEST: 75k, 125k
+
+USE_ACTION_AS_INPUT True 3x:		326Mm 231mM
+
+Also measure time!
+NUM_ACTIONS 6  3x:		324mM 254mM
+Default     8  3x:		380mM 287mM
+NUM_ACTIONS 10 3x:		384mM 285mM
+NUM_ACTIONS 16 3x:		395mM 305mM
+NUM_ACTIONS 32 3x:		399mM 305mM
+NUM_ACTIONS 64 3x:		394mM 323mM
+=> NEW: 16 TEST: 12, 20, 32, 64, 128, 256
+
+ALPHA   0.0002 :		373mM 290mM
+Default 0.0001 :
+ALPHA   0.00005:		363mM 265mM
+=> TEST 0.000125, 0.000075
+
+FRAME_SKIP_RATE 4  3x:		247mM 123mM
+	+ DISCOUNT 0.9 3x:	237mM 126mM
+	+ DISCOUNT 0.95 3x:	223mM 93mM
+	+ DISCOUNT 0.995 3x:	85mM  63mM
+	+ DISCOUNT 0.9995 3x:	87mM  57mM
+FRAME_SKIP_RATE 11 3x:		370mM 272mM
+Default         12 3x:
+FRAME_SKIP_RATE 13 3x:		377mM 310mM
+
+TARGET_NETWORK_STEPS 1    3x:	358mM 287mM
+TARGET_NETWORK_STEPS 50   3x:	369mM 300mM
+TARGET_NETWORK_STEPS 100  3x:	374mM 304mM
+Default              1.5k 3x:	380mM 287mM
+TARGET_NETWORK_STEPS 10k  3x:	377mM 293mM
+TARGET_NETWORK_STEPS 20k  3x:	370mM 283mM
+TARGET_NETWORK_STEPS 40k  3x:	382mM 295mM
+=> ? so... what does tns bring? Sweet spot between 1.5k and 10k? TEST: 3k, 5k, 7k
+
+DISCOUNT 0.825 3x:		361mM 283mM 
+Default  0.85  3x:
+DISCOUNT 0.875 3x:		364mM 272mM
+
+# There was no noise, so the following are just default tests
+NOISE_AT_HALF_TRAINING 0.02  3x:379mM 298mM
+Default                0.01  3x:
+NOISE_AT_HALF_TRAINING 0.005 3x:380mM 278mM
+=> TEST AGAIN
+
+HIDDEN_ALL 250   5x:		376mM 279mM
+HIDDEN_ALL 450   5x:		382mM 271mM
+Default    500   5x:		
+HIDDEN_ALL 550   5x:		375mM 294mM
+HIDDEN_ALL 1000  5x:		363mM 262mM
+=> NEW: 256 (makes it  run faster). TEST 5x: 50, 100
+
+Default     "Default"        5x:
+INITIALIZER "glorot_uniform" 5x:398mM 304mM
+INITIALIZER "glorot_normal"  5x:358mM 285mM
+=> NEW: use "glorot_uniform"
+
+						pell  greed testingOverTime
+NUM_GREEDY_BOTS 1 3x:				122mM 224mM 140mM
+	+ use model trained before on pellets	194mM 75 mM 342mM
+						324mM 420mM 359mM
+						378mM 416mM 430mM
+=> pre-training has huge effect!
+
+NUM_NN_BOTS 2     3x:				268mM 417mM 199mM
+	+ use model trained before on pellets	290mM 600mM 266mM
+						333mM 425mM 263mM
+						247mM 266mM 268mM
+=> pre-training on pellets does not have big effect
+
+
+ENABLE_EJECT True 3x:		362mM 258mM
+ENABLE_SPLIT True 3x:		1945mM 1575mM
+
+ACTIVATION_FUNC_HIDDEN "elu":
+	ELU_ALPHA 0.001 3x:	171mM 134mM
+	ELU_ALPHA 0.01  3x:	374mM 265mM
+	ELU_ALPHA 0.1   3x:	370mM 262mM - Testing / Testing During Training
+	ELU_ALPHA 1     3x:	374mM 291mM
+
+EXPLORATION_STRATEGY "Boltzmann":
+	TEMPERATURE 15 3x:			360mM 275mM
+	Default     10 3x:			387mM 317mM
+	TEMPERATURE 5  3x:			390mM 315mM
+	TEMPERATURE 1  3x:			364mM 300mM
+	=> NEW: 7 
+
+	TEMPERATURE_AT_END_TRAINING 0.0025 3x:	388mM 318mM
+	Default                     0.005  3x:  387mM 317mM
+	TEMPERATURE_AT_END_TRAINING 0.01   3x:	382mM 313mM
+	=> NEW: 0.0025
+=> Test: default boltzmann
+
+
+REDO:
+Actor-Critic:
+	Default 5x:
+
+	NUM_NN_BOTS 2 5x:				
+	NUM_GREEDY_BOTS 1 5x:
+
+	ALPHA   0.0002   5x:
+	Default 0.0001   5x:
+	ALPHA   0.00005  5x:
+
+	FRAME_SKIP_RATE 6  5x:
+	FRAME_SKIP_RATE 9  5x:
+	Default         12 5x:
+	FRAME_SKIP_RATE 15 5x:
+
+	MAX_TRAINING_STEPS 50k  5x:
+	MAX_TRAINING_STEPS 75k  5x:				
+	Default            100k 5x:
+	MAX_TRAINING_STEPS 125k 5x:		
+	MAX_TRAINING_STEPS 200k 5x:		
+
+	INITIALIZER "glorot_uniform" 5x:		
+	INITIALIZER "glorot_normal"  5x:
+
+	
+	ALPHA_POLICY 0.000025 5x:
+	Default      0.00005  5x:
+	ALPHA_POLICY 0.0001   5x:
+
+	#Hard to compare, as they do not have the same network initialization
+	HIDDEN_ALL_POLICY 50  5x:
+	Default		  100 5x:
+	HIDDEN_ALL_POLICY 200 5x:
+
+	POLICY_OUTPUT_ACTIVATION_FUNC "relu_max" 5x:
+
+	ACTIVATION_FUNC_HIDDEN_POLICY "elu"     5x:		
+	ACTIVATION_FUNC_HIDDEN_POLICY "sigmoid" 5x:		
+
+
+
+

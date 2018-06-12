@@ -564,12 +564,12 @@ if __name__ == '__main__':
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 10% of training
-            if step % (smallPart * 10) == 0:
+            if step % (smallPart * 5) == 0:
                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
-        testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 0))
+        testResults = updateTestResults(testResults, model, 100)
         meanMassesOfTestResults = [val[0] for val in testResults]
         exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
-        plotTesting(testResults, model.getPath(), smallPart * 10, maxSteps)
+        plotTesting(testResults, model.getPath(), smallPart * 5, maxSteps)
         print("Training done.")
         print("")
 

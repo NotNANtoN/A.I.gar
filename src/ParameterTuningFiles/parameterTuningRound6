@@ -1,0 +1,98 @@
+Q-learning:
+
+Default 10x:
+NUM_NN_BOTS 2 6x:
+
+NUM_ACTIONS 16 3x:
+Default     25 3x:
+NUM_ACTIONS 36 5x:
+
+REWARD_SCALE 1 3x:
+REWARD_SCALE 4 3x:
+
+NUM_NN_BOTS 2:
+	Default     0   6x:
+	DEATH_TERM -10  3x:
+	DEATH_TERM -100 3x:
+	DEATH_TERM -500 3x:
+
+	Default      1 10x:
+	DEATH_FACTOR 2  3x:
+	DEATH_FACTOR 5  3x:
+	DEATH_FACTOR 10 3x:
+
+ACTOR_CRITIC_TYPE "CACLA":
+	Default 10x:
+	
+	ALPHA 0.0002  5x:
+	ALPHA 0.00005 5x:
+
+	MAX_TRAINING_STEPS 50k  3x:
+	MAX_TRAINING_STEPS 75k  3x:
+	Default	           100k 3x:
+	MAX_TRAINING_STEPS 125k 3x:
+
+
+	ALPHA_POLICY 0.000025 5x:
+	Default      0.00005  5x:
+	ALPHA_POLICY 0.0001   5x:
+
+	SOFT_TARGET_UPDATES True:
+		Default 5x:
+
+		DPG_TAU 0.0005 3x:
+		Default 0.001  5x:
+		DPG_TAU 0.002  3x:
+		DPG_TAU 0.01   3x:
+		DPG_TAU 0.1    3x:
+
+ACTOR_CRITIC_TYPE "DPG":
+	Default 5x: 256 266 275 | 148 - barely converged
+
+	NO_TARGET_UPDATEs:
+		Default 5x: 297 307 314 | 166 - Barely done training
+
+		DPG_ACTOR_ALPHA 0.000001 3x: 130 150 170 | 66 - not done at all
+		Default         0.00005  5x: 297 307 314 | 166
+		DPG_ACTOR_ALPHA 0.0001   3x: 230 252 273 | 166 - converged
+		=> TEST WITH TARGET UPDATES: 0.000025, 0.000075
+
+		DPG_CRITIC_ALPHA 0.0005  3x: 309 319 328 | 219 - converged
+		Default          0.0001  5x: 297 307 314 | 166
+		DPG_CRITIC_ALPHA 0.00001 3x: 6mM
+		=> NEW: 0.0002 TEST WITH TARGET UPDATES: 0.0004, 0.0008, 0.0001, 0.00005
+
+
+		DPG_Q_VAL_INCREASE 0.1 3x: 267 278 289 | 164 - not really converged
+		DPG_Q_VAL_INCREASE 0.5 3x: 268 285 302 | 178 - barely converged
+		Default            1   5x: 297 307 314 | 166
+		DPG_Q_VAL_INCREASE 2   3x: 286 297 307 | 156 - barely convered
+		DPG_Q_VAL_INCREASE 5   3x: 259 276 293 | 166 - pretty much converged
+		DPG_Q_VAL_INCREASE 10  3x: 253 272 291 | 175 - converged
+		=> TEST: 2, 3 5x
+
+		USE_CACLA True 5x: 306 312 318 | 195 - nearly converged
+		USE_CACLA True & USE_DPG False 5x: 232 248 264 | 191 - converged
+	USE_CACLA True 3x: 301 307 314 | 172 187 202 - nearly converged
+	
+			
+		
+		
+	SOFT_TARGET_UPDATES True:
+		DPG_TAU 0.0005 3x:
+		Default 0.001  3x:
+		DPG_TAU 0.002  3x:
+		DPG_TAU 0.01   3x:
+
+		DPG_TAU 0.1    3x:
+
+
+
+
+
+	
+
+
+
+
+

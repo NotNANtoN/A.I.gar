@@ -1,0 +1,101 @@
+testing:
+
+Default: Avg - 310.9mM
+	 Max - 602   + 644   + 653   + 628 + 645: max- 653maxMass
+
+All 1M steps
+
+q-learning:
+
+	gpu node - 3x - 0.5s per update
+
+	gpu node with wait time 10 and batch size 320 -3x - 0.26s per update - 309.8mM
+
+	gpu node with wait time 100 and batch size 3200 - 1x -
+
+	gpu wt 1000 bs 32000 - 1x -
+
+	gpu node with 2 gpus waitTime 100 and batch size 3200 - 1x-
+
+	2 gpu wt 1000 bs 32000 - 1x - 
+
+
+        no exp rep - 5 tests: 
+
+	relu - 5 tests: 312.4mM
+		relu - 5 more tests:310.2mM
+	=> relu seems slightly better, take it as new default
+
+	vs 1 greedy - 3 tests: 130mM
+
+	alpha 0.0001 - 3 tests: 318.3mM
+	alpha 0.0005 - 3 tests: 300.7mM
+	=> alpha 0.0001 better
+	try alpha 0.0001 as new default, experiment with 0.00005 and 0.000025
+
+	Nil:
+	FRAME_SKIP_RATE = 5 x4
+	FRAME_SKIP_RATE = 7 x4
+	FRAME_SKIP_RATE = 11 x4
+	GRID_SQUARES_PER_FOV = 9 x3 - 311.3mM
+	GRID_SQUARES_PER_FOV = 13 x3 - 305.1mM
+	EPSILON_DECAY = 0.99997 x3
+	EPSILON_DECAY = 0.99993 x3
+	DISCOUNT = 0.92 x3
+	DISCOUNT = 0.88 x3
+	MEMORY_CAPACITY = 10000 x3 - 293.2mM
+	MEMORY_CAPACITY = 1000 x3 - 255mM 
+
+
+
+	
+
+Actor Critic:
+
+	New Actor (without divide by sigma squared and without split/eject): 8x - 143.9mM, 5/8 gave shitty result(mM of 20, rest has mM of around 280)
+
+	New Actor no actor replay: 5x - 6.3mM, all failed
+	New Actor type standard: 5x - 6.2mM, all failed
+	=> test both again to see if they always fail.
+
+	New vs greedy: 3x - 135+224+204=188mM, none seemed to fail
+
+	New alpha policy 0.00025 - 5x - 170.8mM, 2/5 failed, 290mMsuccess, 6.2mM on fail
+	New alpha policy 0.001 - 5x - 60.6mM, 4/5 failed, 277mM success, 6.2mM on fail
+	=> new alpha policy: 0.00025. Try 0.0001 and 0.000025
+
+	New noise decay 0.99994 - 5x - 111.9mM, 3/5 failed, 270mM success, 6.2mM on fail
+	New noise decay 0.99996 - 5x - 112.mM, 3/5 failed, 262mM success, 6.x on fail
+	=> no real difference
+
+	old AC standard - 5 tests: 6.3mM
+
+
+
+	Nil:
+	Noise decay: 0.99993 x3 
+
+	Noise decay: 0.99997 x3
+
+	alpha actor 0.001 x3
+
+	alpha actor 0.00025 x3
+
+	hidden neurons: 200 all layers x5
+
+LSTM: - 
+	lstm pure - 5 tests: 57.2mM - only one learned kind of
+
+	lstm no exp rep - 3 tests: 13.3mM
+
+	lstm vs greedy - 3 tests: 15mM
+
+	lstm trace length 15 - 5 tests: 188.4mM. None failed completely, but results are not stable. Might need more training time.
+
+	lstm trace length 15 minimum 10 - 5 tests - 100mM. 3/5 failed to learn.
+
+	lstm ACTIVATION_FUNC_LSTM="sigmoid" - 5 tests - 105.7mM
+
+	lstm act func lstm = "elu" - 5 tests -135.6mM - it seems to learn much faster on elu, maybe sigmoid activation functions need more training time/steps to shine.
+
+

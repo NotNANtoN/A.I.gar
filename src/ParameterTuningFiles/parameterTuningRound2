@@ -1,0 +1,76 @@
+Q-learning:
+Default 5x: 318.8mM
+
+MEMORY_CAPACITY 100000 3x: 316.1mM
+MEMORY_CAPACITY 50000  3x: 318.5mM
+=> No clear effect. 75.000 seems good, reducing it seems to hurt.
+
+MEMORY_BATCH_LEN 40 3x: 318.6mM
+MEMORY_BATCH_LEN 24 3x: 314.4mM
+=> Reducing it seems to hurt, increasing has no big effect
+
+FRAME_SKIP_RATE 7 3x: 307.8mM
+FRAME_SKIP_RATE 11 3x 323.3mM
+=> reducing it to 7 hurts, increasing to 11 is good. NEW: 11 TEST: 10, 13
+
+GRID_SQUARES_PER_FOV 9 3x: 317.1mM
+GRID_SQUARES_PER_FOV 13 3x: 315.5mM
+=> 11 seems okay
+
+TARGET_NETWORK_STEPS 500 3x: 315.6mM
+TARGET_NETWORK_STEPS 900 3x: 317.2mM
+TARGET_NETOWRK_STEPS 1100 3x:317.7mM
+TARGET_NETWORK_STEPS 1500 3x:319.9mM
+=> reducing it slightly hurts, increasing it is good. NEW: 1500 TEST: 2000, 3000, 5000, 10000
+
+DISCOUNT 0.91 3x: 315.2mM
+DISCOUNT 0.89 3x: 318.5mM
+DISCOUNT 0.85 3x: 321.7mM
+=> For pellet collection reduced discount seems better. NEW: 0.85 TEST: 0.8, 0.7, 0.6
+
+EXPLORATION_STRATEGY "Boltzmann" 3x: 283.1mM
+EXPLORATION_STRATEGY "Boltzmann" + TEMPERATURE 3 3x: 294.7mM (crashed towards the end...)
+EXPLORATION_STRATEGY "Boltzmann" + TEMPERATURE_AT_END_TRAINING 0.01 3x: 305.0mM
+EXPLORATION_STRATEGY "Boltzmann" + TEMPERATURE_AT_END_TRAINING 0.05 3x: 259.9mM
+=> Reducing starting temperature is good but makes it unstable. Increasing decay is good.
+NEW: START_TEMP: 10; AT_END: 0.01. TEST: START_TEMP: 5; AT_END: 0.005, 0.001
+
+NOISE_AT_HALF_TRAINING 0.05 3x: 332.4mM
+NOISE_AT_HALF_TRAINING 0.2 3x:  290.3mM
+=> Decreasing is good: NEW: 0.05 TEST: 0.01, 0.005, 0.001
+
+HIDDEN_LAYER_ALL 300 3x: 321.7mM
+HIDDEN_LAYER_ALL 700 3x: 315.6mM
+=> Decreasing seems slighty better... TEST: 50, 100, 200 
+
+ALPHA 0.00005 3x: 315.8mM
+ALPHA 0.000025 3x:303.7mM
+=> Decreasing seems to hurt. TEST 0.00025 - 5x
+
+ACTIVATION_FUNC_HIDDEN "elu" 3x: 318.2mM
+=> No clue from this test. TEST with beta set to 0.01, 0.005 (check what default beta is)
+
+Actor-Critic (need a bit more training time):
+Default 8x: 182.8mM
+ACTOR_CRITIC_TYPE "Standard" 5x: 6.5mM
+ACTOR_REPLAY_ENABLED False 5x: 6.4mM
+=> both useless.
+
+ALPHA_POLICY 0.0001 5x: 209.9mM
+ALPHA_POLICY 0.00005 5x: 279.4mM
+=> wow! NEW: 0.00005 TEST 0.00001, 0.000005, 0.000001
+
+HIDDEN_LAYER_ALL_POLICY 500: 6.6mM
+HIDDEN_LAYER_ALL_POLICY 300: 6.4mM
+=> Interesting, completely unstable with more neurons. TEST: 25, 50, 75, 125
+
+LSTM (need much more training time - 10 times)
+Default 10x: 58mM
+MEMORY_TRACE_LEN 20 5x: 66.8mM
+TRACE_MIN 1 5x: 141.6mM
+=> NEW: TRACE_MIN: 1 TEST: 2 5x
+
+ACTIVATION_FUNC_LSTM "sigmoid" 5x: 102.8mM
+ACTIVATION_FUNC_LSTM "elu" 5x: 48.4mM
+ACTIVATION_FUNC_LSTM "relu" 5x: 83.7mM
+=> NEW: "sigmoid"

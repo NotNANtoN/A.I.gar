@@ -243,7 +243,7 @@ class QLearn(object):
         else:
             idxs, priorities =  self.train(batch)
 
-        self.latestTDerror = priorities[-1]
+        self.latestTDerror = numpy.mean(priorities[-1])
         return idxs, priorities
 
     def getNoise(self):
