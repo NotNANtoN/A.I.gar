@@ -370,74 +370,54 @@ class ActorCritic(object):
 
     def learn(self, batch):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
-            self.train_critic_DPG(batch)
+            idxs, priorities = self.train_critic_DPG(batch)
             if self.parameters.DPG_USE_DPG_ACTOR_TRAINING:
                 self.train_actor_DPG(batch)
             if self.parameters.DPG_USE_CACLA:
-                self.train_actor_batch(batch)
+                self.train_actor_batch(batch, priorities)
         else:
-            self.train_critic(batch)
-            self.train_actor_batch(batch)
+            idxs, priorities = self.train_critic(batch)
+            self.train_actor_batch(batch, priorities)
+        return idxs, priorities
 
     def train_actor_DPG(self, batch):
-        len_batch = len(batch)
-        inputs = numpy.zeros((len_batch, self.parameters.STATE_REPR_LEN))
-        targets = numpy.zeros((len_batch, 1))
-
-        if self.parameters.DPG_USE_CACLA:
-            targets_CACLA = numpy.zeros((len_batch, self.actor.num_outputs))
-
-
+        batch_len = len(batch)
+        inputs = numpy.zeros((batch_len, self.parameters.STATE_REPR_LEN))
+        targets = numpy.zeros((batch_len, 1))
 
         # Calculate input and target for actor
-        for sample_idx, sample in enumerate(batch):
-            old_s, a, r, new_s, _ = sample
+        for sample_idx in range(batch_len):
+            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx], batch[4][sample_idx]
             oldPrediction = self.combinedActorCritic.predict(old_s)[0]
             inputs[sample_idx] = old_s
             targets[sample_idx] = oldPrediction + self.parameters.DPG_Q_VAL_INCREASE
 
-        actions = self.actor.predict(batch[-1][0])
-        loss = self.combinedActorCritic.train_on_batch(inputs, targets)
-        actionsAfter = self.actor.predict(batch[-1][0])
-        #print("Before:", numpy.round(actions,2), " After:", numpy.round(actionsAfter,2))
+        self.combinedActorCritic.train_on_batch(inputs, targets)
 
 
-
-    def train_actor_batch(self, batch):
-        len_batch = len(batch)
+    def train_actor_batch(self, batch, priorities):
+        batch_len = len(batch)
         len_output = self.actor.num_outputs
-        inputs = numpy.zeros((len_batch, self.input_len))
-        targets = numpy.zeros((len_batch, len_output))
+        inputs = numpy.zeros((batch_len, self.input_len))
+        targets = numpy.zeros((batch_len, len_output))
 
         # Calculate input and target for actor
         count = 0
-        for sample_idx, sample in enumerate(batch):
-            old_s, a, r, new_s, _ = sample
-            alive = new_s is not None
-            _, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
+        for sample_idx in range(batch_len):
+            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx], batch[4][sample_idx]
+            td_e = priorities[sample_idx]
             target = self.calculateTarget_Actor(old_s, a, td_e)
             if target is not None:
                 inputs[count] = old_s
                 targets[count] = target
                 count += 1
+
         if count > 0:
             inputs = inputs[:count]
             targets = targets[:count]
-            if __debug__:
-                if batch[-1][0] is inputs[-1]:
-                    print("Target for current experience:", numpy.round(targets[-1], 2))
-                print("Last predicted action:\t", numpy.round(self.actor.predict(inputs[-1]), 2))
-                print("Last Target:\t", numpy.round(targets[-1], 2))
-                print("Actor trained on number of samples: ", count)
-
-            actions = self.actor.predict(batch[-1][0])
             self.actor.train(inputs, targets)
-            actionsAfter = self.actor.predict(batch[-1][0])
-            #print("Before:", numpy.round(actions, 2), " After:", numpy.round(actionsAfter, 2))
-
-
-            if __debug__:
-                print("Predicted action after training:\t", numpy.round(self.actor.predict(inputs[-1]), 2))
 
     def applyNoise(self, action):
         #Gaussian Noise:
@@ -486,50 +466,57 @@ class ActorCritic(object):
 
 
     def train_critic_DPG(self, batch):
-        target, td_e = None, None
-        len_batch = len(batch)
-        inputs_critic_states = numpy.zeros((len_batch, self.input_len))
-        inputs_critic_actions = numpy.zeros((len_batch, self.action_len))
-        targets_critic = numpy.zeros((len_batch, 1))
+        batch_len = len(batch)
+        inputs_critic_states = numpy.zeros((batch_len, self.input_len))
+        inputs_critic_actions = numpy.zeros((batch_len, self.action_len))
+        targets_critic = numpy.zeros((batch_len, 1))
+        idxs = batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
+        priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
 
-        for sample_idx, sample in enumerate(batch):
-            old_s, a, r, new_s, _ = sample
-            alive = new_s is not None
+        for sample_idx in range(batch_len):
+            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx], batch[4][sample_idx]
             target = r
-            if alive:
+            if not done:
                 if self.parameters.DPG_USE_TARGET_MODELS:
                     estimationNewState = self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
                 else:
                     estimationNewState = self.critic.predict(new_s, numpy.array([self.actor.predict(new_s)]))
                 target += self.parameters.DISCOUNT * estimationNewState
+            estimationOldState = self.critic.predict(old_s, numpy.array([a]))
+            td_e = target - estimationOldState
+            priorities[sample_idx] = td_e
             inputs_critic_states[sample_idx]  = old_s
             inputs_critic_actions[sample_idx] = a
             targets_critic[sample_idx] = target
+
         inputs_critic = [inputs_critic_states, inputs_critic_actions]
-        self.qValues.append(target)
         self.critic.train(inputs_critic, targets_critic)
+
+
+        return idxs, priorities
 
 
     def train_critic(self, batch):
-        target, td_e = None, None
-        len_batch = len(batch)
-        inputs_critic = numpy.zeros((len_batch, self.input_len))
-        targets_critic = numpy.zeros((len_batch, 1))
+        batch_len = len(batch)
+        inputs_critic = numpy.zeros((batch_len, self.input_len))
+        targets_critic = numpy.zeros((batch_len, 1))
         # Calculate input and target for critic
-        for sample_idx, sample in enumerate(batch):
-            old_s, a, r, new_s, _ = sample
-            alive = new_s is not None
-            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
+        idxs = batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
+        priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        for sample_idx in range(batch_len):
+            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx], batch[4][sample_idx]
+            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, not done, a)
+            priorities[sample_idx] = td_e
             inputs_critic[sample_idx] = old_s
             targets_critic[sample_idx] = target
 
-        # Debug info:
-        if target and td_e:
-            self.qValues.append(target)
-            self.latestTDerror = td_e
-
         # Train:
         self.critic.train(inputs_critic, targets_critic)
+
+        return idxs, priorities
+
 
 
     def calculateTarget_Actor(self, old_s, a, td_e):

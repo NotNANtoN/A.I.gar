@@ -145,8 +145,6 @@ class QLearn(object):
         idxs =  batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
         priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
 
-        #print("one priority: " , priorities[0])
-
         for sample_idx in range(batch_len):
             old_s, a, r, new_s, _ = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx], batch[4][sample_idx]
             # No new state: dead
