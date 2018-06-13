@@ -111,6 +111,9 @@ class Bot(object):
         self.parameters = parameters
         self.learningAlg = None
         self.lastMass = None
+        self.lastReward = None
+        self.lastAction = None
+        self.currentAction = None
         if learningAlg is not None:
             self.learningAlg = learningAlg
             # If Actor-Critic we use continuous actions
@@ -136,6 +139,11 @@ class Bot(object):
                                                            parameters.MEMORY_BETA)
             else:
                 self.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
+
+        self.secondLastSelfGrid = None
+        self.lastSelfGrid = None
+        self.secondLastEnemyGrid = None
+        self.lastEnemyGrid = None
 
         self.reset()
 
@@ -171,6 +179,12 @@ class Bot(object):
                 self.memories[-1][-1] = True
             # self.actionIdxHistory = []
             # self.actionHistory =[]
+            gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
+
+            self.secondLastSelfGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+            self.lastSelfGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+            self.secondLastEnemyGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+            self.lastEnemyGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
         elif self.type == "Greedy":
             self.currentAction = [0, 0, 0, 0]
 
@@ -195,6 +209,7 @@ class Bot(object):
         self.cumulativeReward = 0
         self.skipFrames = self.parameters.FRAME_SKIP_RATE
         self.oldState = newState
+        self.lastAction = self.currentAction
         self.currentAction = newAction
         self.currentActionIdx = newActionIdx
 
@@ -265,7 +280,7 @@ class Bot(object):
         stateRepr = None
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
-                gridView, mass, fovSize = self.getGridStateRepresentation()
+                gridView = self.getGridStateRepresentation()
 
                 if self.parameters.CNN_REPRESENTATION:
                     if self.parameters.CNN_PIXEL_REPRESENTATION:
@@ -276,9 +291,17 @@ class Bot(object):
                     gridView = gridView.flatten()
                     additionalFeatures = []
                     if self.parameters.USE_FOVSIZE:
+                        fovSize = self.player.getFovSize()
                         additionalFeatures.append(fovSize)
                     if self.parameters.USE_TOTALMASS:
+                        mass = self.player.getTotalMass()
                         additionalFeatures.append(mass)
+                    if self.parameters.USE_LAST_ACTION:
+                        last_action = self.currentAction if self.currentAction is not None else [0, 0, 0, 0]
+                        additionalFeatures.extend(last_action)
+                    if self.parameters.USE_SECOND_LAST_ACTION:
+                        second_last_action = self.lastAction if self.lastAction is not None else [0, 0, 0, 0]
+                        additionalFeatures.extend(second_last_action)
                     if len(additionalFeatures) > 0:
                         stateRepr = numpy.concatenate((gridView, additionalFeatures))
                     else:
@@ -419,11 +442,30 @@ class Bot(object):
         if self.parameters.ENABLE_VIRUS_GRID:
             gridView[count] = gsVirus
             count += 1
+        # Add grids about own cells and enemy cells from previous frames:
+        if self.parameters.ENABLE_SELF_GRID_SECOND_LAST_FRAME:
+            gridView[count] = self.secondLastSelfGrid
+            self.secondLastSelfGrid = self.lastSelfGrid
+            count += 1
+
+        if self.parameters.ENABLE_SELF_GRID_LAST_FRAME:
+            gridView[count] = self.lastSelfGrid
+            self.lastSelfGrid = gsBiggestOwnCellMass
+            count += 1
+        if self.parameters.ENABLE_ENEMY_GRID_SECOND_LAST_FRAME:
+            gridView[count] = self.secondLastEnemyGrid
+            self.secondLastEnemyGrid = self.lastEnemyGrid
+            count += 1
+
+        if self.parameters.ENABLE_ENEMY_GRID_LAST_FRAME:
+            gridView[count] = self.lastEnemyGrid
+            self.lastEnemyGrid = gsBiggestOwnCellMass
+            count += 1
 
         # Add total Mass of player and field size:
         totalMass = self.player.getTotalMass()
 
-        return gridView, totalMass, fovSize
+        return gridView
 
 
     def getSimpleStateRepresentation(self):
