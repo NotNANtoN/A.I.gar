@@ -111,8 +111,11 @@ class ValueNetwork(object):
         newWeights = [targetWeights[idx] * (1 - tau) + modelWeights[idx] * tau for idx in range(len(modelWeights))]
         self.target_model.set_weights(newWeights)
 
-    def train(self, inputs, targets):
-        self.model.train_on_batch(inputs, targets)
+    def train(self, inputs, targets, importance_weights):
+        if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+            self.model.train_on_batch(inputs, targets, sample_weight=importance_weights)
+        else:
+            self.model.train_on_batch(inputs, targets)
 
     def save(self, path, name):
         self.target_model.set_weights(self.model.get_weights())
@@ -278,8 +281,11 @@ class ActionValueNetwork(object):
         newWeights = [targetWeights[idx] * (1 - tau) + modelWeights[idx] * tau for idx in range(len(modelWeights))]
         self.target_model.set_weights(newWeights)
 
-    def train(self, inputs, targets):
-        self.model.train_on_batch(inputs, targets)
+    def train(self, inputs, targets, importance_weights):
+        if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+            self.model.train_on_batch(inputs, targets, sample_weight=importance_weights)
+        else:
+            self.model.train_on_batch(inputs, targets)
 
     def save(self, path, name):
         self.target_model.set_weights(self.model.get_weights())
@@ -467,12 +473,13 @@ class ActorCritic(object):
 
 
     def train_critic_DPG(self, batch):
-        batch_len = len(batch)
+        batch_len = len(batch[0])
         inputs_critic_states = numpy.zeros((batch_len, self.input_len))
         inputs_critic_actions = numpy.zeros((batch_len, self.action_len))
         targets_critic = numpy.zeros((batch_len, 1))
         idxs = batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
-        priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        priorities = numpy.zeros_like(importance_weights)
 
         for sample_idx in range(batch_len):
             old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
@@ -492,19 +499,20 @@ class ActorCritic(object):
             targets_critic[sample_idx] = target
 
         inputs_critic = [inputs_critic_states, inputs_critic_actions]
-        self.critic.train(inputs_critic, targets_critic)
-
+        self.critic.train(inputs_critic, targets_critic, importance_weights)
 
         return idxs, priorities
 
 
     def train_critic(self, batch):
-        batch_len = len(batch)
+        batch_len = len(batch[0])
         inputs_critic = numpy.zeros((batch_len, self.input_len))
         targets_critic = numpy.zeros((batch_len, 1))
         # Calculate input and target for critic
         idxs = batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
-        priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        priorities = numpy.zeros_like(importance_weights)
+
         for sample_idx in range(batch_len):
             old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
                 sample_idx], batch[4][sample_idx]
@@ -514,7 +522,7 @@ class ActorCritic(object):
             targets_critic[sample_idx] = target
 
         # Train:
-        self.critic.train(inputs_critic, targets_critic)
+        self.critic.train(inputs_critic, targets_critic, importance_weights)
 
         return idxs, priorities
 

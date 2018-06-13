@@ -391,15 +391,21 @@ class Network(object):
         self.valueNetwork = keras.models.load_model(path + "model.h5")
         self.targetNetwork = load_model(path + "model.h5")
 
-    def trainOnBatch(self, inputs, targets):
+    def trainOnBatch(self, inputs, targets, importance_weights):
         if self.parameters.NEURON_TYPE == "LSTM":
             if self.parameters.EXP_REPLAY_ENABLED:
-                return self.valueNetwork.train_on_batch(inputs, targets)
+                if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+                    return self.valueNetwork.train_on_batch(inputs, targets, sample_weight=importance_weights)
+                else:
+                    return self.valueNetwork.train_on_batch(inputs, targets)
             else:
                 return self.valueNetwork.train_on_batch(numpy.array([numpy.array([inputs])]),
                                                         numpy.array([numpy.array([targets])]))
         else:
-            return self.valueNetwork.train_on_batch(inputs, targets)
+            if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+                return self.valueNetwork.train_on_batch(inputs, targets, sample_weight=importance_weights)
+            else:
+                return self.valueNetwork.train_on_batch(inputs, targets)
 
     def updateActionNetwork(self):
         self.actionNetwork.set_weights(self.valueNetwork.get_weights())

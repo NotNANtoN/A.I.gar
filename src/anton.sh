@@ -11,7 +11,7 @@ module load h5py/2.7.1-foss-2018a-Python-3.6.4
 python -O ./aigar.py <<EOF
 0
 0
-10000
+15000
 0
 0
 1

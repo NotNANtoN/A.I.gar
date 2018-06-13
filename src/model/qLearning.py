@@ -95,26 +95,13 @@ class QLearn(object):
             target += self.network.getDiscount() * action_Q_values[newActionIdx]
         return target
 
-    def calculateTarget(self, old_s, a, r, new_s):
+    def calculateTarget(self, old_s, a, r, new_s, alive):
         old_q_values = self.network.predict(old_s)
-        alive = (new_s is not None)
         updated_action_value = self.calculateTargetForAction(new_s, r, alive)
         td_e = updated_action_value - old_q_values[a]
         old_q_values[a] = updated_action_value
         return old_q_values, td_e
 
-    def calculateTDError(self, experience):
-        old_s, a, r, new_s, _ = experience
-        alive = new_s is not None
-        if self.parameters.USE_ACTION_AS_INPUT:
-            q_value_of_action = self.network.predict(numpy.concatenate((old_s, self.network.getActions()[a])))
-        else:
-            state_Q_values = self.network.predict(old_s)
-            q_value_of_action = state_Q_values[a]
-
-        target = self.calculateTargetForAction(new_s, r, alive)
-        td_error = target - q_value_of_action
-        return td_error
 
     def calculateTDError_ExpRep_Lstm(self, exp):
         old_s, a, r, new_s, _ = exp
@@ -143,21 +130,22 @@ class QLearn(object):
         targets = numpy.zeros((batch_len, self.output_len))
 
         idxs =  batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
-        priorities = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        priorities = numpy.zeros_like(importance_weights)
 
         for sample_idx in range(batch_len):
-            old_s, a, r, new_s, _ = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx], batch[4][sample_idx]
+            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx], batch[4][sample_idx]
             # No new state: dead
             if self.parameters.USE_ACTION_AS_INPUT:
                 stateAction =  numpy.concatenate((old_s, self.network.getActions()[a]))  #old_s.extend(a)
                 inputs[sample_idx] = stateAction
-                updatedValue = self.calculateTargetForAction(new_s, r, new_s is not None)
+                updatedValue = self.calculateTargetForAction(new_s, r, not done)
                 oldValue = self.network.predict(numpy.concatenate((old_s, self.network.getActions()[a])))
                 td_e = updatedValue - oldValue
                 targets[sample_idx] = updatedValue
             else:
                 inputs[sample_idx] = old_s
-                targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s)
+                targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s, not done)
             priorities[sample_idx] = td_e
 
         if self.parameters.CNN_REPRESENTATION and not self.parameters.CNN_PIXEL_REPRESENTATION:
@@ -166,9 +154,103 @@ class QLearn(object):
                 stateRepr[gridIdx][0][0] = grid
             inputs = list(stateRepr)
 
-        self.network.trainOnBatch(inputs, targets)
+        self.network.trainOnBatch(inputs, targets, importance_weights)
 
         return idxs, priorities
+
+    def learn(self, batch):
+        #if self.parameters.NEURON_TYPE == "LSTM":
+        #    self.train_LSTM(batch)
+        #else:
+
+
+        idxs, priorities =  self.train(batch)
+
+        self.latestTDerror = numpy.mean(priorities[-1])
+        return idxs, priorities
+
+    def getNoise(self):
+        return self.epsilon
+
+    def setNoise(self, val):
+        self.epsilon = val
+
+    def updateNoise(self):
+        self.epsilon *= self.parameters.NOISE_DECAY
+        self.temperature *= self.parameters.TEMPERATURE_DECAY
+
+    def updateNetworks(self, time):
+        self.updateTargetModel(time)
+        #self.updateActionModel(time)
+
+    def updateTargetModel(self, time):
+        if time % self.parameters.TARGET_NETWORK_STEPS == 0:
+           self.network.updateTargetNetwork()
+
+
+    def decideExploration(self, bot):
+        if self.parameters.EXPLORATION_STRATEGY == "e-Greedy":
+            if numpy.random.random(1) < self.epsilon:
+                explore = True
+                newActionIdx = numpy.random.randint(len(self.network.getActions()))
+                self.qValues.append(float("NaN"))
+                if __debug__:
+                    bot.setExploring(True)
+                return explore, newActionIdx
+        return False, None
+
+    def decideMove(self, newState, bot):
+        # Take random action with probability 1 - epsilon
+        explore, newActionIdx = self.decideExploration(bot)
+        if not explore:
+            q_Values = self.network.predict_action(newState)
+            if self.parameters.EXPLORATION_STRATEGY == "Boltzmann" and self.temperature != 0:
+                q_Values = boltzmannDist(q_Values, self.temperature)
+                action_value = numpy.random.choice(q_Values, p=q_Values)
+                newActionIdx = numpy.argmax(q_Values == action_value)
+            else:
+                newActionIdx = numpy.argmax(q_Values)
+            # Book keeping:
+            self.qValues.append(q_Values[newActionIdx])
+            if __debug__:
+                bot.setExploring(False)
+
+        if __debug__  and not explore:
+            average_value = round(numpy.mean(q_Values), 1)
+            q_value = round(q_Values[newActionIdx], 1)
+            print("Expected Q-value: ", average_value, " Q(s,a) of current action: ", q_value)
+            print("")
+        newAction = self.network.actions[newActionIdx]
+
+        return newActionIdx, newAction
+
+    def save(self, path, name = ""):
+        self.network.saveModel(path, name)
+
+    def setTemperature(self, val):
+        self.temperature = val
+
+    def getTemperature(self):
+        return self.temperature
+
+    def getNetwork(self):
+        return self.network
+
+    def getQValues(self):
+        return self.qValues
+
+    def getTDError(self):
+        return self.latestTDerror
+
+    def getFrameSkipRate(self):
+        return self.parameters.FRAME_SKIP_RATE
+
+"""
+
+    def updateActionModel(self, time):
+        if self.parameters.NEURON_TYPE == "LSTM" and time % self.parameters.UPDATE_LSTM_MOVE_NETWORK == 0:
+            self.network.updateActionNetwork()
+
 
     def train_LSTM_batch(self, batch):
         len_batch = len(batch)
@@ -236,92 +318,4 @@ class QLearn(object):
 
 #TODO: Get loss from all trainOnBatch calls, store them in an array and plot them
 
-
-    def learn(self, batch):
-        if self.parameters.NEURON_TYPE == "LSTM":
-            self.train_LSTM(batch)
-        else:
-            idxs, priorities =  self.train(batch)
-
-        self.latestTDerror = numpy.mean(priorities[-1])
-        return idxs, priorities
-
-    def getNoise(self):
-        return self.epsilon
-
-    def setNoise(self, val):
-        self.epsilon = val
-
-    def updateNoise(self):
-        self.epsilon *= self.parameters.NOISE_DECAY
-        self.temperature *= self.parameters.TEMPERATURE_DECAY
-
-    def updateNetworks(self, time):
-        self.updateTargetModel(time)
-        self.updateActionModel(time)
-
-    def updateTargetModel(self, time):
-        if time % self.parameters.TARGET_NETWORK_STEPS == 0:
-           self.network.updateTargetNetwork()
-
-    def updateActionModel(self, time):
-        if self.parameters.NEURON_TYPE == "LSTM" and time % self.parameters.UPDATE_LSTM_MOVE_NETWORK == 0:
-            self.network.updateActionNetwork()
-
-
-    def decideExploration(self, bot):
-        if self.parameters.EXPLORATION_STRATEGY == "e-Greedy":
-            if numpy.random.random(1) < self.epsilon:
-                explore = True
-                newActionIdx = numpy.random.randint(len(self.network.getActions()))
-                self.qValues.append(float("NaN"))
-                if __debug__:
-                    bot.setExploring(True)
-                return explore, newActionIdx
-        return False, None
-
-    def decideMove(self, newState, bot):
-        # Take random action with probability 1 - epsilon
-        explore, newActionIdx = self.decideExploration(bot)
-        if not explore:
-            q_Values = self.network.predict_action(newState)
-            if self.parameters.EXPLORATION_STRATEGY == "Boltzmann" and self.temperature != 0:
-                q_Values = boltzmannDist(q_Values, self.temperature)
-                action_value = numpy.random.choice(q_Values, p=q_Values)
-                newActionIdx = numpy.argmax(q_Values == action_value)
-            else:
-                newActionIdx = numpy.argmax(q_Values)
-            # Book keeping:
-            self.qValues.append(q_Values[newActionIdx])
-            if __debug__:
-                bot.setExploring(False)
-
-        if __debug__  and not explore:
-            average_value = round(numpy.mean(q_Values), 1)
-            q_value = round(q_Values[newActionIdx], 1)
-            print("Expected Q-value: ", average_value, " Q(s,a) of current action: ", q_value)
-            print("")
-        newAction = self.network.actions[newActionIdx]
-
-        return newActionIdx, newAction
-
-    def save(self, path, name = ""):
-        self.network.saveModel(path, name)
-
-    def setTemperature(self, val):
-        self.temperature = val
-
-    def getTemperature(self):
-        return self.temperature
-
-    def getNetwork(self):
-        return self.network
-
-    def getQValues(self):
-        return self.qValues
-
-    def getTDError(self):
-        return self.latestTDerror
-
-    def getFrameSkipRate(self):
-        return self.parameters.FRAME_SKIP_RATE
+"""

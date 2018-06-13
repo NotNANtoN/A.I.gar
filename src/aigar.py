@@ -347,8 +347,8 @@ def runTests(model):
 
     print("Testing...")
     # Set Parameters:
-    resetPellet = 10000
-    resetGreedy = 20000
+    resetPellet = 15000
+    resetGreedy = 30000
     resetVirus = 15000
     n_test_runs = 10
     trainedBot = model.getNNBot()

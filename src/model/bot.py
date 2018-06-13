@@ -211,7 +211,6 @@ class Bot(object):
             if self.trainMode and self.oldState is not None:
                 self.time += 1
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
-                currentExperience = (self.oldState, action, self.lastReward, newState, False)
                 batch = []
                 if self.parameters.EXP_REPLAY_ENABLED:
                     self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
