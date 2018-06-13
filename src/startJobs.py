@@ -153,12 +153,13 @@ def runJobs(jobs):
         script.write(data)
         script.close()
 
-        try:
-            subprocess.call(["sbatch" , fileName])
-        except FileNotFoundError:
-            script.close()
-            print("Command sbatch not found or filename invalid!")
-            print("Filename: ", fileName)
+        for jobNum in range(job[2]):
+            try:
+                subprocess.call(["sbatch" , fileName])
+            except FileNotFoundError:
+                script.close()
+                print("Command sbatch not found or filename invalid!")
+                print("Filename: ", fileName)
 
         os.remove(fileName)
 
