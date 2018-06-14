@@ -266,6 +266,9 @@ class Network(object):
 
         # Fully connected layers
         if self.parameters.NEURON_TYPE == "MLP":
+
+
+
             # Hidden Layer 1
             if self.parameters.CNN_REPRESENTATION:
                 dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
