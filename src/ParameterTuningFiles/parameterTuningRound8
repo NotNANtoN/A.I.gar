@@ -37,7 +37,6 @@ MEMORY_BETA 0.35 5x:
 MEMORY_BETA 0.3  5x:
 MEMORY_BETA 0.1  5x:
 
-Default "test" 1x:
 
 NUM_NN_BOTS 2 &
  Default "2NN_Q" 10x:
@@ -47,7 +46,7 @@ NUM_NN_BOTS 2 &
  DEATH_TERM -150  3x:
 
  DEATH_FACTOR 1.5  3x:
- Default      2   10x:
+#Default      2   10x:
  DEATH_FACTOR 2.5  3x:
 
  FRAME_SKIP_RATE 6  3x:
