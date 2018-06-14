@@ -102,13 +102,14 @@ def runJobs(jobs):
     outputNameLineBase = sampleLines[6][:17]
     sampleJobScriptFile.close()
 
-    standardTime = 15  # hours for 500k steps
+    standardTime = 7.5  # hours for 500k steps for standard Q-learning without other bots
 
     for idx, job in enumerate(jobs):
         paramData = ""
         outputName = ""
         timeBotFactor = 1
         timeStepFactor = 1
+        timeOtherFactor = 1
         resetTime = 15000
         algorithmType = 0
         for paramIdx in range(len(job[0])):
@@ -121,16 +122,19 @@ def runJobs(jobs):
             outputName += paramName + "-" + paramVal.replace(".", "_") + "_"
 
             if paramName == "NUM_NN_BOTS":
-                timeBotFactor = int(paramVal)
+                timeBotFactor *= int(paramVal)
                 resetTime = 30000
             elif paramName == "NUM_GREEDY_BOTS" and int(paramVal) > 0:
                 resetTime = 30000
-                timeBotFactor *= 1.1
+                timeBotFactor *= (1 + 0.1 * int(paramVal))
             elif paramName == "MAX_TRAINING_STEPS":
-                timeStepFactor = int(paramVal) / 500000
+                timeStepFactor *= int(paramVal) / 500000
             elif paramName == "ACTOR_CRITIC_TYPE":
                 algorithmType = 2
-        jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor)
+            elif paramName == "USE_ACTION_AS_INPUT":
+                timeOtherFactor *= 2
+
+        jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24
         hours = jobTime % 24
 

@@ -163,165 +163,148 @@ class Network(object):
             weight_initializer_range = math.sqrt(6 / (self.stateReprLen + self.num_actions))
             initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                            maxval=weight_initializer_range, seed=None)
-        if self.gpus > 1:
-            with tf.device("/cpu:0"):
-                self.valueNetwork = Sequential()
-                self.valueNetwork.add(Dense(self.hiddenLayer1, input_dim=inputDim, activation=self.activationFuncHidden,
-                                            bias_initializer=initializer, kernel_initializer=initializer))
-                if self.hiddenLayer2 > 0:
-                    self.valueNetwork.add(
-                        Dense(self.hiddenLayer2, activation=self.activationFuncHidden, bias_initializer=initializer
-                              , kernel_initializer=initializer))
-                if self.hiddenLayer3 > 0:
-                    self.valueNetwork.add(
-                        Dense(self.hiddenLayer3, activation=self.activationFuncHidden, bias_initializer=initializer
-                              , kernel_initializer=initializer))
-                self.valueNetwork.add(
-                    Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
-                          , kernel_initializer=initializer))
-                self.valueNetwork = multi_gpu_model(self.valueNetwork, gpus=self.gpus)
-        else:
 
-            # CNN
-            if self.parameters.CNN_REPRESENTATION:
-                if self.parameters.CNN_PIXEL_REPRESENTATION:
-                    if self.parameters.CNN_PIXEL_INCEPTION:
 
-                        self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
+        # CNN
+        if self.parameters.CNN_REPRESENTATION:
+            if self.parameters.CNN_PIXEL_REPRESENTATION:
+                if self.parameters.CNN_PIXEL_INCEPTION:
 
-                        tower_1 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
-                        tower_1 = Conv2D(self.filterNum_2, (3, 3), padding='same', activation='relu')(tower_1)
+                    self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
 
-                        tower_2 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
-                        tower_2 = Conv2D(self.filterNum_2, (5, 5), padding='same', activation='relu')(tower_2)
+                    tower_1 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
+                    tower_1 = Conv2D(self.filterNum_2, (3, 3), padding='same', activation='relu')(tower_1)
 
-                        tower_3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(self.input)
-                        tower_3 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(tower_3)
+                    tower_2 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(self.input)
+                    tower_2 = Conv2D(self.filterNum_2, (5, 5), padding='same', activation='relu')(tower_2)
 
-                        self.valueNetwork = keras.layers.concatenate([tower_1, tower_2, tower_3], axis=3)
-                        self.valueNetwork = keras.layers.Flatten()(self.valueNetwork)
-                    else:
-                        self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
-                        if self.parameters.CNN_USE_LAYER_1:
-                            conv1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
-                                                strides=(self.stride_1, self.stride_1), activation='relu',
-                                                data_format='channels_last')(self.input)
+                    tower_3 = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(self.input)
+                    tower_3 = Conv2D(self.filterNum_2, (1, 1), padding='same', activation='relu')(tower_3)
 
-                        if self.parameters.CNN_USE_LAYER_2:
-                            if self.parameters.CNN_USE_LAYER_1:
-                                conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                     strides=(self.stride_2, self.stride_2), activation='relu',
-                                                     data_format='channels_last')(conv1)
-                            else:
-                                conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                    strides=(self.stride_2, self.stride_2), activation='relu',
-                                                    data_format='channels_last')(self.input)
-
-                        if self.parameters.CNN_USE_LAYER_2:
-                            conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                                 strides=(self.stride_3, self.stride_3), activation='relu',
-                                                 data_format='channels_last')(conv2)
-                        else:
-                            conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                                strides=(self.stride_3, self.stride_3), activation='relu',
-                                                data_format='channels_last')(self.input)
-                        self.valueNetwork = Flatten()(conv3)
-
-                # Not pixel input
+                    self.valueNetwork = keras.layers.concatenate([tower_1, tower_2, tower_3], axis=3)
+                    self.valueNetwork = keras.layers.Flatten()(self.valueNetwork)
                 else:
-                    tower = []
-                    self.input = []
-                    self.towerModel = []
-                    for grid in range(self.parameters.NUM_OF_GRIDS):
-                        self.input.append(Input(shape=(1, self.stateReprLen, self.stateReprLen)))
+                    self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
+                    if self.parameters.CNN_USE_LAYER_1:
+                        conv1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                            strides=(self.stride_1, self.stride_1), activation='relu',
+                                            data_format='channels_last')(self.input)
+
+                    if self.parameters.CNN_USE_LAYER_2:
                         if self.parameters.CNN_USE_LAYER_1:
-                            tower.append(Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
-                                                strides=(self.stride_1, self.stride_1), activation='relu',
-                                                data_format='channels_first')(self.input[grid]))
+                            conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                 strides=(self.stride_2, self.stride_2), activation='relu',
+                                                 data_format='channels_last')(conv1)
+                        else:
+                            conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                strides=(self.stride_2, self.stride_2), activation='relu',
+                                                data_format='channels_last')(self.input)
 
-                        if self.parameters.CNN_USE_LAYER_2:
-                            if self.parameters.CNN_USE_LAYER_1:
-                                tower[grid] = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                     strides=(self.stride_2, self.stride_2), activation='relu',
-                                                     data_format='channels_first')(tower[grid])
-                            else:
-                                tower.append(Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                    strides=(self.stride_2, self.stride_2), activation='relu',
-                                                    data_format='channels_first')(self.input[grid]))
+                    if self.parameters.CNN_USE_LAYER_2:
+                        conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                             strides=(self.stride_3, self.stride_3), activation='relu',
+                                             data_format='channels_last')(conv2)
+                    else:
+                        conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                            strides=(self.stride_3, self.stride_3), activation='relu',
+                                            data_format='channels_last')(self.input)
+                    self.valueNetwork = Flatten()(conv3)
 
-                        if self.parameters.CNN_USE_LAYER_2:
-                            tower[grid] = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                                 strides=(self.stride_3, self.stride_3), activation='relu',
+            # Not pixel input
+            else:
+                tower = []
+                self.input = []
+                self.towerModel = []
+                for grid in range(self.parameters.NUM_OF_GRIDS):
+                    self.input.append(Input(shape=(1, self.stateReprLen, self.stateReprLen)))
+                    if self.parameters.CNN_USE_LAYER_1:
+                        tower.append(Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                            strides=(self.stride_1, self.stride_1), activation='relu',
+                                            data_format='channels_first')(self.input[grid]))
+
+                    if self.parameters.CNN_USE_LAYER_2:
+                        if self.parameters.CNN_USE_LAYER_1:
+                            tower[grid] = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                 strides=(self.stride_2, self.stride_2), activation='relu',
                                                  data_format='channels_first')(tower[grid])
                         else:
-                            tower.append(Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                                strides=(self.stride_3, self.stride_3), activation='relu',
+                            tower.append(Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                strides=(self.stride_2, self.stride_2), activation='relu',
                                                 data_format='channels_first')(self.input[grid]))
-                        tower[grid] = Flatten()(tower[grid])
 
-                    self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
+                    if self.parameters.CNN_USE_LAYER_2:
+                        tower[grid] = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                             strides=(self.stride_3, self.stride_3), activation='relu',
+                                             data_format='channels_first')(tower[grid])
+                    else:
+                        tower.append(Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                            strides=(self.stride_3, self.stride_3), activation='relu',
+                                            data_format='channels_first')(self.input[grid]))
+                    tower[grid] = Flatten()(tower[grid])
 
-            # Fully connected layers
-            if self.parameters.NEURON_TYPE == "MLP":
-                # Hidden Layer 1
-                if self.parameters.CNN_REPRESENTATION:
-                    dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
-                                        bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
-                else:
+                self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
 
-                    self.input = Input(shape=(self.stateReprLen,))
-                    dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
-                                        bias_initializer=initializer, kernel_initializer=initializer)(self.input)
+        # Fully connected layers
+        if self.parameters.NEURON_TYPE == "MLP":
+            # Hidden Layer 1
+            if self.parameters.CNN_REPRESENTATION:
+                dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
+            else:
+
+                self.input = Input(shape=(inputDim,))
+                dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(self.input)
+            if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+            # Hidden 2
+            if self.hiddenLayer2 > 0:
+                dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
                 if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
                     dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
-                # Hidden 2
-                if self.hiddenLayer2 > 0:
-                    dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
-                                        bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
-                    if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                        dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
-                # Hidden 3
-                if self.hiddenLayer3 > 0:
-                    dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
-                                        bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
-                    if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                        dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
-                # Output layer
-                self.output = Dense(self.num_actions, activation=self.activationFuncOutput, bias_initializer=initializer
-                                    , kernel_initializer=initializer)(dense_layer)
+            # Hidden 3
+            if self.hiddenLayer3 > 0:
+                dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
+                if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                    dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
+            # Output layer
+            self.output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer
+                                , kernel_initializer=initializer)(dense_layer)
 
-                self.valueNetwork = Model(inputs=self.input, outputs=self.output)
+            self.valueNetwork = Model(inputs=self.input, outputs=self.output)
 
-            elif self.parameters.NEURON_TYPE == "LSTM":
-                # Hidden Layer 1
-                # TODO: Use CNN with LSTM
-                # if self.parameters.CNN_REPRESENTATION:
-                #     hidden1 = LSTM(self.hiddenLayer1, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
-                # else:
-                #     hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences = True,
-                #                    stateful= stateful_training, batch_size=self.batch_len)
-                hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences=True,
-                               stateful=stateful_training, batch_size=self.batch_len, bias_initializer=initializer
+        elif self.parameters.NEURON_TYPE == "LSTM":
+            # Hidden Layer 1
+            # TODO: Use CNN with LSTM
+            # if self.parameters.CNN_REPRESENTATION:
+            #     hidden1 = LSTM(self.hiddenLayer1, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
+            # else:
+            #     hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences = True,
+            #                    stateful= stateful_training, batch_size=self.batch_len)
+            hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences=True,
+                           stateful=stateful_training, batch_size=self.batch_len, bias_initializer=initializer
+                           , kernel_initializer=initializer)
+            self.valueNetwork.add(hidden1)
+            # Hidden 2
+            if self.hiddenLayer2 > 0:
+                hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training,
+                               batch_size=self.batch_len, bias_initializer=initializer
                                , kernel_initializer=initializer)
-                self.valueNetwork.add(hidden1)
-                # Hidden 2
-                if self.hiddenLayer2 > 0:
-                    hidden2 = LSTM(self.hiddenLayer2, return_sequences=True, stateful=stateful_training,
-                                   batch_size=self.batch_len, bias_initializer=initializer
-                                   , kernel_initializer=initializer)
-                    self.valueNetwork.add(hidden2)
-                # Hidden 3
-                if self.hiddenLayer3 > 0:
-                    hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training,
-                                   batch_size=self.batch_len, bias_initializer=initializer
-                                   , kernel_initializer=initializer)
-                    self.valueNetwork.add(hidden3)
-                # Output layer
-                output = LSTM(outputDim, activation=self.activationFuncOutput,
-                              return_sequences=True, stateful=stateful_training, batch_size=self.batch_len,
-                              bias_initializer=initializer
-                              , kernel_initializer=initializer)
-                self.valueNetwork.add(output)
+                self.valueNetwork.add(hidden2)
+            # Hidden 3
+            if self.hiddenLayer3 > 0:
+                hidden3 = LSTM(self.hiddenLayer3, return_sequences=True, stateful=stateful_training,
+                               batch_size=self.batch_len, bias_initializer=initializer
+                               , kernel_initializer=initializer)
+                self.valueNetwork.add(hidden3)
+            # Output layer
+            output = LSTM(outputDim, activation=self.activationFuncOutput,
+                          return_sequences=True, stateful=stateful_training, batch_size=self.batch_len,
+                          bias_initializer=initializer
+                          , kernel_initializer=initializer)
+            self.valueNetwork.add(output)
 
         # Create target network
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
@@ -438,7 +421,7 @@ class Network(object):
 
     def predictTargetQValues(self, state):
         if self.parameters.USE_ACTION_AS_INPUT:
-            return [self.predict_target_network(numpy.concatenate((state, act))) for act in self.actions]
+            return [self.predict_target_network(numpy.array([numpy.concatenate((state[0], act))]))[0] for act in self.actions]
         else:
             return self.predict_target_network(state)
 
@@ -471,7 +454,7 @@ class Network(object):
 
     def predict_action(self, state):
         if self.parameters.USE_ACTION_AS_INPUT:
-            return [self.predict(numpy.concatenate((state, act))) for act in self.actions]
+            return [self.predict(numpy.array([numpy.concatenate((state[0], act))]))[0] for act in self.actions]
         else:
             if self.parameters.NEURON_TYPE == "MLP":
                 return self.predict(state)
