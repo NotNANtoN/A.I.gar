@@ -48,12 +48,13 @@ def display_top(snapshot, key_type='lineno', limit=3):
 # It links the actions of the players to consequences in the field and updates information.
 
 class Model(object):
-    def __init__(self, guiEnabled, viewEnabled, virusEnabled, resetLimit, trainingEnabled, testingModel = False):
+    def __init__(self, guiEnabled, viewEnabled, parameters, trainingEnabled, testingModel = False):
         self.listeners = []
         self.viewEnabled = viewEnabled
         self.guiEnabled = guiEnabled
-        self.virusEnabled = virusEnabled
-        self.resetLimit = resetLimit
+        self.parameters = parameters
+        self.virusEnabled = parameters.VIRUS_SPAWN
+        self.resetLimit = parameters.RESET_LIMIT
         self.trainingEnabled = trainingEnabled
         self.path = None
         self.superPath = None
@@ -65,7 +66,7 @@ class Model(object):
         self.humans = []
         self.playerSpectator = None
         self.spectatedPlayer = None
-        self.field = Field(virusEnabled)
+        self.field = Field(self.virusEnabled)
         self.screenWidth = None
         self.screenHeight = None
         self.counter = 0
@@ -73,7 +74,7 @@ class Model(object):
         self.rewards = []
         self.tdErrors = []
         self.dataFiles = {}
-        self.pointAveraging = 500
+        self.pointAveraging = parameters.EXPORT_POINT_AVERAGING
 
         if __debug__:
             tracemalloc.start()
@@ -738,6 +739,12 @@ class Model(object):
 
     def getPointAveraging(self):
         return self.pointAveraging
+
+    def getParameters(self):
+        return self.parameters
+
+    def getVirusEnabled(self):
+        return self.virusEnabled
 
     # MVC related method
     def register_listener(self, listener):

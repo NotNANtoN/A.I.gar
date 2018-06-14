@@ -274,7 +274,7 @@ def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=Tr
 
 
 def cloneModel(model):
-    clone = Model(False, False, model.virusEnabled, model.resetLimit, False)
+    clone = Model(False, False, model.getParameters(), False)
     for bot in model.getBots():
         clone.createBot(bot.getType(), bot.getLearningAlg(), bot.parameters)
     return clone
@@ -355,20 +355,20 @@ def runTests(model):
     trainedAlg = trainedBot.getLearningAlg()
     evaluations = []
     # Pellet testing:
-    pelletModel = Model(False, False, False, 0, False)
+    pelletModel = Model(False, False, model.getParameters(), False)
     pelletModel.createBot("NN", trainedAlg, parameters)
     pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
     # Greedy Testing:
     if len(model.getBots()) > 1:
-        greedyModel = Model(False, False, False, 0, False)
+        greedyModel = Model(False, False, model.getParameters(), False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
         greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
     # Virus Testing:
-    if model.virusEnabled:
-        virusModel = Model(False, False, True, 0, False)
+    if model.getVirusEnabled():
+        virusModel = Model(False, False, model.getParameters(), False)
         virusModel.createBot("NN", trainedAlg, parameters)
         virusEvaluation = testModel(virusModel, n_test_runs, resetVirus, model.getPath(), "virus")
         evaluations.append(virusEvaluation)
@@ -404,33 +404,12 @@ if __name__ == '__main__':
         viewEnabled = int(input("Display view?: (1 == yes)\n"))
         viewEnabled = (viewEnabled == 1)
 
-    virusEnabled = int(input("Viruses enabled? (1==True)\n")) == 1
-    resetSteps = int(input("Reset model after X steps (X==0 means no reset)\n"))
-    model = Model(guiEnabled, viewEnabled, virusEnabled, resetSteps, True)
-
-    numberOfHumans = 0
-    mouseEnabled = True
-    humanTraining = False
-    if guiEnabled and viewEnabled:
-        numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
-        if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
-            createHumans(numberOfHumans, model)
-            if 2 >= numberOfHumans > 0:
-                humanTraining = int(input("Do you want to train the network using human input? (1 == yes)\n"))
-                mouseEnabled = not humanTraining
-            if numberOfHumans > 0 and not humanTraining:
-                mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
-
-        if not model.hasHuman():
-            spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
-            if spectate == 1:
-                model.addPlayerSpectator()
-
     modelName = None
     modelPath = None
     loadedModelName = None
     algorithm = None
     packageName = None
+    parameters = None
     model_in_subfolder = False
     loadModel = int(input("Do you want to load a model? (1 == yes)\n"))
     loadModel = (loadModel == 1)
@@ -484,7 +463,6 @@ if __name__ == '__main__':
             algorithm = algorithmNameToNumber(parameters.ALGORITHM)
             # model.setPath(modelName)
 
-    tweakedTotal = []
     if not loadModel:
         parameters = importlib.import_module('.networkParameters', package="model")
 
@@ -492,6 +470,7 @@ if __name__ == '__main__':
                               "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Actor-Critic' == 2,\n" + \
                               " 'Tree Backup' == 3, 'Expected Sarsa' == 4\n"))
     tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
+    tweakedTotal = []
     if tweaking == 1:
         while True:
             tweakedParameter = str(input("Enter name of parameter to be tweaked:\n"))
@@ -507,7 +486,29 @@ if __name__ == '__main__':
     if int(input("Give saveModel folder a custom name? (1 == yes)\n")) == 1:
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
+
+    model = Model(guiEnabled, viewEnabled, parameters, True)
+
     model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
+
+    numberOfHumans = 0
+    mouseEnabled = True
+    humanTraining = False
+    if guiEnabled and viewEnabled:
+        numberOfHumans = int(input("Please enter the number of human players: (" + str(MAXHUMANPLAYERS) + " max)\n"))
+        if fitsLimitations(numberOfHumans, MAXHUMANPLAYERS):
+            createHumans(numberOfHumans, model)
+            if 2 >= numberOfHumans > 0:
+                humanTraining = int(input("Do you want to train the network using human input? (1 == yes)\n"))
+                mouseEnabled = not humanTraining
+            if numberOfHumans > 0 and not humanTraining:
+                mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
+
+        if not model.hasHuman():
+            spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
+            if spectate == 1:
+                model.addPlayerSpectator()
+
 
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
@@ -564,8 +565,8 @@ if __name__ == '__main__':
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 10% of training
-            # if step % (smallPart * 5) == 0:
-            #     testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
+            if step % (smallPart * 5) == 0:
+                testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
         testResults = updateTestResults(testResults, model, 100)
         meanMassesOfTestResults = [val[0] for val in testResults]
         exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
