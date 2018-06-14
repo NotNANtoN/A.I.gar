@@ -7,7 +7,8 @@ from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
 from keras.models import load_model
 from keras import backend as K
-
+from keras.layers import Input, Dense
+from keras.models import Model
 
 def relu_max(x):
     return K.relu(x, max_value=1)
@@ -23,11 +24,8 @@ class ValueNetwork(object):
         self.activationFuncHidden = self.parameters.ACTIVATION_FUNC_HIDDEN
         self.activationFuncOutput = self.parameters.ACTIVATION_FUNC_OUTPUT
 
-        self.hiddenLayer1 = self.parameters.HIDDEN_LAYER_1
-        self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2
-        self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3
+        self.layers = parameters.CACLA_CRITIC_LAYERS
 
-        num_outputs = 1  # value for state
 
         if modelName is not None:
             self.load(modelName)
@@ -42,43 +40,20 @@ class ValueNetwork(object):
             initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                            maxval=weight_initializer_range, seed=None)
 
+        self.input = Input(shape=(self.stateReprLen,))
+        previousLayer = self.input
 
-        self.model = Sequential()
-        hidden1 = None
-        if self.parameters.NEURON_TYPE == "MLP":
-            hidden1 = Dense(self.hiddenLayer1, input_dim=self.stateReprLen,
-                            activation=self.activationFuncHidden,
-                            bias_initializer=initializer, kernel_initializer=initializer)
-        elif self.parameters.NEURON_TYPE == "LSTM":
-            hidden1 = LSTM(self.hiddenLayer1, input_shape=(self.stateReprLen, 1),
-                           activation=self.activationFuncHidden,
-                           bias_initializer=initializer, kernel_initializer=initializer)
+        for layer in self.layers:
+            previousLayer = Dense(layer, activation=self.activationFuncHidden,
+                                bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
+            if self.parameters.ACTIVATION_FUNC_HIDDEN_POLICY == "elu":
+                previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
 
-        self.model.add(hidden1)
-        # self.valueNetwork.add(Dropout(0.5))
-        hidden2 = None
-        if self.hiddenLayer2 > 0:
-            if self.parameters.NEURON_TYPE == "MLP":
-                hidden2 = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
-                                bias_initializer=initializer, kernel_initializer=initializer)
-            elif self.parameters.NEURON_TYPE == "LSTM":
-                hidden2 = LSTM(self.hiddenLayer2, activation=self.activationFuncHidden,
-                               bias_initializer=initializer, kernel_initializer=initializer)
-            self.model.add(hidden2)
-            # self.valueNetwork.add(Dropout(0.5))
+        output = Dense(1, activation="linear", bias_initializer=initializer
+                            , kernel_initializer=initializer)(previousLayer)
 
-        if self.hiddenLayer3 > 0:
-            hidden3 = None
-            if self.parameters.NEURON_TYPE == "MLP":
-                hidden3 = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
-                                bias_initializer=initializer, kernel_initializer=initializer)
-            elif self.parameters.NEURON_TYPE == "LSTM":
-                hidden3 = LSTM(self.hiddenLayer3, activation=self.activationFuncHidden,
-                               bias_initializer=initializer, kernel_initializer=initializer)
-            self.model.add(hidden3)
-            # self.valueNetwork.add(Dropout(0.5))
+        self.model = Model(inputs=self.input, outputs=output)
 
-        self.model.add(Dense(num_outputs, activation='linear', bias_initializer=initializer, kernel_initializer=initializer))
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)
 

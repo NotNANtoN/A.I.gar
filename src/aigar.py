@@ -2,14 +2,15 @@ import os
 import sys
 import importlib
 from controller.controller import Controller
-from model.model import *
-from model.network import Network
 from model.qLearning import *
 from model.nsSarsa import *
 from model.expectedSarsa import *
 from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
+from model.bot import *
+from model.model import Model
+
 from view.view import View
 from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
 
