@@ -1,4 +1,5 @@
 from random import randint
+from numpy import sum
 
 class Player(object):
     """docstring for Player"""
@@ -8,7 +9,8 @@ class Player(object):
         return self.name
 
     def __init__(self, name):
-        self.color = (randint(0, 255), randint(0, 255), randint(0, 255))
+        self.color = None
+        self.randomizeColor()
         self.name = name
         self.cells = []
         self.canSplit = False
@@ -32,6 +34,11 @@ class Player(object):
             self.split(fieldWidth, fieldHeight)
             self.eject()
             self.updateCellsMovement(fieldWidth, fieldHeight)
+
+    def randomizeColor(self):
+        self.color = (randint(0, 255), randint(0, 255), randint(0, 255))
+        if sum(self.color) > 600:
+            self.randomizeColor()
 
     def decayMass(self):
         for cell in self.cells:

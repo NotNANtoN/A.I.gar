@@ -89,20 +89,6 @@ class Network(object):
 
         # CNN
         if self.parameters.CNN_REPRESENTATION:
-            # if self.parameters.CNN_PIXEL_REPRESENTATION:
-            #     if self.parameters.CNN_PIXEL_INCEPTION:
-            #
-            #         self.filterNum_1 = self.parameters.CNN_PIXEL_LAYER_1_FILTER_NUM
-            #         self.filterNum_2 = self.parameters.CNN_PIXEL_LAYER_2_FILTER_NUM
-            #         self.filterNum_3 = self.parameters.CNN_PIXEL_LAYER_3_FILTER_NUM
-            #
-            #         if self.parameters.CNN_PIXEL_USE_LAYER_1:
-            #             self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_1
-            #         elif self.parameters.CNN_USE_LAYER_2:
-            #             self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_2
-            #         else:
-            #             self.stateReprLen = self.parameters.CNN_PIXEL_SIZE_OF_INPUT_DIM_3
-            # else:
             self.kernelLen_1 = self.parameters.CNN_LAYER_1
             self.stride_1 = self.parameters.CNN_LAYER_1_STRIDE
             self.filterNum_1 = self.parameters.CNN_LAYER_1_FILTER_NUM
@@ -166,6 +152,7 @@ class Network(object):
 
 
         # CNN
+            # CNN
         if self.parameters.CNN_REPRESENTATION:
             if self.parameters.CNN_PIXEL_REPRESENTATION:
                 if self.parameters.CNN_PIXEL_INCEPTION:
@@ -183,66 +170,99 @@ class Network(object):
 
                     self.valueNetwork = keras.layers.concatenate([tower_1, tower_2, tower_3], axis=3)
                     self.valueNetwork = keras.layers.Flatten()(self.valueNetwork)
+
+                # DQN approach
                 else:
                     self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
                     if self.parameters.CNN_USE_LAYER_1:
                         conv1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
-                                            strides=(self.stride_1, self.stride_1), activation='relu',
-                                            data_format='channels_last')(self.input)
+                                       strides=(self.stride_1, self.stride_1), activation='relu',
+                                       data_format='channels_last')(self.input)
 
                     if self.parameters.CNN_USE_LAYER_2:
                         if self.parameters.CNN_USE_LAYER_1:
                             conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                 strides=(self.stride_2, self.stride_2), activation='relu',
-                                                 data_format='channels_last')(conv1)
+                                           strides=(self.stride_2, self.stride_2), activation='relu',
+                                           data_format='channels_last')(conv1)
                         else:
                             conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                strides=(self.stride_2, self.stride_2), activation='relu',
-                                                data_format='channels_last')(self.input)
+                                           strides=(self.stride_2, self.stride_2), activation='relu',
+                                           data_format='channels_last')(self.input)
 
                     if self.parameters.CNN_USE_LAYER_2:
                         conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                             strides=(self.stride_3, self.stride_3), activation='relu',
-                                             data_format='channels_last')(conv2)
+                                       strides=(self.stride_3, self.stride_3), activation='relu',
+                                       data_format='channels_last')(conv2)
                     else:
                         conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                            strides=(self.stride_3, self.stride_3), activation='relu',
-                                            data_format='channels_last')(self.input)
+                                       strides=(self.stride_3, self.stride_3), activation='relu',
+                                       data_format='channels_last')(self.input)
                     self.valueNetwork = Flatten()(conv3)
 
             # Not pixel input
             else:
-                tower = []
-                self.input = []
-                self.towerModel = []
-                for grid in range(self.parameters.NUM_OF_GRIDS):
-                    self.input.append(Input(shape=(1, self.stateReprLen, self.stateReprLen)))
+                if self.parameters.CNN_TOWER:
+                    tower = []
+                    self.input = []
+                    self.towerModel = []
+                    for grid in range(self.parameters.NUM_OF_GRIDS):
+                        self.input.append(Input(shape=(1, self.stateReprLen, self.stateReprLen)))
+                        if self.parameters.CNN_USE_LAYER_1:
+                            tower.append(Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                                strides=(self.stride_1, self.stride_1), activation='relu',
+                                                data_format='channels_first')(self.input[grid]))
+
+                        if self.parameters.CNN_USE_LAYER_2:
+                            if self.parameters.CNN_USE_LAYER_1:
+                                tower[grid] = Conv2D(self.filterNum_2,
+                                                     kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                                     strides=(self.stride_2, self.stride_2), activation='relu',
+                                                     data_format='channels_first')(tower[grid])
+                            else:
+                                tower.append(
+                                    Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                           strides=(self.stride_2, self.stride_2), activation='relu',
+                                           data_format='channels_first')(self.input[grid]))
+
+                        if self.parameters.CNN_USE_LAYER_2:
+                            tower[grid] = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                                 strides=(self.stride_3, self.stride_3), activation='relu',
+                                                 data_format='channels_first')(tower[grid])
+                        else:
+                            tower.append(Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                                strides=(self.stride_3, self.stride_3), activation='relu',
+                                                data_format='channels_first')(self.input[grid]))
+                        tower[grid] = Flatten()(tower[grid])
+
+                    self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
+
+                # Vision grid merging
+                else:
+                    self.input = Input(shape=(self.parameters.NUM_OF_GRIDS, self.stateReprLen, self.stateReprLen))
                     if self.parameters.CNN_USE_LAYER_1:
-                        tower.append(Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
-                                            strides=(self.stride_1, self.stride_1), activation='relu',
-                                            data_format='channels_first')(self.input[grid]))
+                        conv1 = Conv2D(self.filterNum_1, kernel_size=(self.kernelLen_1, self.kernelLen_1),
+                                       strides=(self.stride_1, self.stride_1), activation='relu',
+                                       data_format='channels_first')(self.input)
 
                     if self.parameters.CNN_USE_LAYER_2:
                         if self.parameters.CNN_USE_LAYER_1:
-                            tower[grid] = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                 strides=(self.stride_2, self.stride_2), activation='relu',
-                                                 data_format='channels_first')(tower[grid])
+                            conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                           strides=(self.stride_2, self.stride_2), activation='relu',
+                                           data_format='channels_first')(conv1)
                         else:
-                            tower.append(Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
-                                                strides=(self.stride_2, self.stride_2), activation='relu',
-                                                data_format='channels_first')(self.input[grid]))
+                            conv2 = Conv2D(self.filterNum_2, kernel_size=(self.kernelLen_2, self.kernelLen_2),
+                                           strides=(self.stride_2, self.stride_2), activation='relu',
+                                           data_format='channels_first')(self.input)
 
                     if self.parameters.CNN_USE_LAYER_2:
-                        tower[grid] = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                             strides=(self.stride_3, self.stride_3), activation='relu',
-                                             data_format='channels_first')(tower[grid])
+                        conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                       strides=(self.stride_3, self.stride_3), activation='relu',
+                                       data_format='channels_first')(conv2)
                     else:
-                        tower.append(Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
-                                            strides=(self.stride_3, self.stride_3), activation='relu',
-                                            data_format='channels_first')(self.input[grid]))
-                    tower[grid] = Flatten()(tower[grid])
-
-                self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
+                        conv3 = Conv2D(self.filterNum_3, kernel_size=(self.kernelLen_3, self.kernelLen_3),
+                                       strides=(self.stride_3, self.stride_3), activation='relu',
+                                       data_format='channels_first')(self.input)
+                    self.valueNetwork = Flatten()(conv3)
 
         # Fully connected layers
         if self.parameters.NEURON_TYPE == "MLP":
@@ -403,12 +423,7 @@ class Network(object):
             else:
                 return self.valueNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
         if self.parameters.CNN_REPRESENTATION:
-            if self.parameters.CNN_PIXEL_REPRESENTATION:
-                shape = numpy.shape(state)
-                reshape = numpy.array([batch_len]+list(shape))
-                state = state.reshape(reshape)
-                return self.targetNetwork.predict(state)[0]
-            else:
+            if self.parameters.CNN_TOWER:
                 stateRepr = numpy.zeros((len(state), 1, 1,  len(state[0]), len(state[0])))
 
                 for gridIdx, grid in enumerate(state):
@@ -416,6 +431,12 @@ class Network(object):
                 stateRepr = list(stateRepr)
 
                 return self.valueNetwork.predict(stateRepr)[0]
+
+            else:
+                shape = numpy.shape(state)
+                reshape = numpy.array([batch_len]+list(shape))
+                state = state.reshape(reshape)
+                return self.valueNetwork.predict(state)[0]
         else:
             return self.valueNetwork.predict(state)[0]
 
@@ -432,19 +453,19 @@ class Network(object):
             else:
                 return self.targetNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
         if self.parameters.CNN_REPRESENTATION:
-            if self.parameters.CNN_PIXEL_REPRESENTATION:
-                shape = numpy.shape(state)
-                reshape = numpy.array([batch_len]+list(shape))
-                state = state.reshape(reshape)
-                return self.targetNetwork.predict(state)[0]
-            else:
+            if self.parameters.CNN_TOWER:
                 stateRepr = numpy.zeros((len(state), 1, 1,  len(state[0]), len(state[0])))
 
                 for gridIdx, grid in enumerate(state):
                     stateRepr[gridIdx][0][0] = grid
                 stateRepr = list(stateRepr)
 
-                return self.valueNetwork.predict(stateRepr)[0]
+                return self.targetNetwork.predict(stateRepr)[0]
+            else:
+                shape = numpy.shape(state)
+                reshape = numpy.array([batch_len]+list(shape))
+                state = state.reshape(reshape)
+                return self.targetNetwork.predict(state)[0]
         else:
             return self.targetNetwork.predict(state)[0]
 

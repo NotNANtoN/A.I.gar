@@ -299,9 +299,13 @@ class Bot(object):
                     if self.parameters.USE_LAST_ACTION:
                         last_action = self.currentAction if self.currentAction is not None else [0, 0, 0, 0]
                         additionalFeatures.extend(last_action)
+                        if len(last_action) < 4:
+                            additionalFeatures.extend(numpy.zeros(4 - len(last_action)))
                     if self.parameters.USE_SECOND_LAST_ACTION:
                         second_last_action = self.lastAction if self.lastAction is not None else [0, 0, 0, 0]
                         additionalFeatures.extend(second_last_action)
+                        if len(second_last_action) < 4:
+                            additionalFeatures.extend(numpy.zeros(4 - len(second_last_action)))
                     if len(additionalFeatures) > 0:
                         stateRepr = numpy.concatenate((gridView, additionalFeatures))
                     else:
@@ -311,7 +315,6 @@ class Bot(object):
                     stateRepr = stateRepr.reshape(shape)
             else:
                 stateRepr = self.getSimpleStateRepresentation()
-
 
         return stateRepr
 

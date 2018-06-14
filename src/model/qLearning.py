@@ -148,7 +148,7 @@ class QLearn(object):
                 targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s, not done)
             priorities[sample_idx] = td_e
 
-        if self.parameters.CNN_REPRESENTATION and not self.parameters.CNN_PIXEL_REPRESENTATION:
+        if self.parameters.CNN_TOWER:
             stateRepr = numpy.zeros((len(old_s), batch_len, 1, len(old_s[0]), len(old_s[0])))
             for gridIdx, grid in enumerate(old_s):
                 stateRepr[gridIdx][0][0] = grid

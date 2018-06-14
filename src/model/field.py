@@ -45,6 +45,7 @@ class Field(object):
 
 
     def initializePlayer(self, player):
+        player.randomizeColor()
         player.cells = []
         x, y = self.getSpawnPos(START_RADIUS)
         newCell = Cell(x, y, START_MASS, player)

@@ -122,17 +122,22 @@ def runJobs(jobs):
             outputName += paramName + "-" + paramVal.replace(".", "_") + "_"
 
             if paramName == "NUM_NN_BOTS":
-                timeBotFactor *= int(paramVal)
+                timeBotFactor *= int(paramVal * 2)
                 resetTime = 30000
             elif paramName == "NUM_GREEDY_BOTS" and int(paramVal) > 0:
                 resetTime = 30000
-                timeBotFactor *= (1 + 0.1 * int(paramVal))
+                timeBotFactor *= (1 + 0.2 * int(paramVal))
             elif paramName == "MAX_TRAINING_STEPS":
                 timeStepFactor *= int(paramVal) / 500000
             elif paramName == "ACTOR_CRITIC_TYPE":
                 algorithmType = 2
             elif paramName == "USE_ACTION_AS_INPUT":
-                timeOtherFactor *= 2
+                timeOtherFactor *= 4
+            elif paramName == "ACTOR_CRITIC_TYPE":
+                if paramVal == "\"DPG\"":
+                    timeOtherFactor *= 1.25
+                elif paramVal == "\"CACLA\"":
+                    timeOtherFactor *= 1.1
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24

@@ -565,7 +565,7 @@ if __name__ == '__main__':
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 10% of training
             if step % (smallPart * 5) == 0:
-                testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
+                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
         testResults = updateTestResults(testResults, model, 100)
         meanMassesOfTestResults = [val[0] for val in testResults]
         exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
