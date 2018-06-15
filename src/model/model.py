@@ -464,9 +464,6 @@ class Model(object):
         # ANN:
         data += "ANN:\n"
         data += "Input layer neurons(stateReprLen) - " + str(parameters.STATE_REPR_LEN) + "\n"
-        data += "First hidden layer neurons - " + str(parameters.HIDDEN_LAYER_1) + "\n"
-        data += "Second hidden layer neurons - " + str(parameters.HIDDEN_LAYER_2) + "\n"
-        data += "Third hidden layer neurons - " + str(parameters.HIDDEN_LAYER_3) + "\n"
         data += "Output layer neurons(number of actions) - " + str() + "\n"
         data += "Learning rate - " + str(parameters.ALPHA) + "\n"
         data += "Activation function hidden layer(s) - " + parameters.ACTIVATION_FUNC_HIDDEN + "\n"

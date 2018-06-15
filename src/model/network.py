@@ -168,29 +168,30 @@ class Network(object):
                 else:
                     self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
                     if self.parameters.CNN_USE_LAYER_1:
-                        conv1 = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
+                        conv = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
                                        strides=(self.kernel_1[1], self.kernel_1[1]), activation='relu',
                                        data_format='channels_last')(self.input)
 
                     if self.parameters.CNN_USE_LAYER_2:
                         if self.parameters.CNN_USE_LAYER_1:
-                            conv2 = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
+                            conv = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
-                                           data_format='channels_last')(conv1)
+                                           data_format='channels_last')(conv)
                         else:
-                            conv2 = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
+                            conv = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_last')(self.input)
 
-                    if self.parameters.CNN_USE_LAYER_2:
-                        conv3 = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
-                                       strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
-                                       data_format='channels_last')(conv2)
-                    else:
-                        conv3 = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
-                                       strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
-                                       data_format='channels_last')(self.input)
-                    self.valueNetwork = Flatten()(conv3)
+                    if self.parameters.CNN_USE_LAYER_3:
+                        if self.parameters.CNN_USE_LAYER_2:
+                            conv = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
+                                           strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
+                                           data_format='channels_last')(conv)
+                        else:
+                            conv = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
+                                           strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
+                                           data_format='channels_last')(self.input)
+                    self.valueNetwork = Flatten()(conv)
 
             # Not pixel input
             else:
@@ -216,15 +217,16 @@ class Network(object):
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_first')(self.input[grid]))
 
-                        if self.parameters.CNN_USE_LAYER_2:
-                            tower[grid] = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
-                                       strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
-                                       data_format='channels_first')(tower[grid])
-                        else:
-                            tower.append(Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
-                                       strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
-                                       data_format='channels_first')(self.input[grid]))
-                        tower[grid] = Flatten()(tower[grid])
+                        if self.parameters.CNN_USE_LAYER_3:
+                            if self.parameters.CNN_USE_LAYER_2:
+                                tower[grid] = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
+                                           strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
+                                           data_format='channels_first')(tower[grid])
+                            else:
+                                tower.append(Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
+                                           strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
+                                           data_format='channels_first')(self.input[grid]))
+                            tower[grid] = Flatten()(tower[grid])
 
                     self.valueNetwork = keras.layers.concatenate([i for i in tower], axis=1)
 
@@ -232,29 +234,30 @@ class Network(object):
                 else:
                     self.input = Input(shape=(self.parameters.NUM_OF_GRIDS, self.stateReprLen, self.stateReprLen))
                     if self.parameters.CNN_USE_LAYER_1:
-                        conv1 = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
+                        conv = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
                                        strides=(self.kernel_1[1], self.kernel_1[1]), activation='relu',
                                        data_format='channels_first')(self.input)
 
                     if self.parameters.CNN_USE_LAYER_2:
                         if self.parameters.CNN_USE_LAYER_1:
-                            conv2 = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
+                            conv = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
-                                           data_format='channels_first')(conv1)
+                                           data_format='channels_first')(conv)
                         else:
-                            conv2 = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
+                            conv = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_first')(self.input)
 
-                    if self.parameters.CNN_USE_LAYER_2:
-                        conv3 = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
-                                       strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
-                                       data_format='channels_first')(conv2)
-                    else:
-                        conv3 = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
-                                       strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
-                                       data_format='channels_first')(self.input)
-                    self.valueNetwork = Flatten()(conv3)
+                    if self.parameters.CNN_USE_LAYER_3:
+                        if self.parameters.CNN_USE_LAYER_2:
+                            conv = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
+                                           strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
+                                           data_format='channels_first')(conv)
+                        else:
+                            conv = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
+                                           strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
+                                           data_format='channels_first')(self.input)
+                    self.valueNetwork = Flatten()(conv)
 
         # Fully connected layers
         if self.parameters.NEURON_TYPE == "MLP":
@@ -270,10 +273,11 @@ class Network(object):
                 previousLayer = self.input
 
             for layer in layerIterable:
-                previousLayer = Dense(layer, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
-                if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                    previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
+                if layer > 0:
+                    previousLayer = Dense(layer, activation=self.activationFuncHidden,
+                                        bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
+                    if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                        previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
 
             output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer
                                 , kernel_initializer=initializer)(previousLayer)
