@@ -137,10 +137,10 @@ class QLearn(object):
             old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx], batch[4][sample_idx]
             # No new state: dead
             if self.parameters.USE_ACTION_AS_INPUT:
-                stateAction =  numpy.concatenate((old_s, self.network.getActions()[a]))  #old_s.extend(a)
+                stateAction =  numpy.concatenate((old_s[0], self.network.actions[a]))  #old_s.extend(a)
                 inputs[sample_idx] = stateAction
                 updatedValue = self.calculateTargetForAction(new_s, r, not done)
-                oldValue = self.network.predict(numpy.concatenate((old_s, self.network.getActions()[a])))
+                oldValue = self.network.predict(numpy.array([numpy.concatenate((old_s[0], self.network.actions[a]))]))
                 td_e = updatedValue - oldValue
                 targets[sample_idx] = updatedValue
             else:
