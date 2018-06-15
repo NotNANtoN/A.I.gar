@@ -8,7 +8,7 @@ numpy.set_printoptions(threshold=numpy.nan)
 import tensorflow as tf
 import keras.backend as K
 from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten, Input
-from keras.models import Sequential, Model
+from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
 from keras.models import load_model, save_model
 
@@ -115,9 +115,7 @@ class Network(object):
         self.activationFuncLSTM = self.parameters.ACTIVATION_FUNC_LSTM
         self.activationFuncOutput = self.parameters.ACTIVATION_FUNC_OUTPUT
 
-        self.hiddenLayer1 = self.parameters.HIDDEN_LAYER_1
-        self.hiddenLayer2 = self.parameters.HIDDEN_LAYER_2
-        self.hiddenLayer3 = self.parameters.HIDDEN_LAYER_3
+        self.layers = parameters.Q_LAYERS
 
         if self.parameters.USE_ACTION_AS_INPUT:
             inputDim = self.stateReprLen + 4
@@ -260,34 +258,27 @@ class Network(object):
 
         # Fully connected layers
         if self.parameters.NEURON_TYPE == "MLP":
-            # Hidden Layer 1
-            if self.parameters.CNN_REPRESENTATION:
-                dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
+
+
+            layerIterable = iter(self.layers)
+
+            if parameters.CNN_REPRESENTATION:
+                previousLayer = Dense(next(layerIterable), activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
             else:
-
                 self.input = Input(shape=(inputDim,))
-                dense_layer = Dense(self.hiddenLayer1, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)(self.input)
-            if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
-            # Hidden 2
-            if self.hiddenLayer2 > 0:
-                dense_layer = Dense(self.hiddenLayer2, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
-                if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                    dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
-            # Hidden 3
-            if self.hiddenLayer3 > 0:
-                dense_layer = Dense(self.hiddenLayer3, activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)(dense_layer)
-                if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
-                    dense_layer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(dense_layer)
-            # Output layer
-            self.output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer
-                                , kernel_initializer=initializer)(dense_layer)
+                previousLayer = self.input
 
-            self.valueNetwork = Model(inputs=self.input, outputs=self.output)
+            for layer in layerIterable:
+                previousLayer = Dense(layer, activation=self.activationFuncHidden,
+                                    bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
+                if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
+                    previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
+
+            output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer
+                                , kernel_initializer=initializer)(previousLayer)
+
+            self.valueNetwork = keras.models.Model(inputs=self.input, outputs=output)
 
         elif self.parameters.NEURON_TYPE == "LSTM":
             # Hidden Layer 1
@@ -322,13 +313,9 @@ class Network(object):
 
         # Create target network
         self.targetNetwork = keras.models.clone_model(self.valueNetwork)
-        aaa = self.valueNetwork.get_weights()
-        self.targetNetwork.set_weights(aaa)
+        self.targetNetwork.set_weights(self.valueNetwork.get_weights())
 
-        if self.optimizer == "Adam":
-            optimizer = keras.optimizers.Adam(lr=self.learningRate)
-        else:
-            optimizer = keras.optimizers.SGD(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate)
 
         self.optimizer = optimizer
 

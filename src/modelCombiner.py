@@ -350,6 +350,8 @@ def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None, showCon
         stdVal = scipy.stats.sem(meanOfRuns)
         confInt = scipy.stats.t.interval(0.95, len(meanOfRuns) - 1, loc=meanVal,
                                          scale=stdVal)
+
+
         title = title + " averaged over " + str(len(meanOfRuns)) +  " runs. Mean: " + str(round(meanY,1)) +\
                 " Std: " + str(round(stdVal, 1)) + "\nConfInt95%: "+ str(np.round(confInt, 1))
 
