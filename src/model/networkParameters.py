@@ -90,17 +90,21 @@ USE_ACTION_AS_INPUT = False
 TD = 0
 
 # Actor-critic:
-SOFT_TARGET_UPDATES = True
-CACLA_CRITIC_LAYERS = (250, 250, 250)
-CACLA_CRITIC_ALPHA  = 0.000075
-CACLA_ACTOR_LAYERS  = (100, 100, 100)
-CACLA_ACTOR_ALPHA   = 0.00015
 ACTOR_CRITIC_TYPE = "CACLA" # "Standard"/"CACLA" / "DPG". Standard multiplies gradient by tdE, CACLA only updates once for positive tdE
-CACLA_UPDATE_ON_NEGATIVE_TD = False
+SOFT_TARGET_UPDATES = True
 POLICY_OUTPUT_ACTIVATION_FUNC = "sigmoid"
 ACTOR_REPLAY_ENABLED = True
 OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
+
+# CACLA:
+CACLA_CRITIC_LAYERS = (250, 250, 250)
+CACLA_CRITIC_ALPHA  = 0.000075
+CACLA_ACTOR_LAYERS  = (100, 100, 100)
+CACLA_ACTOR_ALPHA   = 0.00015
+CACLA_TAU = 0.01
+CACLA_UPDATE_ON_NEGATIVE_TD = False
+
 # Deterministic Policy Gradient (DPG):
 DPG_TAU                    = 0.001 # How quickly the weights of the target networks are updated
 DPG_CRITIC_LAYERS          = (250, 250, 250)

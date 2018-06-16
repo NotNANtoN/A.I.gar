@@ -80,7 +80,10 @@ class ValueNetwork(object):
         self.target_model.set_weights(self.model.get_weights())
 
     def softlyUpdateTargetModel(self):
-        tau = self.parameters.DPG_TAU
+        if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
+            tau = self.parameters.DPG_TAU
+        else:
+            tau = self.parameters.CACLA_TAU
         targetWeights = self.target_model.get_weights()
         modelWeights = self.model.get_weights()
         newWeights = [targetWeights[idx] * (1 - tau) + modelWeights[idx] * tau for idx in range(len(modelWeights))]
