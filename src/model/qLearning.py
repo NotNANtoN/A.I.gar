@@ -26,7 +26,14 @@ class QLearn(object):
         self.output_len = self.parameters.NUM_ACTIONS * (1 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT)
         if self.parameters.CNN_REPRESENTATION:
             if self.parameters.CNN_PIXEL_REPRESENTATION:
-                channels = 3
+                if self.parameters.CNN_PIXEL_RGB:
+                    channels = 3
+                # GrayScale
+                else:
+                    channels = 1
+                if self.parameters.CNN_USE_LAST_GRID:
+                    channels = channels * 2
+
                 if self.parameters.CNN_USE_LAYER_1:
                     self.input_len = (self.parameters.CNN_SIZE_OF_INPUT_DIM_1,
                                       self.parameters.CNN_SIZE_OF_INPUT_DIM_1, channels)
