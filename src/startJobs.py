@@ -113,6 +113,7 @@ def runJobs(jobs):
         resetTime = 15000
         algorithmType = 0
         memoryLimit = 20000
+	cnnTime = False
         for paramIdx in range(len(job[0])):
             paramName = job[0][paramIdx]
             paramVal = job[1][paramIdx]
@@ -141,14 +142,19 @@ def runJobs(jobs):
                     timeOtherFactor *= 1.1
             elif paramName == "CNN_REPRESENTATION":
             	memoryLimit = 120000
+		cnnTime = True
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24
         hours = jobTime % 24
 
-        timeLine = timeLineBase + str(days) + "-"
-        timeLine += str(hours) if hours >= 10 else "0" + str(hours)
-        timeLine += ":00:00\n"
+        if cnnTime:
+            timeLine = timeLineBase + "2-23:00:00\n"
+        else:
+            timeLine = timeLineBase + str(days) + "-"
+            timeLine += str(hours) if hours >= 10 else "0" + str(hours)
+            timeLine += ":00:00\n"
+
         outputNameLine = outputNameLineBase + outputName + "%j.out\n"
         resetLine = str(resetTime) + "\n"
         algorithmLine = str(algorithmType) + "\n"
