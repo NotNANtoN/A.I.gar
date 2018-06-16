@@ -166,7 +166,16 @@ class Network(object):
 
                 # DQN approach
                 else:
-                    self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
+                    # RGB
+                    if self.parameters.CNN_PIXEL_RGB:
+                        channels = 3
+                    # GrayScale
+                    else:
+                        channels = 1
+                    if self.parameters.CNN_USE_LAST_GRID:
+                        channels = channels * 2
+                    self.input = Input(shape=(self.stateReprLen, self.stateReprLen, channels))
+
                     if self.parameters.CNN_USE_LAYER_1:
                         conv = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
                                        strides=(self.kernel_1[1], self.kernel_1[1]), activation='relu',

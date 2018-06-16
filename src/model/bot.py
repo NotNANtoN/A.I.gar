@@ -144,6 +144,7 @@ class Bot(object):
         self.lastSelfGrid = None
         self.secondLastEnemyGrid = None
         self.lastEnemyGrid = None
+        self.lastPixelGrid = None
 
         self.reset()
 
@@ -179,7 +180,15 @@ class Bot(object):
                 self.memories[-1][-1] = True
             # self.actionIdxHistory = []
             # self.actionHistory =[]
-            gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
+            if self.parameters.CNN_REPRESENTATION:
+                if self.parameters.CNN_USE_LAYER_1:
+                    gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
+                elif self.parameters.CNN_USE_LAYER_2:
+                    gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+                else:
+                    gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+            else:
+                gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
 
             self.secondLastSelfGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
             self.lastSelfGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
@@ -285,6 +294,10 @@ class Bot(object):
                 if self.parameters.CNN_REPRESENTATION:
                     if self.parameters.CNN_PIXEL_REPRESENTATION:
                         stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
+                        self.lastPixelGrid = stateRepr
+                        if self.parameters.CNN_USE_LAST_GRID:
+                            stateRepr = numpy.concatenate((stateRepr,self.lastPixelGrid), axis=2)
+
                     else:
                         stateRepr = gridView
                 else:
