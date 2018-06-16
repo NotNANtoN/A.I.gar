@@ -3,7 +3,7 @@ MAX_TRAINING_STEPS 200000 &
   Q_LAYERS (512,0,0) &
    CNN_REPRESENTATION True &
     Default "CNN_DEFAULT" 3x:
-    NUM_NN_BOTS 3 3x &
+    NUM_NN_BOTS 3 &
      ENABLE_ENEMY_GRID_LAST_FRAME True &
       Default "CNN_PAST_ENEMY_GRID" 3x:
       ENABLE_SPLIT True &
@@ -12,7 +12,7 @@ MAX_TRAINING_STEPS 200000 &
         FRAME_SKIP_RATE 6 3x:
     CNN_PIXEL_REPRESENTATION True &
      Default "CNN_GRAYSCALE_DEFAULT" 3x:
-     NUM_NN_BOTS 3 3x &
+     NUM_NN_BOTS 3 &
       CNN_USE_LAST_GRID True &
        Default "CNN_GS_LAST_GRID" 3x:
        ENABLE_SPLIT True &
@@ -20,7 +20,7 @@ MAX_TRAINING_STEPS 200000 &
         FRAME_SKIP_RATE 6 3x:
      CNN_PIXEL_RGB True &
       Default "CNN_RGB" 3x:
-      NUM_NN_BOTS 3 3x &
+      NUM_NN_BOTS 3 &
        CNN_USE_LAST_GRID True &
         Default "CNN_RGB_LAST_GRID" 3x:
         ENABLE_SPLIT True &
@@ -32,7 +32,7 @@ MAX_TRAINING_STEPS 200000 &
      CNN_USE_LAYER_3 False &
       CNN_REPRESENTATION True &
        Default "CNN_OA_DEFAULT" 3x:
-       NUM_NN_BOTS 3 3x &
+       NUM_NN_BOTS 3 &
         ENABLE_ENEMY_GRID_LAST_FRAME True &
          Default "CNN_OA_PAST_ENEMY_GRID" 3x:
          ENABLE_SPLIT True &
@@ -41,7 +41,7 @@ MAX_TRAINING_STEPS 200000 &
            FRAME_SKIP_RATE 6 3x:
        CNN_PIXEL_REPRESENTATION True &
         Default "CNN_OA_GS_DEFAULT" 3x:
-        NUM_NN_BOTS 3 3x &
+        NUM_NN_BOTS 3 &
          CNN_USE_LAST_GRID True &
           Default "CNN_OA_GS_LAST_GRID" 3x:
           ENABLE_SPLIT True &
@@ -49,7 +49,7 @@ MAX_TRAINING_STEPS 200000 &
            FRAME_SKIP_RATE 6 3x:
         CNN_PIXEL_RGB True &
          Default "CNN_OA_RGB" 3x:
-         NUM_NN_BOTS 3 3x &
+         NUM_NN_BOTS 3 &
           CNN_USE_LAST_GRID True &
            Default "CNN_OA_RGB_LAST_GRID" 3x:
            ENABLE_SPLIT True &
