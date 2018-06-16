@@ -27,10 +27,13 @@ def findDefaults():
     return defaults
 
 
-def addMeanToDictionary(dictionary, name, path):
+def addMeanToDictionary(dictionary, name, path, takeMean):
     f = open(path)
     massList = list(map(float, f))
-    meanVal = numpy.mean(massList)
+    if takeMean:
+        meanVal = numpy.mean(massList)
+    else:
+        meanVal = massList
     try:
         dictionary[name]
     except KeyError:
@@ -38,7 +41,21 @@ def addMeanToDictionary(dictionary, name, path):
     dictionary[name].append(meanVal)
     f.close()
 
-def getDistributions(directories):
+
+def translateToSuperDict(subDict, superDict, takeMean):
+    for key in subDict:
+        values = subDict[key]
+        if takeMean:
+            meanVal = numpy.mean(values)
+        else:
+            meanVal = values
+        try:
+            superDict[key]
+        except KeyError:
+            superDict[key] = []
+        superDict[key].append(meanVal)
+
+def getDistributions(directories, takeMean = True):
     distributions = []
 
     for directory in directories:
@@ -49,15 +66,17 @@ def getDistributions(directories):
             if not os.path.isdir(path + subfolder):
                 continue
             dataPath = path + subfolder + "/data/"
+            localDict = {}
             for dataFile in os.listdir(dataPath):
                 if "MassOverTime.txt" in dataFile:
                     massIdx = dataFile.find("Mass")
                     name = dataFile[:massIdx]
-                    addMeanToDictionary(directory_distributions, name, dataPath + dataFile)
+                    addMeanToDictionary(directory_distributions, name, dataPath + dataFile, takeMean)
                 if "Mean_Mass_" in dataFile:
                     meanMassIdx = dataFile.find("Mean_Mass_")
                     name = dataFile[meanMassIdx + 10:-4]
-                    addMeanToDictionary(directory_distributions, name, dataPath + dataFile)
+                    addMeanToDictionary(localDict, name, dataPath + dataFile, takeMean)
+            translateToSuperDict(localDict, directory_distributions, takeMean)
         distributions.append(directory_distributions)
 
     return distributions
