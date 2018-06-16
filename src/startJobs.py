@@ -203,7 +203,7 @@ if __name__ == '__main__':
 
     displayJobs(jobs)
 
-    email = input("Emails:\n0 == antonwiehe@gmail.com\n1 == n.stolt.anso@student.rug.nl\nWhat email do you want to use?\n")
+    email = int(input("Emails:\n0 == antonwiehe@gmail.com\n1 == n.stolt.anso@student.rug.nl\nWhat email do you want to use?\n"))
     if email == 0:
         email = "antonwiehe@gmail.com"
     else:
