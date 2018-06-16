@@ -54,4 +54,5 @@ MAX_TRAINING_STEPS 200000 &
            Default "CNN_OA_RGB_LAST_GRID" 3x:
            ENABLE_SPLIT True &
             Default "CNN_OA_RGB_LAST_GRID_SPLIT" 3x:
-            FRAME_SKIP_RATE 6 3x: 
+            FRAME_SKIP_RATE 6 3x:
+
