@@ -112,7 +112,7 @@ def runJobs(jobs):
         timeOtherFactor = 1
         resetTime = 15000
         algorithmType = 0
-	memoryLimit = 20000
+        memoryLimit = 20000
         for paramIdx in range(len(job[0])):
             paramName = job[0][paramIdx]
             paramVal = job[1][paramIdx]
