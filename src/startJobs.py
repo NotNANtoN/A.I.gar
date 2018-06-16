@@ -94,7 +94,7 @@ def displayJobs(jobs):
     print("")
 
 
-def runJobs(jobs):
+def runJobs(jobs, email):
     sampleJobScriptFile = open("anton.sh", "r")
     sampleLines = sampleJobScriptFile.readlines()
 
@@ -163,7 +163,7 @@ def runJobs(jobs):
 
         data = "#!/bin/bash\n"\
                + timeLine \
-               + "#SBATCH --mem=" + str(memoryLimit) + "\n#SBATCH --nodes=1\n#SBATCH --mail-type=ALL\n#SBATCH --mail-user=antonwiehe@gmail.com\n"\
+               + "#SBATCH --mem=" + str(memoryLimit) + "\n#SBATCH --nodes=1\n#SBATCH --mail-type=ALL\n#SBATCH --mail-user=" + email + "\n"\
                + outputNameLine\
                + "module load matplotlib/2.1.2-foss-2018a-Python-3.6.4\nmodule load TensorFlow/1.6.0-foss-2018a-Python-3.6.4\n" \
                + "module load h5py/2.7.1-foss-2018a-Python-3.6.4\npython -O ./aigar.py <<EOF\n" \
@@ -202,12 +202,18 @@ if __name__ == '__main__':
     jobs = getJobs(lines)
 
     displayJobs(jobs)
+
+    email = input("Emails:\n0 == antonwiehe@gmail.com\n1 == n.stolt.anso@student.rug.nl\nWhat email do you want to use?\n")
+    if email == 0:
+        email = "antonwiehe@gmail.com"
+    else:
+        email = "n.stolt.anso@student.rug.nl"
     jobSum = 0
     for job in jobs:
         jobSum += job[2]
     confirm = input("Do you really want to submit " + str(len(jobs)) +  " parameter tunings to create " +  str(jobSum) + " jobs? (y==yes)\n")
     if confirm == "y":
-        runJobs(jobs)
+        runJobs(jobs, email)
         try:
             subprocess.call(["squeue", "-u", "s2972301"])
         except FileNotFoundError:
