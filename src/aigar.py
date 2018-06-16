@@ -10,6 +10,7 @@ from model.parameters import *
 from model.actorCritic import *
 from model.bot import *
 from model.model import Model
+import matplotlib.pyplot as plt
 
 from view.view import View
 from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
@@ -144,6 +145,9 @@ def modifyParameterValue(tweaked, model):
             text += char
             if char == "=":
                 break
+        if tweaked[i][0] == "RESET_LIMIT":
+            model.resetLimit = int(tweaked[i][1])
+        print(tweaked[i][0])
         text += " " + str(tweaked[i][1]) + "\n"
         lines[tweaked[i][2]] = text
     out = open(name_of_file, 'w')
@@ -276,30 +280,45 @@ def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=Tr
 
 def cloneModel(model):
     clone = Model(False, False, model.getParameters(), False)
+    clone.resetLimit = model.resetLimit
     for bot in model.getBots():
         clone.createBot(bot.getType(), bot.getLearningAlg(), bot.parameters)
     return clone
 
 
-def updateTestResults(testResults, model, percentage):
-    originalNoise = model.getNNBot().getLearningAlg().getNoise()
+def updateTestResults(testResults, model, percentage, parameters):
+    currentAlg = model.getNNBot().getLearningAlg()
+    originalNoise = currentAlg.getNoise()
     clonedModel = cloneModel(model)
-    model.getNNBot().getLearningAlg().setNoise(0)
+    currentAlg.setNoise(0)
 
-    if str(clonedModel.getNNBot().getLearningAlg()) != "AC":
-        originalTemp = clonedModel.getNNBot().getLearningAlg().getTemperature()
-        clonedModel.getNNBot().getLearningAlg().setTemperature(0)
-
-    currentEval = testModel(clonedModel, 5, 10000 if not clonedModel.resetLimit else clonedModel.resetLimit,
+    if str(currentAlg) != "AC":
+        originalTemp = currentAlg.getTemperature()
+        currentAlg.setTemperature(0)
+    print("resetlimit: ", clonedModel.resetLimit, " orig model rest limit: ", model.resetLimit)
+    currentEval = testModel(clonedModel, 5, 150 if not clonedModel.resetLimit else clonedModel.resetLimit,
                             model.getPath(), "test", False)
-    clonedModel.getNNBot().getLearningAlg().setNoise(originalNoise)
 
-    if str(clonedModel.getNNBot().getLearningAlg()) != "AC":
-        clonedModel.getNNBot().getLearningAlg().setTemperature(originalTemp)
+    params = Params(0, False, parameters.EXPORT_POINT_AVERAGING)
+    pelletModel = Model(False, False, params, False)
+    pelletModel.createBot("NN", currentAlg, parameters)
+    pelletEval = testModel(pelletModel, 5, 150, model.getPath(), "pellet", False)
+
+    if parameters.MULTIPLE_BOTS_PRESENT:
+        greedyModel = pelletModel
+        greedyModel.createBot("Greedy", None, parameters)
+        vsGreedyEval = testModel(greedyModel, 5, 300, model.getPath(), "vsGreedy", False)
+    else:
+        vsGreedyEval = (0,0,0,0)
+
+    currentAlg.setNoise(originalNoise)
+
+    if str(currentAlg) != "AC":
+        currentAlg.setTemperature(originalTemp)
 
     meanScore = currentEval[2]
     stdDev = currentEval[3]
-    testResults.append((meanScore, stdDev))
+    testResults.append((meanScore, stdDev, pelletEval[2], pelletEval[3], vsGreedyEval[2], vsGreedyEval[3]))
     return testResults
 
 
@@ -312,10 +331,10 @@ def exportTestResults(testResults, path, name):
             f.write(line)
 
 
-def plotTesting(testResults, path, timeBetween, end):
+def plotTesting(testResults, path, timeBetween, end, name, idxOfMean):
     x = range(0, end + timeBetween, timeBetween)
-    y = [x[0] for x in testResults]
-    ysigma = [x[1] for x in testResults]
+    y = [x[idxOfMean] for x in testResults]
+    ysigma = [x[idxOfMean + 1] for x in testResults]
 
     y_lower_bound = [y[i] - ysigma[i] for i in range(len(y))]
     y_upper_bound = [y[i] + ysigma[i] for i in range(len(y))]
@@ -330,7 +349,7 @@ def plotTesting(testResults, path, timeBetween, end):
                     label="+/- sigma")
     ax.set_xlabel("Time")
     yLabel = "Mass"
-    title = "Testing mass over time"
+    title =  name + " mass over time"
 
     meanY = numpy.mean(y)
     ax.legend(loc='upper left')
@@ -341,6 +360,13 @@ def plotTesting(testResults, path, timeBetween, end):
     fig.savefig(path + title + ".pdf")
 
     plt.close()
+
+
+class Params:
+    def __init__(self, time, virus, point_averaging):
+        self.VIRUS_SPAWN = virus
+        self.RESET_LIMIT = time
+        self.EXPORT_POINT_AVERAGING = point_averaging
 
 
 def runTests(model):
@@ -356,20 +382,23 @@ def runTests(model):
     trainedAlg = trainedBot.getLearningAlg()
     evaluations = []
     # Pellet testing:
-    pelletModel = Model(False, False, model.getParameters(), False)
+    params = Params(0, False, parameters.EXPORT_POINT_AVERAGING)
+
+    pelletModel = Model(False, False, params, False)
     pelletModel.createBot("NN", trainedAlg, parameters)
     pelletEvaluation = testModel(pelletModel, n_test_runs, resetPellet, model.getPath(), "pellet_collection")
     evaluations.append(pelletEvaluation)
     # Greedy Testing:
     if len(model.getBots()) > 1:
-        greedyModel = Model(False, False, model.getParameters(), False)
+        greedyModel = Model(False, False, params, False)
         greedyModel.createBot("NN", trainedAlg, parameters)
         greedyModel.createBot("Greedy")
         greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
     # Virus Testing:
     if model.getVirusEnabled():
-        virusModel = Model(False, False, model.getParameters(), False)
+        params = Params(0, True, parameters.EXPORT_POINT_AVERAGING)
+        virusModel = Model(False, False, params, False)
         virusModel.createBot("NN", trainedAlg, parameters)
         virusEvaluation = testModel(virusModel, n_test_runs, resetVirus, model.getPath(), "virus")
         evaluations.append(virusEvaluation)
@@ -488,9 +517,16 @@ if __name__ == '__main__':
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
 
+
+
+
     model = Model(guiEnabled, viewEnabled, parameters, True)
+    print("reset limitttt:", model.resetLimit)
 
     model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
+
+    if tweakedTotal:
+        modifyParameterValue(tweakedTotal, model)
 
     numberOfHumans = 0
     mouseEnabled = True
@@ -510,9 +546,6 @@ if __name__ == '__main__':
             if spectate == 1:
                 model.addPlayerSpectator()
 
-
-    if tweakedTotal:
-        modifyParameterValue(tweakedTotal, model)
 
     enableTrainMode = humanTraining if humanTraining is not None else False
     if not humanTraining:
@@ -559,19 +592,28 @@ if __name__ == '__main__':
             model.update()
     else:
         maxSteps = parameters.MAX_SIMULATION_STEPS
-        smallPart = max(int(maxSteps / 100), 1)
+        smallPart = max(int(maxSteps / 100), 1) # constitues one percent of total training time
+        testPercentage = smallPart * 5
         testResults = []
         for step in range(maxSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
-            if step % (smallPart * 5) == 0:
-                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1))
-        testResults = updateTestResults(testResults, model, 100)
+            if step % testPercentage == 0:
+                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
+        testResults = updateTestResults(testResults, model, 100, parameters)
         meanMassesOfTestResults = [val[0] for val in testResults]
         exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
-        plotTesting(testResults, model.getPath(), smallPart * 5, maxSteps)
+        meanMassesOfPelletResults = [val[2] for val in testResults]
+        exportTestResults(meanMassesOfPelletResults, model.getPath() + "/data/", "Pellet_CollectionMassOverTime")
+        if parameters.MULTIPLE_BOTS_PRESENT:
+            meanMassesOfGreedyResults = [val[4] for val in testResults]
+            exportTestResults(meanMassesOfPelletResults, model.getPath() + "/data/", "VS_1_GreedyMassOverTime")
+            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
+
+        plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
+        plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
         print("Training done.")
         print("")
 

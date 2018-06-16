@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy
 
 def getDesiredDirectories(desiredDirectories):
-    return [directory for directory in getAllDirectories() if numpy.any([name in directory for name in desiredDirectories])]
+    return [directory for directory in getAllDirectories() if directory in desiredDirectories]
 
 
 def produceAverageRun(inits):
@@ -25,7 +25,12 @@ def plot(name, dict):
     print("Plotting ", name, "...")
 
 
-    colors = "rgbcmky"
+    colors = "rbcmgky"
+    markers = "sovx8^D"
+    if len(dict) > 6:
+        print("Plotting is not (yet) supported for more than 6 curves! Add more markers and colors.")
+        quit()
+
 
     fig, ax = plt.gcf(), plt.gca()
     #plt.clf()
@@ -49,16 +54,28 @@ def plot(name, dict):
 
 
         y, ysigma = getMeanAndStDev(dataList, dataLen)
-        print("Plotting: ", y)
+        #print("Plotting: ", y)
         y_lower_bound = y - ysigma
         y_upper_bound = y + ysigma
 
         color = colors[idx]
+        marker = markers[idx]
         plt.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
+        lenY = len(y)
+        maxMarkers = 10
+        # TODO: take average of some points if there are too many point in plot
+        if lenY > maxMarkers:
 
-
-        ax.plot(x, y, lw=2, label=lineName, color=color)
-        ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor=color, alpha=0.2)
+            smallPartIdxs = range(0,(lenY),int(lenY / maxMarkers))
+            if name == "test":
+                smallPartIdxs = range(0, 101, int(100/maxMarkers))
+            smallPart = y[0:(lenY):int(lenY / maxMarkers)]
+            plt.plot(smallPartIdxs, smallPart, label=lineName, color=color, marker=marker, markersize=10,
+                     linestyle='None', markerfacecolor=color, markeredgecolor=color)
+            plt.plot(x, y, lw=2, color=color)
+        else:
+            plt.plot(x, y, lw=2, label=lineName, color=color, marker=marker, markersize=10)
+        ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor=color, alpha=0.35)
 
     if name == "test":
         ax.set_xlabel("Percentage of training time")
@@ -99,6 +116,9 @@ def plotDict(dictDict):
 
 if __name__ == '__main__':
     directoriesToPlot = []
+    print("Available directories:")
+    for directory in getAllDirectories():
+        print(directory)
     dirName = input("Type the name of the directory you want to include in the plot: ")
     directoriesToPlot.append(dirName)
     while input("More? (y==more)\n") == "y":
