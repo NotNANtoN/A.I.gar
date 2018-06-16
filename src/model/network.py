@@ -23,6 +23,7 @@ def is_square(apositiveint):
     seen.add(x)
   return True
 
+
 def createDiscreteActionsCircle(numActions, enableSplit, enableEject):
     actions = []
     # Add standing still action:

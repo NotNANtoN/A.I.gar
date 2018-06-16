@@ -1,148 +1,143 @@
-Default "Q" 10x:
+Default "Q" 10x:			492(7.6) 441(3.3)		
 
-PRIORITIZED_EXP_REPLAY_ENABLED False 5x:
+PRIOR_EXP_REPLAY False 5x:	500 444 - 95.7 better 92.1 better
 
-#MAX_TRAINING_STEPS 1M 3x:
+FRAME_SKIP_RATE 6  5x:		445 369 - 100 worse			
+FRAME_SKIP_RATE 8  5x:		474 399 - 100 worse	
+FRAME_SKIP_RATE 10 5x:		484 423 - 85  worse 100 worse	
 
-#Default              11 10x:
-#GRID_SQUARES_PER_FOV 12  3x:
-#GRID_SQUARES_PER_FOV 13  3x:
-#GRID_SQUARES_PER_FOV 14  3x:
-#GRID_SQUARES_PER_FOV 15  3x:
-#GRID_SQUARES_PER_FOV 16  3x:
-#GRID_SQUARES_PER_FOV 17  3x:
-#GRID_SQUARES_PER_FOV 18  3x:
-#GRID_SQUARES_PER_FOV 19  3x:
-
-
-FRAME_SKIP_RATE 6  5x:
-FRAME_SKIP_RATE 8  5x:
-FRAME_SKIP_RATE 10 5x:
-
-MEMORY_ALPHA 1    5x:
-MEMORY_ALPHA 0.7  5x:
-MEMORY_ALPHA 0.65 5x:
+MEMORY_ALPHA 1    5x:		486 426 - 88.8 worse  100  worse
+MEMORY_ALPHA 0.7  5x:		494 436 - 38.1 better 96.1 worse
+MEMORY_ALPHA 0.65 5x:		492 436 - 3.0  worse  97.4 worse
 #Default     0.6 10x:
-MEMORY_ALPHA 0.55 5x:
-MEMORY_ALPHA 0.5  5x:
-MEMORY_ALPHA 0.4  5x:
-MEMORY_ALPHA 0    5x:
+MEMORY_ALPHA 0.55 5x:		482 440 - 90.2 worse  7.4 worse
+MEMORY_ALPHA 0.5  5x:		486 439 - 76.9 worse  34.5 worse			
+MEMORY_ALPHA 0.4  5x:		496 442 - 75.0 better 56.9 better			
+MEMORY_ALPHA 0    5x:		500 447 - 94.7 better 99.8 better				
 
-MEMORY_BETA 1    5x:
-MEMORY_BETA 0.6  5x:
-MEMORY_BETA 0.5  5x:
-MEMORY_BETA 0.45 5x:
+MEMORY_BETA 1    5x:		498 445 - 92.8 better 97.0 better
+MEMORY_BETA 0.6  5x:		493 439 - 28.0 better 43.7 worse
+MEMORY_BETA 0.5  5x:		486 440 - 65.7 worse  20.2 worse
+MEMORY_BETA 0.45 5x:		487 443 - 63.6 worse  58.9 better
 #Default    0.4 10x:
-MEMORY_BETA 0.35 5x:
-MEMORY_BETA 0.3  5x:
-MEMORY_BETA 0.1  5x:
+MEMORY_BETA 0.35 5x:		494 437 - 50.1 better 87.9 worse
+MEMORY_BETA 0.3  5x:		485 442 - 82.0 worse  64.2 better
+MEMORY_BETA 0.1  5x:		487 432 - 73.4 worse  99.9 worse
+=> it seems for normal Q-learning prioritized exp replay is not that helpful...
 
 
 NUM_NN_BOTS 2 &
- Default "2NN_Q" 10x:
+ Default "2NN_Q" 10x:		223 384 152
 
- DEATH_TERM -50   3x:
+ DEATH_TERM -50   3x:		284 425 176 - 87.6 better 48.1 better 96.5 better
 #Default    -100 10x:
- DEATH_TERM -150  3x:
+ DEATH_TERM -150  3x:		245 269 171 - 41.5 better 52.5 worse  91.1 worse
+=> NEW: reduce DEATH_TERM to -50 TEST: -25, -75
 
- DEATH_FACTOR 1.5  3x:
+ DEATH_FACTOR 1.5  3x:		282 527 181 - 87.7 better 91.8 better 98.3 better
 #Default      2   10x:
- DEATH_FACTOR 2.5  3x:
+ DEATH_FACTOR 2.5  3x:		121 154 144 - 96.5 worse  93.3 worse  56.2 worse
+=> TEST: 1.5, 1.25
 
- FRAME_SKIP_RATE 6  3x:
- FRAME_SKIP_RATE 7  3x:
+ FRAME_SKIP_RATE 6  3x:		123 380 112 - 96.4 worse  23.3 better 99.8 worse
+ FRAME_SKIP_RATE 7  3x:		96  259 135 - 99.0 worse  53.2 worse  83.6 worse
 #Default         8  3x:
- FRAME_SKIP_RATE 9  3x:
- FRAME_SKIP_RATE 10 3x:
+ FRAME_SKIP_RATE 9  3x:		259 426 154 - 62.5 better 50.8 better 9.8  better
+ FRAME_SKIP_RATE 10 3x:		196 340 175 - 48.8 worse  6.0  worse  93.3 worse
 
- GRID_SQUARES_PER_FOV 14 3x:
- GRID_SQUARES_PER_FOV 15 3x:
- GRID_SQUARES_PER_FOV 16 3x:
+ GRID_SQUARES_PER_FOV 14 3x:	202 151 145 - woorse
+ GRID_SQUARES_PER_FOV 15 3x:	118 154 132
+ GRID_SQUARES_PER_FOV 16 3x:	203 405 153 - worse, better worse, not significant
 
- ENABLE_SPLIT True 3x:
+ ENABLE_SPLIT True 3x:		394 49  277 - 
 
- ENABLE_WALL_GRID False 5x:
+ ENABLE_WALL_GRID False 5x:	185 380 147 - 64.3 worse  23.8 better 44.2 worse
 
- ENABLE_SELF_GRID False 5x:
+ ENABLE_SELF_GRID False 5x:	208 337 145 - 27.1 worse  8.3  worse  27.7 worse
 
  NORMALIZE_GRID_BY_MAX_MASS True 5x:
 
- DISCOUNT 0.9 5x:
+ DISCOUNT 0.9 5x:		190 179 119 - 55.7 worse  91.5 worse  91.4 worse  
 
- USE_ACTION_AS_INPUT True 5x:
 
 ACTOR_CRITIC_TYPE "CACLA" &
- Default "CACLA" 10x:
+ Default "CACLA" 10x:			450 390 			
 
- PRIORITIZED_EXP_REPLAY_ENABLED False 5x:
+ PRIOR_EXP_REPLAY_ENABLED False 5x:	425 370 - 99.87 worse
 
  NUM_NN_BOTS 2 &
-  Default "2NN_CACLA" 5x:
-  ENABLE_SPLIT True 5x:
+  Default "2NN_CACLA" 5x:		346 360 299 - 99.8 better than Q, DPG pellet. maybe better vs greedy (40% Q, 83% DPG)
+  ENABLE_SPLIT True 5x:			1028 200 1019 - better! vs greedy than others (except DPG)
 
  NOISE_TYPE "Orn-Uhl" &
   NOISE_DECAY 1 &
-   GAUSSIAN_NOISE 0.15 5x:
+   GAUSSIAN_NOISE 0.15 5x:		5.5 - worse fo sho
 	
- CACLA_CRITIC_ALPHA 0.000125  5x:
- CACLA_CRITIC_ALPHA 0.0001    5x:
-#Default            0.000075 10x:
- CACLA_CRITIC_ALPHA 0.00005   5x:
- CACLA_CRITIC_ALPHA 0.000025  5x:
+ CACLA_CRITIC_ALPHA 0.000125  5x:	441 393 - 80.2 worse
+ CACLA_CRITIC_ALPHA 0.0001    5x:	446 390 - 62.5 worse
+#Default            0.000075 10x:	450 390 	
+ CACLA_CRITIC_ALPHA 0.00005   5x:	455 390 - 67.7 better
+ CACLA_CRITIC_ALPHA 0.000025  5x:	446 393 - 66.5 worse
+=> Keep.
 
- CACLA_ACTOR_ALPHA 0.00005  5x:
- CACLA_ACTOR_ALPHA 0.000075 5x:
-#Default           0.0001  10x:
- CACLA_ACTOR_ALPHA 0.000125 5x:
- CACLA_ACTOR_ALPHA 0.00015  5x:
+ CACLA_ACTOR_ALPHA 0.00005  5x:		434 372 - 97.1 worse
+ CACLA_ACTOR_ALPHA 0.000075 5x:		456 390 - 72.2 better
+#Default           0.0001  10x:		450 390 	
+ CACLA_ACTOR_ALPHA 0.000125 5x:		462 402 - 96.65 better
+ CACLA_ACTOR_ALPHA 0.00015  5x:		469 397 - 99.88 better
+=> NEW: 0.00015 TEST 0.0002, 0.0003, 0.0005
 
  SOFT_TARGET_UPDATES True &
-  DPG_TAU 0.01 5x:
-  DPG_TAU 0.0075 5x:
-  DPG_TAU 0.005 5x:
+  DPG_TAU 0.01 5x:			461 389 - 98.6 better
+  DPG_TAU 0.0075 5x:			456 397 - 51.0 better
+  DPG_TAU 0.005 5x:			456 395 - 69.6 better
+=> TEST 0.01, 0.015, 0.02
 
 ACTOR_CRITIC_TYPE "DPG" &
- Default "DPG" 10x:
+ Default "DPG" 10x:			414(14.4) 357 (18.1)
 
- PRIORITIZED_EXP_REPLAY_ENABLED False 5x:
+ PRIOR_EXP_REPLAY_ENABLED False 5x:	382 330 - 87.5 worse 97.5 worse
 
  NUM_NN_BOTS 2 &
-  Default "2NN_DPG" 5x:
-  ENABLE_SPLIT True 5x:
+  Default "2NN_DPG" 5x:			76 166 65 - worse than all
+  ENABLE_SPLIT True 5x:			389 57 167
 
  NOISE_TYPE "Orn-Uhl" &
   NOISE_DECAY 1 &
-   GAUSSIAN_NOISE 0.15 5x:
+   GAUSSIAN_NOISE 0.15 5x:		391 283 - 96.3 worse 99.97 worse
 
 #Default 		 1 10x:
- DPG_FEED_ACTION_IN_LAYER 2  5x:
- DPG_FEED_ACTION_IN_LAYER 3  5x:
+ DPG_FEED_ACTION_IN_LAYER 2  5x:	393 292 - 91.5 worse 100 worse
+ DPG_FEED_ACTION_IN_LAYER 3  5x:	413 373 - 12.6 worse 97.2 better
+ => TEST: Layer 3 and test only 2 layers and feed in 2nd
 
- DPG_CRITIC_FUNC "elu" 6x:
+ DPG_CRITIC_FUNC "elu" 6x:		412 369 - 14.4 worse
 
- DPG_USE_CACLA True 5x:
+ DPG_USE_CACLA True 5x:			406 393 - 54.4 worse 99.99 better
+=> TEST: train certain first percentage of time on CACLA, then switch to DPG
 	
- DPG_ACTOR_ALPHA 0.000005  5x:
- DPG_ACTOR_ALPHA 0.0000075 5x:
+ DPG_ACTOR_ALPHA 0.000005  5x:		395 354 - 86.4 worse
+ DPG_ACTOR_ALPHA 0.0000075 5x:		384 350 - 90.6 worse
 #Default         0.00001  10x:
- DPG_ACTOR_ALPHA 0.0000125 5x:
- DPG_ACTOR_ALPHA 0.000015  5x:
+ DPG_ACTOR_ALPHA 0.0000125 5x:		407 356 - 55.7 worse
+ DPG_ACTOR_ALPHA 0.000015  5x:		393 350 - 78.1 worse
 
- DPG_CRITIC_ALPHA 0.0001  5x:
- DPG_CRITIC_ALPHA 0.00025 5x:
+ DPG_CRITIC_ALPHA 0.0001  5x:		417 344 - 18.5 better
+ DPG_CRITIC_ALPHA 0.00025 5x:		354 338 - 99.1 worse
 #Default          0.0005 10x:
- DPG_CRITIC_ALPHA 0.00075 5x:
- DPG_CRITIC_ALPHA 0.001   5x:
+ DPG_CRITIC_ALPHA 0.00075 5x:		382 344 - 96.5 worse
+ DPG_CRITIC_ALPHA 0.001   5x:		397 356 - 74.0 worse
+=> TEST: 0.0001, 0.00005
 
 
- DPG_TAU 0.0005   5x:
- DPG_TAU 0.00075  5x:
+ DPG_TAU 0.0005   5x:			408 353 - 51.7 worse 33.3 worse
+ DPG_TAU 0.00075  5x:			402 356 - 64.5 worse 5.7 worse
 #Default 0.001   10x:
- DPG_TAU 0.00125  5x:
- DPG_TAU 0.0015   5x:
- DPG_TAU 0.005    5x:
- DPG_TAU 0.0075   5x:
- DPG_TAU 0.01     5x:
- DPG_TAU 0.0125   5x:
- DPG_TAU 0.015    5x:
+ DPG_TAU 0.00125  5x:			370 351 - 97.1 worse 42.1 worse
+ DPG_TAU 0.0015   5x:			418 360 - 33.4 better 41.7 better
+ DPG_TAU 0.005    5x:			401 353 - 73.6 worse 35.6 worse
+ DPG_TAU 0.0075   5x:			409 346 - 38.9 worse 80 worse
+ DPG_TAU 0.01     5x:			402 348 - 70.3 worse 67.1 worse
+ DPG_TAU 0.0125   5x:			411 355 - 27.9 worse 14. worse
+ DPG_TAU 0.015    5x:			398 317 - 76.2 worse 99.7 worse
 		

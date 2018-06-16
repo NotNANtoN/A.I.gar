@@ -244,9 +244,9 @@ class Bot(object):
 
                 self.learningAlg.updateNoise()
                 if self.time % self.parameters.TRAINING_WAIT_TIME == 0 and len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
-                    idxs, priorities = self.learningAlg.learn(batch)
-                    if self.parameters.EXP_REPLAY_ENABLED and self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
-                        self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-6)
+                    idxs, priorities = self.learningAlg.learn(batch, self.time)
+                    if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+                        self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
                 self.learningAlg.updateNetworks(self.time)
 
             # Move

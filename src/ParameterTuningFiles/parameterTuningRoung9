@@ -2,6 +2,39 @@
 
 
 
-NUM_NN_BOTS 2 &
- Default "Q-2NN" 5x:
+NUM_NN_BOTS 3 &
+ Default "Q-3NN" 5x:
  PRIORITIZED_EXP_REPLAY_ENABLED False 5x:
+ 
+ ENABLE_ENEMY_GRID_LAST_FRAME True 5x:
+  ENABLE_ENEMY_GRID_SECOND_LAST_FRAME True &
+   Default "last2EnemyGrids" 5x:
+   ENABLE_SELF_GRID_LAST_FRAME True &
+    ENABLE_SELF_GRID_SECOND_LAST_FRAME True 5x:
+   USE_LAST_ACTION False &
+    USE_SECOND_LAST_ACTION False 5x:
+
+ ENABLE_SPLIT True &
+  Default "Split2NN" 5x:
+  ENABLE_ENEMY_GRID_LAST_FRAME True 5x:
+   ENABLE_ENEMY_GRID_SECOND_LAST_FRAME True &
+    Default "last2EnemyGrids" 5x:
+    ENABLE_SELF_GRID_LAST_FRAME True &
+     ENABLE_SELF_GRID_SECOND_LAST_FRAME True &
+      Default "last2EnemySelfGrids" 5x:
+      USE_LAST_ACTION False &
+       USE_SECOND_LAST_ACTION False 5x:
+    USE_LAST_ACTION False &
+     USE_SECOND_LAST_ACTION False 5x:
+ 
+
+ACTOR_CRITIC_TYPE "CACLA" &
+ Default "CACLA" 5x:
+ 
+
+# Influence of noise decay speed on CACLA and DPG?
+
+# Influence of GRID_SQUARES_PER_FOV on setting where we also have the last two self/enemy grids? Lower setting leads to much reduced input space, but the other option makes it easier to see patterns in the noise.
+   
+
+

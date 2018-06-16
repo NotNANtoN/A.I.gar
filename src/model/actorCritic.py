@@ -349,12 +349,14 @@ class ActorCritic(object):
             self.updateCriticNetworks(time)
 
 
-    def learn(self, batch):
+    def learn(self, batch, steps):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             idxs, priorities = self.train_critic_DPG(batch)
-            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING:
+            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and steps > self.parameters.DPG_CACLA_STEPS:
+                print("using dpg")
                 self.train_actor_DPG(batch)
-            if self.parameters.DPG_USE_CACLA:
+            if self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS:
+                print("using cacla")
                 self.train_actor_batch(batch, priorities)
         else:
             idxs, priorities = self.train_critic(batch)

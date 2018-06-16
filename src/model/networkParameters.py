@@ -111,9 +111,11 @@ DPG_ACTOR_ALPHA            = 0.00001
 DPG_ACTOR_FUNC             = "relu"
 DPG_Q_VAL_INCREASE         = 2
 DPG_FEED_ACTION_IN_LAYER   = 1
-DPG_USE_CACLA              = False
 DPG_USE_DPG_ACTOR_TRAINING = True
 DPG_USE_TARGET_MODELS      = True
+DPG_USE_CACLA              = False
+DPG_CACLA_ALTERNATION      = 0 #fraction of training time in which cacla is used instead of dpg
+DPG_CACLA_STEPS            = DPG_CACLA_ALTERNATION * MAX_TRAINING_STEPS
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"
