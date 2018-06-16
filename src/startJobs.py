@@ -161,7 +161,7 @@ def runJobs(jobs):
                + outputNameLine\
                + "module load matplotlib/2.1.2-foss-2018a-Python-3.6.4\nmodule load TensorFlow/1.6.0-foss-2018a-Python-3.6.4\n" \
                + "module load h5py/2.7.1-foss-2018a-Python-3.6.4\npython -O ./aigar.py <<EOF\n" \
-               + "0\n0\n" + resetLine + "0\n" +algorithmLine + paramData +"0\n0\n1\nEOF\n"
+               + "0\n0\n" +algorithmLine + paramData +"0\n0\n1\nEOF\n"
         script.write(data)
         script.close()
 
