@@ -27,7 +27,7 @@ NUM_NN_BOTS 3 &
   Default "NoSLA" 5x:
   USE_LAST_ACTION False 5x:
  
- ENEMY_GRID_LF False 5x:
+ ENEMY_GRID_LF False &
   ENEMY_GRID_SLF False &
    Default "nolastEnemies" 5x:
    SELF_GRID_LF False &
