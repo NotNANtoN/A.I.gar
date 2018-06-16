@@ -164,7 +164,7 @@ def plotFinalTests(path):
         labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training steps",
                   "yLabel": "Mass Mean Value", "title": test[:-4], "path": path,
                   "subPath": "Final_testing_" + test[:-4]}
-        plot(masses, maxLength, 1, labels, showConfInt = True)
+        plot(masses, maxLength, 1, labels, showConfInt = False)
 
 
 def plotTestingMassOverTime(path):
@@ -189,7 +189,7 @@ def plotTestingMassOverTime(path):
 
     labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training Time (%)",
               "yLabel": "Testing Mass Mean Value", "title": "Mass", "path": path, "subPath": "Mean_Testing_Mass_During_training"}
-    plot(allMeans, maxLength, 10, labels, showConfInt=True)
+    plot(allMeans, maxLength, 5, labels, showConfInt=True)
 
 
 def plotMassesOverTime(path):
@@ -308,7 +308,7 @@ def getMeanAndStDev(allList, maxLength):
     return mean_list, stDev_list
 
 
-def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None, showConfInt = True):
+def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None, showConfInt = False, savePlot = True, figureNum = 0):
     print("Plotting ", labels["title"], "...")
     x = getTimeAxis(maxLength, avgLength)
     y, ysigma = getMeanAndStDev(ylist, maxLength)
@@ -318,8 +318,10 @@ def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None, showCon
     y_lower_bound = y - ysigma
     y_upper_bound = y + ysigma
 
+    plt.figure(0)
     matplotlib.pyplot.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
-    plt.clf()
+
+
     fig, ax = plt.subplots(1)
     ax.plot(x, y, lw=2, label=labels["meanLabel"], color='blue')
     ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor='blue', alpha=0.5,
@@ -360,8 +362,10 @@ def plot(ylist, maxLength, avgLength, labels, y2list=None, labels2=None, showCon
         title = title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval"
     ax.set_title(title)
     ax.grid()
-    fig.savefig(path + ".pdf")
-    plt.close()
+    if savePlot:
+        fig.savefig(path + ".pdf")
+        plt.clf()
+        plt.close()
 
 
 
