@@ -113,7 +113,7 @@ def runJobs(jobs):
         resetTime = 15000
         algorithmType = 0
         memoryLimit = 20000
-	cnnTime = False
+        cnnTime = False
         for paramIdx in range(len(job[0])):
             paramName = job[0][paramIdx]
             paramVal = job[1][paramIdx]
@@ -141,8 +141,8 @@ def runJobs(jobs):
                 elif paramVal == "\"CACLA\"":
                     timeOtherFactor *= 1.1
             elif paramName == "CNN_REPRESENTATION":
-            	memoryLimit = 120000
-		cnnTime = True
+                memoryLimit = 120000
+                cnnTime = True
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24
