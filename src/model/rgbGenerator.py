@@ -70,6 +70,11 @@ class RGBGenerator:
         self.screen.fill(WHITE)
         self.drawAllCells(player)
         if __debug__:
+            if not self.parameters.CNN_PIXEL_RGB:
+                imgdata = pygame.surfarray.array3d(self.screen)
+                imgdata = self.grayscale_RGB(imgdata)
+                self.screen.blit(imgdata,(0,0))
+
             pygame.display.update()
 
     def modelToViewScaling(self, pos, fovPos, fovSize):
@@ -90,7 +95,19 @@ class RGBGenerator:
     def get_cnn_inputRGB(self, player):
         self.draw_cnnInput(player)
         imgdata = pygame.surfarray.array3d(self.screen)
+        if not self.parameters.CNN_PIXEL_RGB:
+            imgdata = self.grayscale(imgdata)
         return imgdata
+
+    def grayscale(self, arr):
+        arr = numpy.average(arr, axis=2, weights=[0.298, 0.587, 0.114])
+        shape = numpy.shape(arr)
+        arr = arr.reshape(list(shape) + [1])
+        return arr
+
+    def grayscale_RGB(self, arr):
+        arr = arr.dot([0.298, 0.587, 0.114])[:, :, None].repeat(3, axis=2)
+        return pygame.surfarray.make_surface(arr)
 
 
 

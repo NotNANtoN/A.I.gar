@@ -112,6 +112,7 @@ def runJobs(jobs):
         timeOtherFactor = 1
         resetTime = 15000
         algorithmType = 0
+	memoryLimit = 20000
         for paramIdx in range(len(job[0])):
             paramName = job[0][paramIdx]
             paramVal = job[1][paramIdx]
@@ -138,6 +139,8 @@ def runJobs(jobs):
                     timeOtherFactor *= 1.25
                 elif paramVal == "\"CACLA\"":
                     timeOtherFactor *= 1.1
+            elif paramName == "CNN_REPRESENTATION":
+            	memoryLimit = 120000
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24
@@ -154,7 +157,7 @@ def runJobs(jobs):
 
         data = "#!/bin/bash\n"\
                + timeLine \
-               + "#SBATCH --mem=20000\n#SBATCH --nodes=1\n#SBATCH --mail-type=ALL\n#SBATCH --mail-user=antonwiehe@gmail.com\n"\
+               + "#SBATCH --mem=" + str(memoryLimit) + "\n#SBATCH --nodes=1\n#SBATCH --mail-type=ALL\n#SBATCH --mail-user=antonwiehe@gmail.com\n"\
                + outputNameLine\
                + "module load matplotlib/2.1.2-foss-2018a-Python-3.6.4\nmodule load TensorFlow/1.6.0-foss-2018a-Python-3.6.4\n" \
                + "module load h5py/2.7.1-foss-2018a-Python-3.6.4\npython -O ./aigar.py <<EOF\n" \
