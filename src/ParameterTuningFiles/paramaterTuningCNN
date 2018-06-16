@@ -1,27 +1,25 @@
-Q_LAYERS (512,0,0) &
- Default "CNN_DEFAULT" 3x:
+Q_LAYERS (256,0,0) &
+ Default "CNN_OA_DEFAULT" 3x:
  NUM_NN_BOTS 3 &
   ENABLE_ENEMY_GRID_LAST_FRAME True &
-   Default "CNN_PAST_ENEMY_GRID" 3x:
+   Default "CNN_OA_PAST_ENEMY_GRID" 3x:
    ENABLE_SPLIT True &
     ENABLE_SELF_GRID_LAST_FRAME True &
-     Default "CNN_LAST_GRID_SPLIT" 3x:
+     Default "CNN_OA_LAST_GRID_SPLIT" 3x:
      FRAME_SKIP_RATE 6 3x:
  CNN_PIXEL_REPRESENTATION True &
-  Default "CNN_GRAYSCALE_DEFAULT" 3x:
+  Default "CNN_OA_GS_DEFAULT" 3x:
   NUM_NN_BOTS 3 &
    CNN_USE_LAST_GRID True &
-    Default "CNN_GS_LAST_GRID" 3x:
+    Default "CNN_OA_GS_LAST_GRID" 3x:
     ENABLE_SPLIT True &
-     Default "CNN_GS_LAST_GRID_SPLIT" 3x:
+     Default "CNN_OA_GS_LAST_GRID_SPLIT" 3x:
      FRAME_SKIP_RATE 6 3x:
   CNN_PIXEL_RGB True &
-   Default "CNN_RGB" 3x:
+   Default "CNN_OA_RGB" 3x:
    NUM_NN_BOTS 3 &
     CNN_USE_LAST_GRID True &
-     Default "CNN_RGB_LAST_GRID" 3x:
+     Default "CNN_OA_RGB_LAST_GRID" 3x:
      ENABLE_SPLIT True &
-      Default "CNN_RGB_LAST_GRID_SPLIT" 3x:
+      Default "CNN_OA_RGB_LAST_GRID_SPLIT" 3x:
       FRAME_SKIP_RATE 6 3x:
-
-
