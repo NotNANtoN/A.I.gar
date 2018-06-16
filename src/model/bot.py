@@ -443,37 +443,37 @@ class Bot(object):
 
 
         count = 0
-        if self.parameters.ENABLE_PELLET_GRID:
+        if self.parameters.PELLET_GRID:
             gridView[count] = gsPelletMass
             count += 1
-        if self.parameters.ENABLE_SELF_GRID:
+        if self.parameters.SELF_GRID:
             gridView[count] = gsBiggestOwnCellMass
             count += 1
-        if self.parameters.ENABLE_WALL_GRID:
+        if self.parameters.WALL_GRID:
             gridView[count] = gsWalls
             count += 1
-        if self.parameters.ENABLE_ENEMY_GRID:
+        if self.parameters.ENEMY_GRID:
             gridView[count] = gsBiggestEnemyCellMass
             count += 1
-        if self.parameters.ENABLE_VIRUS_GRID:
+        if self.parameters.VIRUS_GRID:
             gridView[count] = gsVirus
             count += 1
         # Add grids about own cells and enemy cells from previous frames:
-        if self.parameters.ENABLE_SELF_GRID_SECOND_LAST_FRAME:
+        if self.parameters.SELF_GRID_SLF:
             gridView[count] = self.secondLastSelfGrid
             self.secondLastSelfGrid = self.lastSelfGrid
             count += 1
 
-        if self.parameters.ENABLE_SELF_GRID_LAST_FRAME:
+        if self.parameters.SELF_GRID_LF:
             gridView[count] = self.lastSelfGrid
             self.lastSelfGrid = gsBiggestOwnCellMass
             count += 1
-        if self.parameters.ENABLE_ENEMY_GRID_SECOND_LAST_FRAME:
+        if self.parameters.ENEMY_GRID_SLF:
             gridView[count] = self.secondLastEnemyGrid
             self.secondLastEnemyGrid = self.lastEnemyGrid
             count += 1
 
-        if self.parameters.ENABLE_ENEMY_GRID_LAST_FRAME:
+        if self.parameters.ENEMY_GRID_LF:
             gridView[count] = self.lastEnemyGrid
             self.lastEnemyGrid = gsBiggestOwnCellMass
             count += 1

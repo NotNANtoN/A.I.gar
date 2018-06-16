@@ -80,7 +80,10 @@ class ValueNetwork(object):
         self.target_model.set_weights(self.model.get_weights())
 
     def softlyUpdateTargetModel(self):
-        tau = self.parameters.DPG_TAU
+        if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
+            tau = self.parameters.DPG_TAU
+        else:
+            tau = self.parameters.CACLA_TAU
         targetWeights = self.target_model.get_weights()
         modelWeights = self.model.get_weights()
         newWeights = [targetWeights[idx] * (1 - tau) + modelWeights[idx] * tau for idx in range(len(modelWeights))]
@@ -353,10 +356,8 @@ class ActorCritic(object):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             idxs, priorities = self.train_critic_DPG(batch)
             if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and steps > self.parameters.DPG_CACLA_STEPS:
-                print("using dpg")
                 self.train_actor_DPG(batch)
             if self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS:
-                print("using cacla")
                 self.train_actor_batch(batch, priorities)
         else:
             idxs, priorities = self.train_critic(batch)

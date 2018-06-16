@@ -1,40 +1,93 @@
+Default "Q" 10x:
 
+ALPHA 0.000075 5x:
+#def  0.0001   5x:
+ALPHA 0.000125 5x:
+
+Q_LAYERS (50,) 5x:
+Q_LAYERS (50,50) 5x:
+Q_LAYERS (250,) 5x:
 
 
 
 NUM_NN_BOTS 3 &
- Default "Q-3NN" 5x:
+ Default "Q-3NN" 10x:
  PRIORITIZED_EXP_REPLAY_ENABLED False 5x:
+
+ DEATH_TERM -25 5x:
+ DEATH_TERM -75 5x:
+
+ DEATH_FACTOR 1.5 5x:
+ DEATH_FACTOR 1.25 5x:
+
+ ENEMY_GRID_SLF False &
+  SELF_GRID_SLF False 5x:
  
- ENABLE_ENEMY_GRID_LAST_FRAME True 5x:
-  ENABLE_ENEMY_GRID_SECOND_LAST_FRAME True &
-   Default "last2EnemyGrids" 5x:
-   ENABLE_SELF_GRID_LAST_FRAME True &
-    ENABLE_SELF_GRID_SECOND_LAST_FRAME True 5x:
+ USE_SECOND_LAST_ACTION False &
+  Default "NoSLA" 5x:
+  USE_LAST_ACTION False 5x:
+ 
+ ENEMY_GRID_LF False &
+  ENEMY_GRID_SLF False &
+   Default "nolastEnemies" 5x:
+   SELF_GRID_LF False &
+    SELF_GRID_SLF False 5x:
    USE_LAST_ACTION False &
     USE_SECOND_LAST_ACTION False 5x:
 
- ENABLE_SPLIT True &
-  Default "Split2NN" 5x:
-  ENABLE_ENEMY_GRID_LAST_FRAME True 5x:
-   ENABLE_ENEMY_GRID_SECOND_LAST_FRAME True &
-    Default "last2EnemyGrids" 5x:
-    ENABLE_SELF_GRID_LAST_FRAME True &
-     ENABLE_SELF_GRID_SECOND_LAST_FRAME True &
-      Default "last2EnemySelfGrids" 5x:
-      USE_LAST_ACTION False &
-       USE_SECOND_LAST_ACTION False 5x:
-    USE_LAST_ACTION False &
-     USE_SECOND_LAST_ACTION False 5x:
- 
+ ENABLE_SPLIT True 5x:
+
 
 ACTOR_CRITIC_TYPE "CACLA" &
- Default "CACLA" 5x:
- 
+ Default "CACLA" 10x:
 
-# Influence of noise decay speed on CACLA and DPG?
+ NUM_NN_BOTS 3 &
+  Default "3BotsCACLA" 5x:
+  ENABLE_SPLIT True 5x:
+  GRID_SQUARES_PER_FOV 9 5x:
+  GRID_SQUARES_PER_FOV 13 5x:
+  GRID_SQUARES_PER_FOV 15 5x:
 
-# Influence of GRID_SQUARES_PER_FOV on setting where we also have the last two self/enemy grids? Lower setting leads to much reduced input space, but the other option makes it easier to see patterns in the noise.
-   
+ NOISE_AT_HALF_TRAINING 0.03 5x:
+ NOISE_AT_HALF_TRAINING 0.04 5x:
+ NOISE_AT_HALF_TRAINING 0.05 5x:
+
+ CACLA_ACTOR_ALPHA 0.0002 5x:
+ CACLA_ACTOR_ALPHA 0.0003 5x:
+ CACLA_ACTOR_ALPHA 0.0005 5x:
+
+ CACLA_TAU 0.005 5x:
+ CACLA_TAU 0.015 5x:
+ CACLA_TAU 0.02 5x:
 
 
+ACTOR_CRITIC_TYPE "DPG" &
+ Default "DPG" 10x:
+
+ NUM_NN_BOTS 3 &
+  Default "3BotsDPG" 5x:
+  ENABLE_SPLIT True 5x:
+
+ DPG_CACLA_ALTERNATION 0.01 5x:
+ DPG_CACLA_ALTERNATION 0.05 5x:
+ DPG_CACLA_ALTERNATION 0.1 5x:
+ DPG_CACLA_ALTERNATION 0.2 5x:
+ DPG_CACLA_ALTERNATION 0.3 5x:
+
+ NOISE_AT_HALF_TRAINING 0.03 5x:
+ NOISE_AT_HALF_TRAINING 0.04 5x:
+ NOISE_AT_HALF_TRAINING 0.05 5x:
+
+ DPG_FEED_ACTION_IN_LAYER 3 5x:
+
+ DPG_CRITIC_LAYERS (250,250) &
+  Default "2layerDPG" 5x:
+  DPG_FEED_ACTION_IN_LAYER 2 5x:
+
+ DPG_CRITIC_LAYERS (400,300) &
+  DPG_ACTOR_LAYERS (400,300) &
+   Default "DPGfromPaper" 5x:
+   DPG_FEED_ACTION_IN_LAYER 2 5x:
+
+ DPG_CRITIC_ALPHA 0.00005 5x:
+ DPG_CRITIC_ALPHA 0.0001  5x:
