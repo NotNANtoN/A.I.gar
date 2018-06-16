@@ -24,6 +24,7 @@ MEMORY_BETA 0.35 5x:		494 437 - 50.1 better 87.9 worse
 MEMORY_BETA 0.3  5x:		485 442 - 82.0 worse  64.2 better
 MEMORY_BETA 0.1  5x:		487 432 - 73.4 worse  99.9 worse
 => it seems for normal Q-learning prioritized exp replay is not that helpful...
+TEST: for NN_BOTS = 2
 
 
 NUM_NN_BOTS 2 &
