@@ -296,18 +296,18 @@ def updateTestResults(testResults, model, percentage, parameters):
         originalTemp = currentAlg.getTemperature()
         currentAlg.setTemperature(0)
     print("resetlimit: ", clonedModel.resetLimit, " orig model rest limit: ", model.resetLimit)
-    currentEval = testModel(clonedModel, 5, 150 if not clonedModel.resetLimit else clonedModel.resetLimit,
+    currentEval = testModel(clonedModel, 5, 15000 if not clonedModel.resetLimit else clonedModel.resetLimit,
                             model.getPath(), "test", False)
 
     params = Params(0, False, parameters.EXPORT_POINT_AVERAGING)
     pelletModel = Model(False, False, params, False)
     pelletModel.createBot("NN", currentAlg, parameters)
-    pelletEval = testModel(pelletModel, 5, 150, model.getPath(), "pellet", False)
+    pelletEval = testModel(pelletModel, 5, 15000, model.getPath(), "pellet", False)
 
     if parameters.MULTIPLE_BOTS_PRESENT:
         greedyModel = pelletModel
         greedyModel.createBot("Greedy", None, parameters)
-        vsGreedyEval = testModel(greedyModel, 5, 300, model.getPath(), "vsGreedy", False)
+        vsGreedyEval = testModel(greedyModel, 5, 30000, model.getPath(), "vsGreedy", False)
     else:
         vsGreedyEval = (0,0,0,0)
 

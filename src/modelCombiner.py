@@ -170,26 +170,41 @@ def plotFinalTests(path):
 def plotTestingMassOverTime(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
-    allMeans = []
-    maxLength = 0
+    allTestsOverTime = {}
+    allMaxLengths = {}
+
     for model in modelList:
         modelPath = path + model + "/data/"
         if not os.path.exists(modelPath):
             print("-- ", modelPath, " does not exist. --")
             continue
         for file in os.listdir(modelPath):
-            if not fnmatch.fnmatch(file, "testMassOverTime.txt"):
+            if not fnmatch.fnmatch(file, "*MassOverTime.txt"):
                 continue
             testingMassPath = modelPath + file
+            name = file[:file.find("MassOver")]
+
 
             with open(testingMassPath, 'r') as f:
                 meanVals = list(map(float, f))
-                maxLength = len(meanVals)
-                allMeans.append(meanVals)
+                try:
+                    allTestsOverTime[name]
+                except KeyError:
+                    allTestsOverTime[name] = []
+                allMaxLengths[name] = len(meanVals)
+                allTestsOverTime[name].append(meanVals)
 
-    labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training Time (%)",
-              "yLabel": "Testing Mass Mean Value", "title": "Mass", "path": path, "subPath": "Mean_Testing_Mass_During_training"}
-    plot(allMeans, maxLength, 5, labels, showConfInt=True)
+
+
+    for test in allTestsOverTime:
+        print("Keyword: ", test)
+        masses = allTestsOverTime[test]
+        maxLength = allMaxLengths[test]
+
+        labels = {"meanLabel": "Mean Reward", "sigmaLabel": '$\sigma$ range', "xLabel": "Training steps",
+                  "yLabel": "Mass Mean Value", "title": test, "path": path,
+                  "subPath":  test + "_Mean_Mass_Over_Time"}
+        plot(masses, maxLength, 5, labels, showConfInt = False)
 
 
 def plotMassesOverTime(path):

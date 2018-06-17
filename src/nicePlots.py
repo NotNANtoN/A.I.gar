@@ -42,7 +42,7 @@ def plot(name, dict):
         #print("value: ", dict[key])
         lineName = key
         dataList = dict[key]
-        if name != "test":
+        if name != "test" and name != "Pellet_Collection" and name != "VS_1_Greedy":
             dataList = produceAverageRun(dataList)
             dataLen = len(dataList[0])
 
@@ -77,7 +77,7 @@ def plot(name, dict):
             plt.plot(x, y, lw=2, label=lineName, color=color, marker=marker, markersize=10)
         ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor=color, alpha=0.35)
 
-    if name == "test":
+    if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
         ax.set_xlabel("Percentage of training time")
     else:
         ax.set_xlabel("Training Steps")

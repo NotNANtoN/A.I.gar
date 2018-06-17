@@ -103,14 +103,27 @@ def createEvaluationFiles(all_dists, default_dists):
                 default_name = default_dist_set["name"]
                 if currentName == default_name:
                     continue
+                defaultIdx = default_name.find("Default")
+                startDefault = default_name[:defaultIdx]
+                print("default start: ", startDefault)
+                print("name start: ", currentName[:defaultIdx])
+                if startDefault != "" and currentName[:defaultIdx] != startDefault:
+                    continue
+
 
                 try:
                     defaultMeanValList = default_dist_set[key]
+                    shortenedDefault = default_name[defaultIdx:]
+                    if "&" in shortenedDefault:
+                        andIdx = shortenedDefault.find("&")
+                        shortenedDefault = shortenedDefault[8:andIdx]
+                    else:
+                        shortenedDefault = shortenedDefault[8:]
                     overallDefaultMeanVal = numpy.mean(defaultMeanValList)
                     tVal, pVal = ttest_ind(meanValList, defaultMeanValList)
                     comparison = " better " if overallMeanVal > overallDefaultMeanVal else " worse "
-                    data += "Has a " + str(round((1 - pVal) * 100, 3)) + "%\t probability to be" + comparison + "than " + default_name + \
-                            "'s mean of " + str(round(overallDefaultMeanVal, 1)) + "\n"
+                    data += "Has a " + str(round((1 - pVal) * 100, 3)) + "%\t probability to be" + comparison + "than " \
+                            + shortenedDefault + "'s mean of " + str(round(overallDefaultMeanVal, 1)) + "\n"
                 except KeyError:
                     continue
                 except RuntimeWarning:
