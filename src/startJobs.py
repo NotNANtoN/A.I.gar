@@ -208,6 +208,7 @@ if __name__ == '__main__':
         email = "antonwiehe@gmail.com"
     else:
         email = "n.stolt.anso@student.rug.nl"
+    print("EMAIL: ", email)
     jobSum = 0
     for job in jobs:
         jobSum += job[2]
