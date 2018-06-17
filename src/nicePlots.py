@@ -44,31 +44,43 @@ def plot(name, dict):
         dataList = dict[key]
         if name != "test" and name != "Pellet_Collection" and name != "VS_1_Greedy":
             dataList = produceAverageRun(dataList)
-            dataLen = len(dataList[0])
-
-            x = range(dataLen)
-        else:
-            dataLen = len(dataList[0])
-            x = range(0, 105, 5)
+        dataLen = len(dataList[0])
 
 
 
         y, ysigma = getMeanAndStDev(dataList, dataLen)
         #print("Plotting: ", y)
+
+
+        lenY = len(y)
+
+        maxPoints = 150
+        if lenY > maxPoints:
+            meanStep = int(lenY / maxPoints)
+            y = [numpy.mean(y[idx:idx+meanStep]) for idx in range(0, lenY, meanStep)]
+            ysigma = numpy.array([numpy.mean(ysigma[idx:idx+meanStep]) for idx in range(0, lenY, meanStep)])
+            lenY = len(y)
+        else:
+            meanStep = 1
+
         y_lower_bound = y - ysigma
         y_upper_bound = y + ysigma
 
         color = colors[idx]
         marker = markers[idx]
         plt.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
-        lenY = len(y)
         maxMarkers = 10
-        # TODO: take average of some points if there are too many point in plot
+        if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
+            x = range(0, 105, 5)
+        else:
+            x = range(0, lenY * meanStep, meanStep)
+
         if lenY > maxMarkers:
 
-            smallPartIdxs = range(0,(lenY),int(lenY / maxMarkers))
-            if name == "test":
+            smallPartIdxs = range(0,(lenY * meanStep),int(lenY / maxMarkers * meanStep))
+            if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
                 smallPartIdxs = range(0, 101, int(100/maxMarkers))
+
             smallPart = y[0:(lenY):int(lenY / maxMarkers)]
             plt.plot(smallPartIdxs, smallPart, label=lineName, color=color, marker=marker, markersize=10,
                      linestyle='None', markerfacecolor=color, markeredgecolor=color)
@@ -80,7 +92,7 @@ def plot(name, dict):
     if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
         ax.set_xlabel("Percentage of training time")
     else:
-        ax.set_xlabel("Training Steps")
+        ax.set_xlabel("Testing Steps")
     ax.set_ylabel("Mass")
     plt.title(name)
 
