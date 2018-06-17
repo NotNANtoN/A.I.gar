@@ -124,7 +124,7 @@ def runJobs(jobs, email):
             outputName += paramName + "-" + paramVal.replace(".", "_") + "_"
 
             if paramName == "NUM_NN_BOTS":
-                timeBotFactor *= int(paramVal * 2)
+                timeBotFactor *= int(paramVal) * 1.5
                 resetTime = 30000
             elif paramName == "NUM_GREEDY_BOTS" and int(paramVal) > 0:
                 resetTime = 30000
@@ -133,6 +133,7 @@ def runJobs(jobs, email):
                 timeStepFactor *= int(paramVal) / 500000
             elif paramName == "ACTOR_CRITIC_TYPE":
                 algorithmType = 2
+                timeOtherFactor *= 1.2
             elif paramName == "USE_ACTION_AS_INPUT":
                 timeOtherFactor *= 4
             elif paramName == "ACTOR_CRITIC_TYPE":
