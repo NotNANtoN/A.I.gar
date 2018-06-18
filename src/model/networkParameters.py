@@ -6,7 +6,7 @@ Default = False
 # Game
 PELLET_SPAWN = True
 VIRUS_SPAWN = False
-RESET_LIMIT = 10000
+RESET_LIMIT = 15000
 EXPORT_POINT_AVERAGING = 500
 NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
@@ -48,6 +48,8 @@ DEATH_FACTOR = 2
 
 # State representation parameters:
 MULTIPLE_BOTS_PRESENT = True if NUM_GREEDY_BOTS + NUM_NN_BOTS > 1 else False
+if MULTIPLE_BOTS_PRESENT:
+    RESET_LIMIT = 30000
 NORMALIZE_GRID_BY_MAX_MASS = False
 PELLET_GRID = True
 SELF_GRID = MULTIPLE_BOTS_PRESENT
@@ -121,7 +123,9 @@ DPG_USE_DPG_ACTOR_TRAINING = True
 DPG_USE_TARGET_MODELS      = True
 DPG_USE_CACLA              = False
 DPG_CACLA_ALTERNATION      = 0 #fraction of training time in which cacla is used instead of dpg
+DPG_CACLA_INV_ALTERNATION  = 0 #fraction of training time after which cacla is used instead of dpg
 DPG_CACLA_STEPS            = DPG_CACLA_ALTERNATION * MAX_TRAINING_STEPS
+DPG_DPG_STEPS              = DPG_CACLA_INV_ALTERNATION * MAX_TRAINING_STEPS
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"

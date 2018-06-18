@@ -61,6 +61,7 @@ def getDistributions(directories, takeMean = True):
     for directory in directories:
         directory_distributions = {"name":directory}
         path = "savedModels/" + directory + "/"
+        print("Directory: ", path)
         subfolders = os.listdir(path)
         for subfolder in subfolders:
             if not os.path.isdir(path + subfolder):
@@ -97,7 +98,7 @@ def createEvaluationFiles(all_dists, default_dists):
             meanValList = distribution_set[key]
             overallMeanVal = numpy.mean(meanValList)
             overallStd = numpy.std(meanValList)
-            data += key + " mean value " + str(round(overallMeanVal, 1)) + " and std " + str(round(overallStd, 1)) +"\n"
+            data += key + " mean value " + str(int(overallMeanVal)) + " and std " + str(int(overallStd)) +"\n"
 
             for default_dist_set in default_dists:
                 default_name = default_dist_set["name"]
@@ -122,8 +123,8 @@ def createEvaluationFiles(all_dists, default_dists):
                     overallDefaultMeanVal = numpy.mean(defaultMeanValList)
                     tVal, pVal = ttest_ind(meanValList, defaultMeanValList)
                     comparison = " better " if overallMeanVal > overallDefaultMeanVal else " worse "
-                    data += "Has a " + str(round((1 - pVal) * 100, 3)) + "%\t probability to be" + comparison + "than " \
-                            + shortenedDefault + "'s mean of " + str(round(overallDefaultMeanVal, 1)) + "\n"
+                    data += "Has a " + str(round((1 - pVal) * 100, 1)) + "%\t probability to be" + comparison + "than " \
+                            + shortenedDefault + "'s mean of " + str(int(overallDefaultMeanVal)) + "\n"
                 except KeyError:
                     continue
                 except RuntimeWarning:
