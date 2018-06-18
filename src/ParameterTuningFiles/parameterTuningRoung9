@@ -95,7 +95,7 @@ ACTOR_CRITIC_TYPE "DPG" &
   DPG_ACTOR_LAYERS (400,300) &
    Default "DPGfromPaper" 5x:		420 300 - 85.1 better 55.5 better
    DPG_FEED_ACTION_IN_LAYER 2 5x:	404 260 - 57.9 better 97.4 worse
-=> (400,300) seems good! NEW: (400,300) for both actor and critic DPG
+=> (400,300) seems good! TEST: (400,300) for both, for them individually
 
  DPG_CRITIC_ALPHA 0.00005 5x:		363 286 - 44.5 worse  76.1 worse
  DPG_CRITIC_ALPHA 0.0001  5x:		390 294 - 21.5 better 14.4 worse

@@ -279,7 +279,7 @@ class ActorCritic(object):
         self.acType = parameters.ACTOR_CRITIC_TYPE
         self.parameters = parameters
         self.std = self.parameters.GAUSSIAN_NOISE
-        self.noise_decay_factor = self.parameters.NOISE_DECAY
+        self.noise_decay_factor = self.parameters.AC_NOISE_DECAY
         self.steps = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
