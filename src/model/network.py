@@ -361,6 +361,8 @@ class Network(object):
             self.actionNetwork.compile(loss='mse', optimizer=optimizer)
 
         print(self.valueNetwork.summary())
+        print("\n")
+
         if modelName is not None:
             self.load(modelName)
 

@@ -521,7 +521,6 @@ if __name__ == '__main__':
 
 
     model = Model(guiEnabled, viewEnabled, parameters, True)
-    print("reset limitttt:", model.resetLimit)
 
     model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
 
@@ -569,7 +568,6 @@ if __name__ == '__main__':
 
     if fitsLimitations(numberOfGreedyBots, 1000):
         createBots(numberOfGreedyBots, model, "Greedy", parameters)
-
     model.addDataFilesToDictionary()
 
     if numberOfNNBots == 0:
