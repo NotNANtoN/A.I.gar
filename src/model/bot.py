@@ -113,6 +113,8 @@ class Bot(object):
         self.lastMass = None
         self.lastReward = None
         self.lastAction = None
+        self.fovSize = None
+        self.lastFovSize = None
         self.currentAction = None
         if learningAlg is not None:
             self.learningAlg = learningAlg
@@ -194,6 +196,8 @@ class Bot(object):
             self.lastSelfGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
             self.secondLastEnemyGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
             self.lastEnemyGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+            self.fovSize = 0
+            self.lastFovSize = 0
         elif self.type == "Greedy":
             self.currentAction = [0, 0, 0, 0]
 
@@ -290,22 +294,23 @@ class Bot(object):
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
                 gridView = self.getGridStateRepresentation()
-
                 if self.parameters.CNN_REPRESENTATION:
                     if self.parameters.CNN_PIXEL_REPRESENTATION:
                         stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
                         self.lastPixelGrid = stateRepr
                         if self.parameters.CNN_USE_LAST_GRID:
                             stateRepr = numpy.concatenate((stateRepr,self.lastPixelGrid), axis=2)
-
                     else:
                         stateRepr = gridView
                 else:
                     gridView = gridView.flatten()
                     additionalFeatures = []
+                    if self.parameters.USE_LAST_FOVSIZE:
+                        self.lastFovSize = self.fovSize
+                        additionalFeatures.append(self.lastFovSize)
                     if self.parameters.USE_FOVSIZE:
-                        fovSize = self.player.getFovSize()
-                        additionalFeatures.append(fovSize)
+                        self.fovSize = self.player.getFovSize()
+                        additionalFeatures.append(self.fovSize)
                     if self.parameters.USE_TOTALMASS:
                         mass = self.player.getTotalMass()
                         additionalFeatures.append(mass)
@@ -319,6 +324,7 @@ class Bot(object):
                         additionalFeatures.extend(second_last_action)
                         if len(second_last_action) < 4:
                             additionalFeatures.extend(numpy.zeros(4 - len(second_last_action)))
+
                     if len(additionalFeatures) > 0:
                         stateRepr = numpy.concatenate((gridView, additionalFeatures))
                     else:
@@ -475,11 +481,8 @@ class Bot(object):
 
         if self.parameters.ENEMY_GRID_LF:
             gridView[count] = self.lastEnemyGrid
-            self.lastEnemyGrid = gsBiggestOwnCellMass
+            self.lastEnemyGrid = gsBiggestEnemyCellMass
             count += 1
-
-        # Add total Mass of player and field size:
-        totalMass = self.player.getTotalMass()
 
         return gridView
 
