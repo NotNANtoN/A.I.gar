@@ -89,20 +89,20 @@ class Network(object):
         self.gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
 
         # CNN
-        if self.parameters.CNN_REPRESENTATION:
+        if self.parameters.CNN_REPR:
             # (KernelSize, stride, filterNum)
-            self.kernel_1 = self.parameters.CNN_LAYER_1
+            self.kernel_1 = self.parameters.CNN_L1
 
-            self.kernel_2 = self.parameters.CNN_LAYER_2
+            self.kernel_2 = self.parameters.CNN_L2
 
-            self.kernel_3 = self.parameters.CNN_LAYER_3
+            self.kernel_3 = self.parameters.CNN_L3
 
-            if self.parameters.CNN_USE_LAYER_1:
-                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-            elif self.parameters.CNN_USE_LAYER_2:
-                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+            if self.parameters.CNN_USE_L1:
+                self.stateReprLen = self.parameters.CNN_INPUT_DIM_1
+            elif self.parameters.CNN_USE_L2:
+                self.stateReprLen = self.parameters.CNN_INPUT_DIM_2
             else:
-                self.stateReprLen = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                self.stateReprLen = self.parameters.CNN_INPUT_DIM_3
         else:
             self.stateReprLen = self.parameters.STATE_REPR_LEN
 
@@ -147,9 +147,9 @@ class Network(object):
 
         # CNN
             # CNN
-        if self.parameters.CNN_REPRESENTATION:
-            if self.parameters.CNN_PIXEL_REPRESENTATION:
-                if self.parameters.CNN_PIXEL_INCEPTION:
+        if self.parameters.CNN_REPR:
+            if self.parameters.CNN_P_REPR:
+                if self.parameters.CNN_P_INCEPTION:
 
                     self.input = Input(shape=(self.stateReprLen, self.stateReprLen, 3))
 
@@ -168,22 +168,22 @@ class Network(object):
                 # DQN approach
                 else:
                     # RGB
-                    if self.parameters.CNN_PIXEL_RGB:
+                    if self.parameters.CNN_P_RGB:
                         channels = 3
                     # GrayScale
                     else:
                         channels = 1
-                    if self.parameters.CNN_USE_LAST_GRID:
+                    if self.parameters.CNN_LAST_GRID:
                         channels = channels * 2
                     self.input = Input(shape=(self.stateReprLen, self.stateReprLen, channels))
 
-                    if self.parameters.CNN_USE_LAYER_1:
+                    if self.parameters.CNN_USE_L1:
                         conv = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
                                        strides=(self.kernel_1[1], self.kernel_1[1]), activation='relu',
                                        data_format='channels_last')(self.input)
 
-                    if self.parameters.CNN_USE_LAYER_2:
-                        if self.parameters.CNN_USE_LAYER_1:
+                    if self.parameters.CNN_USE_L2:
+                        if self.parameters.CNN_USE_L1:
                             conv = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_last')(conv)
@@ -192,8 +192,8 @@ class Network(object):
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_last')(self.input)
 
-                    if self.parameters.CNN_USE_LAYER_3:
-                        if self.parameters.CNN_USE_LAYER_2:
+                    if self.parameters.CNN_USE_L3:
+                        if self.parameters.CNN_USE_L2:
                             conv = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
                                            strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
                                            data_format='channels_last')(conv)
@@ -211,13 +211,13 @@ class Network(object):
                     self.towerModel = []
                     for grid in range(self.parameters.NUM_OF_GRIDS):
                         self.input.append(Input(shape=(1, self.stateReprLen, self.stateReprLen)))
-                        if self.parameters.CNN_USE_LAYER_1:
+                        if self.parameters.CNN_USE_L1:
                             tower.append(Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
                                                strides=(self.kernel_1[1], self.kernel_1[1]), activation='relu',
                                                data_format='channels_first')(self.input[grid]))
 
-                        if self.parameters.CNN_USE_LAYER_2:
-                            if self.parameters.CNN_USE_LAYER_1:
+                        if self.parameters.CNN_USE_L2:
+                            if self.parameters.CNN_USE_L1:
                                 tower[grid] = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                                    strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                                    data_format='channels_first')(tower[grid])
@@ -227,8 +227,8 @@ class Network(object):
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_first')(self.input[grid]))
 
-                        if self.parameters.CNN_USE_LAYER_3:
-                            if self.parameters.CNN_USE_LAYER_2:
+                        if self.parameters.CNN_USE_L3:
+                            if self.parameters.CNN_USE_L2:
                                 tower[grid] = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
                                            strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
                                            data_format='channels_first')(tower[grid])
@@ -243,13 +243,13 @@ class Network(object):
                 # Vision grid merging
                 else:
                     self.input = Input(shape=(self.parameters.NUM_OF_GRIDS, self.stateReprLen, self.stateReprLen))
-                    if self.parameters.CNN_USE_LAYER_1:
+                    if self.parameters.CNN_USE_L1:
                         conv = Conv2D(self.kernel_1[2], kernel_size=(self.kernel_1[0], self.kernel_1[0]),
                                        strides=(self.kernel_1[1], self.kernel_1[1]), activation='relu',
                                        data_format='channels_first')(self.input)
 
-                    if self.parameters.CNN_USE_LAYER_2:
-                        if self.parameters.CNN_USE_LAYER_1:
+                    if self.parameters.CNN_USE_L2:
+                        if self.parameters.CNN_USE_L1:
                             conv = Conv2D(self.kernel_2[2], kernel_size=(self.kernel_2[0], self.kernel_2[0]),
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_first')(conv)
@@ -258,8 +258,8 @@ class Network(object):
                                            strides=(self.kernel_2[1], self.kernel_2[1]), activation='relu',
                                            data_format='channels_first')(self.input)
 
-                    if self.parameters.CNN_USE_LAYER_3:
-                        if self.parameters.CNN_USE_LAYER_2:
+                    if self.parameters.CNN_USE_L3:
+                        if self.parameters.CNN_USE_L2:
                             conv = Conv2D(self.kernel_3[2], kernel_size=(self.kernel_3[0], self.kernel_3[0]),
                                            strides=(self.kernel_3[1], self.kernel_3[1]), activation='relu',
                                            data_format='channels_first')(conv)
@@ -275,7 +275,7 @@ class Network(object):
 
             layerIterable = iter(self.layers)
 
-            if parameters.CNN_REPRESENTATION:
+            if parameters.CNN_REPR:
                 previousLayer = Dense(next(layerIterable), activation=self.activationFuncHidden,
                                     bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
             else:
@@ -297,7 +297,7 @@ class Network(object):
         elif self.parameters.NEURON_TYPE == "LSTM":
             # Hidden Layer 1
             # TODO: Use CNN with LSTM
-            # if self.parameters.CNN_REPRESENTATION:
+            # if self.parameters.CNN_REPR:
             #     hidden1 = LSTM(self.hiddenLayer1, return_sequences=True, stateful=stateful_training, batch_size=self.batch_len)
             # else:
             #     hidden1 = LSTM(self.hiddenLayer1, input_shape=input_shape_lstm, return_sequences = True,
@@ -417,7 +417,7 @@ class Network(object):
                 return self.valueNetwork.predict(state, batch_size=batch_len)
             else:
                 return self.valueNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
-        if self.parameters.CNN_REPRESENTATION:
+        if self.parameters.CNN_REPR:
             if self.parameters.CNN_TOWER:
                 stateRepr = numpy.zeros((len(state), 1, 1,  len(state[0]), len(state[0])))
 
@@ -447,7 +447,7 @@ class Network(object):
                 return self.targetNetwork.predict(state, batch_size=batch_len)
             else:
                 return self.targetNetwork.predict(numpy.array([numpy.array([state])]))[0][0]
-        if self.parameters.CNN_REPRESENTATION:
+        if self.parameters.CNN_REPR:
             if self.parameters.CNN_TOWER:
                 stateRepr = numpy.zeros((len(state), 1, 1,  len(state[0]), len(state[0])))
 
