@@ -305,7 +305,8 @@ def updateTestResults(testResults, model, percentage, parameters):
     pelletEval = testModel(pelletModel, 5, 15000, model.getPath(), "pellet", False)
 
     if parameters.MULTIPLE_BOTS_PRESENT:
-        greedyModel = pelletModel
+        greedyModel = Model(False, False, params, False)
+        greedyModel.createBot("NN", currentAlg, parameters)
         greedyModel.createBot("Greedy", None, parameters)
         vsGreedyEval = testModel(greedyModel, 5, 30000, model.getPath(), "vsGreedy", False)
     else:
