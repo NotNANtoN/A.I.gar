@@ -443,19 +443,19 @@ class Model(object):
         data += "Discount factor - " + str(parameters.DISCOUNT) + "\n"
         data += "Frame skip rate - " + str(parameters.FRAME_SKIP_RATE) + "\n"
         data += "State representation - " + ("Grid" if parameters.GRID_VIEW_ENABLED else "Simple") + "\n"
-        data += "CNN representation - " + ("True" if parameters.CNN_REPRESENTATION else "False") + "\n"
+        data += "CNN representation - " + ("True" if parameters.CNN_REPR else "False") + "\n"
 
         if parameters.GRID_VIEW_ENABLED:
-            if parameters.CNN_REPRESENTATION:
-                if parameters.CNN_USE_LAYER_1:
-                    data += "Grid - " + str(parameters.CNN_SIZE_OF_INPUT_DIM_1) + "x" + str(
-                        parameters.CNN_SIZE_OF_INPUT_DIM_1) + "\n"
-                elif parameters.CNN_USE_LAYER_2:
-                    data += "Grid - " + str(parameters.CNN_SIZE_OF_INPUT_DIM_2) + "x" + str(
-                        parameters.CNN_SIZE_OF_INPUT_DIM_2) + "\n"
+            if parameters.CNN_REPR:
+                if parameters.CNN_USE_L1:
+                    data += "Grid - " + str(parameters.CNN_INPUT_DIM_1) + "x" + str(
+                        parameters.CNN_INPUT_DIM_1) + "\n"
+                elif parameters.CNN_USE_L2:
+                    data += "Grid - " + str(parameters.CNN_INPUT_DIM_2) + "x" + str(
+                        parameters.CNN_INPUT_DIM_2) + "\n"
                 else:
-                    data += "Grid - " + str(parameters.CNN_SIZE_OF_INPUT_DIM_3) + "x" + str(
-                        parameters.CNN_SIZE_OF_INPUT_DIM_3) + "\n"
+                    data += "Grid - " + str(parameters.CNN_INPUT_DIM_3) + "x" + str(
+                        parameters.CNN_INPUT_DIM_3) + "\n"
             else:
                 data += "Grid - " + str(parameters.GRID_SQUARES_PER_FOV) + "x" +  str(parameters.GRID_SQUARES_PER_FOV)  + "\n"
         data += "Experience Replay - " + ("Enabled" if parameters.EXP_REPLAY_ENABLED else "Disabled") + "\n"
@@ -618,7 +618,7 @@ class Model(object):
         newPlayer = self.createPlayer(name)
         rgbGenerator = None
         if parameters is not None:
-            if parameters.CNN_REPRESENTATION and parameters.CNN_PIXEL_REPRESENTATION:
+            if parameters.CNN_REPR and parameters.CNN_P_REPR:
                 rgbGenerator = RGBGenerator(self.field, parameters)
         bot = Bot(newPlayer, self.field, botType, self.trainingEnabled, learningAlg, parameters, rgbGenerator)
         self.addBot(bot)

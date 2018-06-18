@@ -136,23 +136,23 @@ TRACE_MIN = 1 # The minimum amount of traces that are not trained on, as they ha
 MEMORY_TRACE_LEN = 15 # The length of memory traces retrieved via exp replay
 
 # CNN
-CNN_REPRESENTATION = False
+CNN_REPR = False
 CNN_TOWER = False
 # Handcraft representation
-CNN_USE_LAYER_1 = True
-CNN_LAYER_1 = (8, 4, 32)
-CNN_SIZE_OF_INPUT_DIM_1 = 84
+CNN_USE_L1 = True
+CNN_L1 = (8, 4, 32)
+CNN_INPUT_DIM_1 = 84
 
-CNN_USE_LAYER_2 = True
-CNN_LAYER_2 = (4, 2, 64)
-CNN_SIZE_OF_INPUT_DIM_2 = 84
+CNN_USE_L2 = True
+CNN_L2 = (4, 2, 64)
+CNN_INPUT_DIM_2 = 84
 
-CNN_USE_LAYER_3 = True
-CNN_LAYER_3 = (3, 1, 64)
-CNN_SIZE_OF_INPUT_DIM_3 = 42
+CNN_USE_L3 = True
+CNN_L3 = (3, 1, 64)
+CNN_INPUT_DIM_3 = 42
 
 # Pixel representation
-CNN_PIXEL_REPRESENTATION = False
-CNN_PIXEL_RGB = False
-CNN_PIXEL_INCEPTION = False
-CNN_USE_LAST_GRID = True
+CNN_P_REPR = False
+CNN_P_RGB = False
+CNN_P_INCEPTION = False
+CNN_LAST_GRID = True

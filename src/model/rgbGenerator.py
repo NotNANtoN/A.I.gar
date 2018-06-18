@@ -13,12 +13,12 @@ class RGBGenerator:
         self.parameters = parameters
 
         # CNN attributes
-        if self.parameters.CNN_USE_LAYER_1:
-            self.length = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-        elif self.parameters.CNN_USE_LAYER_2:
-            self.length = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+        if self.parameters.CNN_USE_L1:
+            self.length = self.parameters.CNN_INPUT_DIM_1
+        elif self.parameters.CNN_USE_L2:
+            self.length = self.parameters.CNN_INPUT_DIM_2
         else:
-            self.length = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+            self.length = self.parameters.CNN_INPUT_DIM_3
 
         self.screenDims = numpy.array([self.length, self.length])
         self.screen = pygame.Surface((self.length, self.length))
@@ -70,7 +70,7 @@ class RGBGenerator:
         self.screen.fill(WHITE)
         self.drawAllCells(player)
         if __debug__:
-            if not self.parameters.CNN_PIXEL_RGB:
+            if not self.parameters.CNN_P_RGB:
                 imgdata = pygame.surfarray.array3d(self.screen)
                 imgdata = self.grayscale_RGB(imgdata)
                 self.screen.blit(imgdata,(0,0))
@@ -95,7 +95,7 @@ class RGBGenerator:
     def get_cnn_inputRGB(self, player):
         self.draw_cnnInput(player)
         imgdata = pygame.surfarray.array3d(self.screen)
-        if not self.parameters.CNN_PIXEL_RGB:
+        if not self.parameters.CNN_P_RGB:
             imgdata = self.grayscale(imgdata)
         return imgdata
 

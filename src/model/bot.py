@@ -182,13 +182,13 @@ class Bot(object):
                 self.memories[-1][-1] = True
             # self.actionIdxHistory = []
             # self.actionHistory =[]
-            if self.parameters.CNN_REPRESENTATION:
-                if self.parameters.CNN_USE_LAYER_1:
-                    gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-                elif self.parameters.CNN_USE_LAYER_2:
-                    gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+            if self.parameters.CNN_REPR:
+                if self.parameters.CNN_USE_L1:
+                    gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_1
+                elif self.parameters.CNN_USE_L2:
+                    gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_2
                 else:
-                    gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                    gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_3
             else:
                 gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
 
@@ -294,11 +294,11 @@ class Bot(object):
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
                 gridView = self.getGridStateRepresentation()
-                if self.parameters.CNN_REPRESENTATION:
-                    if self.parameters.CNN_PIXEL_REPRESENTATION:
+                if self.parameters.CNN_REPR:
+                    if self.parameters.CNN_P_REPR:
                         stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
                         self.lastPixelGrid = stateRepr
-                        if self.parameters.CNN_USE_LAST_GRID:
+                        if self.parameters.CNN_LAST_GRID:
                             stateRepr = numpy.concatenate((stateRepr,self.lastPixelGrid), axis=2)
                     else:
                         stateRepr = gridView
@@ -348,13 +348,13 @@ class Bot(object):
         left = x - fovSize / 2
         top = y - fovSize / 2
         # Initialize spatial hash tables:
-        if self.parameters.CNN_REPRESENTATION:
-            if self.parameters.CNN_USE_LAYER_1:
-                gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_1
-            elif self.parameters.CNN_USE_LAYER_2:
-                gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_2
+        if self.parameters.CNN_REPR:
+            if self.parameters.CNN_USE_L1:
+                gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_1
+            elif self.parameters.CNN_USE_L2:
+                gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_2
             else:
-                gridSquaresPerFov = self.parameters.CNN_SIZE_OF_INPUT_DIM_3
+                gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_3
         else:
             gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
