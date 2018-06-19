@@ -1,93 +1,102 @@
-Default "Q" 10x:
+Default "Q" 10x:			497(8) 372(6)
 
-ALPHA 0.000075 5x:
+ALPHA 0.000075 5x:			491 369 - 63.7 worse  72.0 worse
 #def  0.0001   5x:
-ALPHA 0.000125 5x:
+ALPHA 0.000125 5x:			492 370 - 73.6 worse  54.7 worse
 
-Q_LAYERS (50,) 5x:
-Q_LAYERS (50,50) 5x:
-Q_LAYERS (250,) 5x:
+Q_LAYERS (50,) 5x:			474 354 - 99.8 worse  100 worse
+Q_LAYERS (50,50) 5x:			473 356 - 99.1 worse  100 worse
+Q_LAYERS (250,) 5x:			490 369 - 74.9 worse  59.9 worse
 
 
 
 NUM_NN_BOTS 3 &
- Default "Q-3NN" 10x:
- PRIORITIZED_EXP_REPLAY_ENABLED False 5x:
+ Default "Q-3NN" 10x:			80(61)  216(131) 120(8)
+ PRIOR_EXP_REPLAY_ENABLED False 5x:	168 210 127 - 98.8 better 6.4  worse  79.8 better
 
- DEATH_TERM -25 5x:
- DEATH_TERM -75 5x:
+ DEATH_TERM -25 5x:			68  156 123 - 24.6 worse  50.9 worse  41.6 better
+ DEATH_TERM -75 5x:			148 235 123 - 95.9 better 18.3 better 53.0 better
 
- DEATH_FACTOR 1.5 5x:
- DEATH_FACTOR 1.25 5x:
+ DEATH_FACTOR 1.5 5x:			111 277 124 - 62.4 better 47.1 better 47.4 better
+ DEATH_FACTOR 1.25 5x:			86  258 127 - 15.0 better 41.1 better 80.3 better
 
  ENEMY_GRID_SLF False &
-  SELF_GRID_SLF False 5x:
+  SELF_GRID_SLF False 5x:		97  170 130 - 39.0 better 41.5 worse  95.3 better
  
  USE_SECOND_LAST_ACTION False &
-  Default "NoSLA" 5x:
-  USE_LAST_ACTION False 5x:
+  Default "NoSLA" 5x:			96  179 114 - 29.1 better 39.9 worse  73.4 worse
+  USE_LAST_ACTION False 5x:		151 204 120 - 93.3 better 10.8 worse  7.7  better
  
  ENEMY_GRID_LF False &
   ENEMY_GRID_SLF False &
-   Default "nolastEnemies" 5x:
+   Default "nolastEnemies" 5x:		196 259 130 - 98.8 better 31.1 better 87.5 better
    SELF_GRID_LF False &
-    SELF_GRID_SLF False 5x:
+    SELF_GRID_SLF False 5x:		190 307 149 - 98.0 better 68.9 better 100 better
    USE_LAST_ACTION False &
-    USE_SECOND_LAST_ACTION False 5x:
+    USE_SECOND_LAST_ACTION False 5x:	174 188 126 - 98.9 better 26.0 worse  81.3 better
 
- ENABLE_SPLIT True 5x:
+ ENABLE_SPLIT True 5x:			559 68  374 - 99.7 better 96.2 worse
 
 
 ACTOR_CRITIC_TYPE "CACLA" &
  Default "CACLA" 10x:
 
  NUM_NN_BOTS 3 &
-  Default "3BotsCACLA" 5x:
-  ENABLE_SPLIT True 5x:
-  GRID_SQUARES_PER_FOV 9 5x:
-  GRID_SQUARES_PER_FOV 13 5x:
-  GRID_SQUARES_PER_FOV 15 5x:
+  Default "3BotsCACLA" 5x:		199 286 178 
+  ENABLE_SPLIT True 5x:			627 167 506 - 99.5 better 88.1 worse 100  better
+  GRID_SQUARES_PER_FOV 9 5x:		128 154 141 - 80.0 worse  88.6 worse 73.1 worse
+  GRID_SQUARES_PER_FOV 13 5x:		187 181 169 - 18.4 worse  84.0 worse 40.0 worse
+  GRID_SQUARES_PER_FOV 15 5x:		254 210 173 - 71.5 better 45.1 worse 22.9 worse
+=> TEST: 13, 15 again
 
- NOISE_AT_HALF_TRAINING 0.03 5x:
- NOISE_AT_HALF_TRAINING 0.04 5x:
- NOISE_AT_HALF_TRAINING 0.05 5x:
+ NOISE_AT_HALF_TRAINING 0.03 5x:	452 326 - 86.1 better 26.7 worse
+ NOISE_AT_HALF_TRAINING 0.04 5x:	446 333 - 45.5 better 64.2 better
+ NOISE_AT_HALF_TRAINING 0.05 5x:	455 327 - 95.8 better 25.0 worse
+=> NEW: introduce Noise for Actor-Critic, set it to 0.03. TEST: 0.05, 0.1
 
- CACLA_ACTOR_ALPHA 0.0002 5x:
- CACLA_ACTOR_ALPHA 0.0003 5x:
- CACLA_ACTOR_ALPHA 0.0005 5x:
+ CACLA_ACTOR_ALPHA 0.0002 5x:		449 332 - 82.2 better 55.2 better
+ CACLA_ACTOR_ALPHA 0.0003 5x:		457 340 - 97.1 better 97.9 better
+ CACLA_ACTOR_ALPHA 0.0005 5x:		457 341 - 97.2 better 98.7 better
+=> NEW: 0.0005 TEST: 0.00075, 0.001
 
- CACLA_TAU 0.005 5x:
- CACLA_TAU 0.015 5x:
- CACLA_TAU 0.02 5x:
+ CACLA_TAU 0.005 5x:			441 325 - 18.3 better 44.4 worse
+ CACLA_TAU 0.015 5x:			449 326 - 77.4 better 33.3 worse
+ CACLA_TAU 0.02 5x:			448 336 - 78.6 better 90.4 better
+=> NEW: 0.02 TEST: 0.04, 0.06
 
 
 ACTOR_CRITIC_TYPE "DPG" &
- Default "DPG" 10x:
+ Default "DPG" 10x:			382(51) 295(12)
 
  NUM_NN_BOTS 3 &
-  Default "3BotsDPG" 5x:
+  Default "3BotsDPG" 5x:		80  142 60
   ENABLE_SPLIT True 5x:
 
- DPG_CACLA_ALTERNATION 0.01 5x:
- DPG_CACLA_ALTERNATION 0.05 5x:
- DPG_CACLA_ALTERNATION 0.1 5x:
- DPG_CACLA_ALTERNATION 0.2 5x:
- DPG_CACLA_ALTERNATION 0.3 5x:
+ DPG_CACLA_ALTERNATION 0.01 5x:		395 307 - 37.5 better 92.3 better
+ DPG_CACLA_ALTERNATION 0.05 5x:		402 299 - 54.0 better 45.1 better
+ DPG_CACLA_ALTERNATION 0.1 5x:		378 279 - 11.1 worse  97.5 worse
+ DPG_CACLA_ALTERNATION 0.2 5x:		347 262 - 64.9 worse  100  worse
+ DPG_CACLA_ALTERNATION 0.3 5x:		329 229 - 89.9 worse  100  worse
+=> maybe there's a sweet spot between 0.01 and 0.05: TEST: 0.01, 0.02, 0.03, 0.04, 0.05
+=> TEST: Introduce inverse alternation with parameter
 
- NOISE_AT_HALF_TRAINING 0.03 5x:
- NOISE_AT_HALF_TRAINING 0.04 5x:
- NOISE_AT_HALF_TRAINING 0.05 5x:
+ NOISE_AT_HALF_TRAINING 0.03 5x:	398 296 - 46.0 better 10.3 better
+ NOISE_AT_HALF_TRAINING 0.04 5x:	403 283 - 58.6 better 82.9 worse
+ NOISE_AT_HALF_TRAINING 0.05 5x:	404 275 - 58.2 better 93.2 worse
+=> having NOISE_ACTOR_CRITIC at 0.03-0.05 does not damage DPG
 
  DPG_FEED_ACTION_IN_LAYER 3 5x:
 
  DPG_CRITIC_LAYERS (250,250) &
-  Default "2layerDPG" 5x:
-  DPG_FEED_ACTION_IN_LAYER 2 5x:
+  Default "2layerDPG" 5x:		318 292 - 78.8 worse  26.6 worse
+  DPG_FEED_ACTION_IN_LAYER 2 5x:	333 250 - 83.7 worse  99.6 worse
 
  DPG_CRITIC_LAYERS (400,300) &
   DPG_ACTOR_LAYERS (400,300) &
-   Default "DPGfromPaper" 5x:
-   DPG_FEED_ACTION_IN_LAYER 2 5x:
+   Default "DPGfromPaper" 5x:		420 300 - 85.1 better 55.5 better
+   DPG_FEED_ACTION_IN_LAYER 2 5x:	404 260 - 57.9 better 97.4 worse
+=> (400,300) seems good! TEST: (400,300) for both, for them individually
 
- DPG_CRITIC_ALPHA 0.00005 5x:
- DPG_CRITIC_ALPHA 0.0001  5x:
+ DPG_CRITIC_ALPHA 0.00005 5x:		363 286 - 44.5 worse  76.1 worse
+ DPG_CRITIC_ALPHA 0.0001  5x:		390 294 - 21.5 better 14.4 worse
+=> TEST: 0.00015, 0.0002

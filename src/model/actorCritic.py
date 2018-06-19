@@ -279,7 +279,7 @@ class ActorCritic(object):
         self.acType = parameters.ACTOR_CRITIC_TYPE
         self.parameters = parameters
         self.std = self.parameters.GAUSSIAN_NOISE
-        self.noise_decay_factor = self.parameters.NOISE_DECAY
+        self.noise_decay_factor = self.parameters.AC_NOISE_DECAY
         self.steps = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
@@ -355,9 +355,11 @@ class ActorCritic(object):
     def learn(self, batch, steps):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             idxs, priorities = self.train_critic_DPG(batch)
-            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and steps > self.parameters.DPG_CACLA_STEPS:
+            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and (steps > self.parameters.DPG_CACLA_STEPS \
+                    or steps <= self.parameters.DPG_DPG_STEPS):
                 self.train_actor_DPG(batch)
-            if self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS:
+            if self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS\
+                    or steps > self.parameters.DPG_DPG_STEPS:
                 self.train_actor_batch(batch, priorities)
         else:
             idxs, priorities = self.train_critic(batch)

@@ -144,6 +144,10 @@ def runJobs(jobs, email):
             elif paramName == "CNN_REPRESENTATION":
                 memoryLimit = 120000
                 cnnTime = True
+            elif paramName == "MEMORY_CAPACITY":
+                memoryLimit *= int(int(paramVal) / 75000) + 1
+            elif paramName == "MEMORY_BATCH_LEN":
+                timeOtherFactor *= int(int(paramVal) / 32) + 1
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24

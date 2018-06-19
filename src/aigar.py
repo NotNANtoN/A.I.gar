@@ -295,7 +295,6 @@ def updateTestResults(testResults, model, percentage, parameters):
     if str(currentAlg) != "AC":
         originalTemp = currentAlg.getTemperature()
         currentAlg.setTemperature(0)
-    print("resetlimit: ", clonedModel.resetLimit, " orig model rest limit: ", model.resetLimit)
     currentEval = testModel(clonedModel, 5, 15000 if not clonedModel.resetLimit else clonedModel.resetLimit,
                             model.getPath(), "test", False)
 
@@ -305,8 +304,7 @@ def updateTestResults(testResults, model, percentage, parameters):
     pelletEval = testModel(pelletModel, 5, 15000, model.getPath(), "pellet", False)
 
     if parameters.MULTIPLE_BOTS_PRESENT:
-        greedyModel = Model(False, False, params, False)
-        greedyModel.createBot("NN", currentAlg, parameters)
+        greedyModel = pelletModel
         greedyModel.createBot("Greedy", None, parameters)
         vsGreedyEval = testModel(greedyModel, 5, 30000, model.getPath(), "vsGreedy", False)
     else:
@@ -607,7 +605,7 @@ if __name__ == '__main__':
         exportTestResults(meanMassesOfPelletResults, model.getPath() + "/data/", "Pellet_CollectionMassOverTime")
         if parameters.MULTIPLE_BOTS_PRESENT:
             meanMassesOfGreedyResults = [val[4] for val in testResults]
-            exportTestResults(meanMassesOfPelletResults, model.getPath() + "/data/", "VS_1_GreedyMassOverTime")
+            exportTestResults(meanMassesOfGreedyResults, model.getPath() + "/data/", "VS_1_GreedyMassOverTime")
             plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
 
         plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
