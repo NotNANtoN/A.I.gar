@@ -293,39 +293,26 @@ class Bot(object):
         stateRepr = None
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
-                gridView = self.getGridStateRepresentation()
                 if self.parameters.CNN_REPR:
                     if self.parameters.CNN_P_REPR:
-                        stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
-                        self.lastPixelGrid = stateRepr
+                        gridView = self.rgbGenerator.get_cnn_inputRGB(self.player)
+                        self.lastPixelGrid = gridView
                         if self.parameters.CNN_LAST_GRID:
-                            stateRepr = numpy.concatenate((stateRepr,self.lastPixelGrid), axis=2)
+                            gridView = numpy.concatenate((gridView, self.lastPixelGrid), axis=2)
+                    else:
+                        gridView = self.getGridStateRepresentation()
+
+                    if self.parameters.EXTRA_INPUT:
+                        additionalFeatures = self.getAdditionalFeatures()
+                        stateRepr = [gridView, additionalFeatures]
                     else:
                         stateRepr = gridView
-                else:
-                    gridView = gridView.flatten()
-                    additionalFeatures = []
-                    if self.parameters.USE_LAST_FOVSIZE:
-                        self.lastFovSize = self.fovSize
-                        additionalFeatures.append(self.lastFovSize)
-                    if self.parameters.USE_FOVSIZE:
-                        self.fovSize = self.player.getFovSize()
-                        additionalFeatures.append(self.fovSize)
-                    if self.parameters.USE_TOTALMASS:
-                        mass = self.player.getTotalMass()
-                        additionalFeatures.append(mass)
-                    if self.parameters.USE_LAST_ACTION:
-                        last_action = self.currentAction if self.currentAction is not None else [0, 0, 0, 0]
-                        additionalFeatures.extend(last_action)
-                        if len(last_action) < 4:
-                            additionalFeatures.extend(numpy.zeros(4 - len(last_action)))
-                    if self.parameters.USE_SECOND_LAST_ACTION:
-                        second_last_action = self.lastAction if self.lastAction is not None else [0, 0, 0, 0]
-                        additionalFeatures.extend(second_last_action)
-                        if len(second_last_action) < 4:
-                            additionalFeatures.extend(numpy.zeros(4 - len(second_last_action)))
 
-                    if len(additionalFeatures) > 0:
+                else:
+                    gridView = self.getGridStateRepresentation()
+                    gridView = gridView.flatten()
+                    if self.parameters.EXTRA_INPUT:
+                        additionalFeatures = self.getAdditionalFeatures()
                         stateRepr = numpy.concatenate((gridView, additionalFeatures))
                     else:
                         stateRepr = gridView
@@ -336,6 +323,30 @@ class Bot(object):
                 stateRepr = self.getSimpleStateRepresentation()
 
         return stateRepr
+
+
+    def getAdditionalFeatures(self):
+        additionalFeatures = []
+        if self.parameters.USE_LAST_FOVSIZE:
+            self.lastFovSize = self.fovSize
+            additionalFeatures.append(self.lastFovSize)
+        if self.parameters.USE_FOVSIZE:
+            self.fovSize = self.player.getFovSize()
+            additionalFeatures.append(self.fovSize)
+        if self.parameters.USE_TOTALMASS:
+            mass = self.player.getTotalMass()
+            additionalFeatures.append(mass)
+        if self.parameters.USE_LAST_ACTION:
+            last_action = self.currentAction if self.currentAction is not None else [0, 0, 0, 0]
+            additionalFeatures.extend(last_action)
+            if len(last_action) < 4:
+                additionalFeatures.extend(numpy.zeros(4 - len(last_action)))
+        if self.parameters.USE_SECOND_LAST_ACTION:
+            second_last_action = self.lastAction if self.lastAction is not None else [0, 0, 0, 0]
+            additionalFeatures.extend(second_last_action)
+            if len(second_last_action) < 4:
+                additionalFeatures.extend(numpy.zeros(4 - len(second_last_action)))
+        return additionalFeatures
 
 
     def getGridStateRepresentation(self):

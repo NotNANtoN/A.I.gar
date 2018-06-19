@@ -580,7 +580,6 @@ if __name__ == '__main__':
     model.initialize(loadModel)
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
-    # model.setScreenSize(screenWidth, screenHeight)
 
     if guiEnabled:
         view = View(model, screenWidth, screenHeight, parameters)
