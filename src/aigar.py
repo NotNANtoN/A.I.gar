@@ -594,13 +594,13 @@ if __name__ == '__main__':
                 parameters.JOB_SIMULATION_STEPS + parameters.JOB_STEP_START >= parameters.MAX_SIMULATION_STEPS:
             testResults = updateTestResults(testResults, model, 100, parameters)
             meanMassesOfTestResults = [val[0] for val in testResults]
-            exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
+            exportTestResults(meanMassesOfTestResults, model.getPath() + "data/", "testMassOverTime")
             meanMassesOfPelletResults = [val[2] for val in testResults]
-            exportTestResults(meanMassesOfPelletResults, model.getPath() + "/data/", "Pellet_CollectionMassOverTime")
+            exportTestResults(meanMassesOfPelletResults, model.getPath() + "data/", "Pellet_CollectionMassOverTime")
 
             if parameters.MULTIPLE_BOTS_PRESENT:
                 meanMassesOfGreedyResults = [val[4] for val in testResults]
-                exportTestResults(meanMassesOfGreedyResults, model.getPath() + "/data/", "VS_1_GreedyMassOverTime")
+                exportTestResults(meanMassesOfGreedyResults, model.getPath() + "data/", "VS_1_GreedyMassOverTime")
                 plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
 
             plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)

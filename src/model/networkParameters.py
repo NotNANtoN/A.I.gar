@@ -6,7 +6,7 @@ Default = False
 # Game
 PELLET_SPAWN = True
 VIRUS_SPAWN = False
-RESET_LIMIT = 15000
+RESET_LIMIT = 1000
 EXPORT_POINT_AVERAGING = 500
 NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
@@ -22,10 +22,10 @@ MEMORY_BETA = 0.4
 # General RL:
 FRAME_SKIP_RATE_BOTS = 8
 FRAME_SKIP_RATE = 12 if NUM_GREEDY_BOTS + NUM_NN_BOTS == 1 else FRAME_SKIP_RATE_BOTS
-JOB_TRAINING_STEPS = 0
+JOB_TRAINING_STEPS = 1000
 JOB_SIMULATION_STEPS = JOB_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 JOB_STEP_START = 0
-MAX_TRAINING_STEPS = 200000
+MAX_TRAINING_STEPS = 2000
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
@@ -139,7 +139,7 @@ TRACE_MIN = 1 # The minimum amount of traces that are not trained on, as they ha
 MEMORY_TRACE_LEN = 15 # The length of memory traces retrieved via exp replay
 
 # CNN
-CNN_REPR = True
+CNN_REPR = False
 CNN_TOWER = False
 # Handcraft representation
 CNN_USE_L1 = True
