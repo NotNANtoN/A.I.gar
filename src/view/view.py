@@ -167,6 +167,8 @@ class View:
         for humanNr in range(self.numberOfScreens):
             fovPos = self.model.getFovPos(humanNr)
             fovSize = self.model.getFovSize(humanNr)
+            if fovPos is None:
+                continue
             pellets = self.model.getField().getPelletsInFov(fovPos, fovSize)
             blobs = self.model.getField().getBlobsInFov(fovPos, fovSize)
             viruses = self.model.getField().getVirusesInFov(fovPos, fovSize)

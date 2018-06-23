@@ -355,15 +355,16 @@ class ActorCritic(object):
     def learn(self, batch, steps):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             idxs, priorities = self.train_critic_DPG(batch)
-            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and (steps > self.parameters.DPG_CACLA_STEPS \
-                    or steps <= self.parameters.DPG_DPG_STEPS):
+            if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and steps > self.parameters.AC_ACTOR_TRAINING_START and \
+                    (steps > self.parameters.DPG_CACLA_STEPS or steps <= self.parameters.DPG_DPG_STEPS):
                 self.train_actor_DPG(batch)
-            if self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS\
-                    or steps > self.parameters.DPG_DPG_STEPS:
+            if (self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS\
+                    or steps > self.parameters.DPG_DPG_STEPS) and steps > self.parameters.AC_ACTOR_TRAINING_START:
                 self.train_actor_batch(batch, priorities)
         else:
             idxs, priorities = self.train_critic(batch)
-            self.train_actor_batch(batch, priorities)
+            if steps > self.parameters.AC_ACTOR_TRAINING_START:
+                self.train_actor_batch(batch, priorities)
         self.latestTDerror = numpy.mean(priorities[-1])
         return idxs, priorities
 
