@@ -2,6 +2,7 @@ import numpy
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 from .replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
+import pickle as pkl
 
 
 class ExpReplay:
@@ -72,8 +73,14 @@ class Bot(object):
     num_Greedybots = 0
 
     @classmethod
-    def init_exp_replayer(cls, parameters):
-        if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+    def init_exp_replayer(cls, parameters, path):
+        cls.expReplayer = None
+        if parameters.JOB_TRAINING_STEPS != 0 and parameters.JOB_STEP_START > 0:
+            with open(path + 'replay_buffer.pkl', 'rb') as input:
+                cls.expReplayer = pkl.load(input)
+                print(len(cls.expReplayer), "AA")
+
+        elif parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
             cls.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
                                                       parameters.MEMORY_BETA)
         else:
@@ -134,13 +141,13 @@ class Bot(object):
         self.totalMasses = []
         self.memories = []
         # If using lstm the memories have to be ordered correctly in time for this bot.
-        if type == "NN" and self.parameters.NEURON_TYPE == "LSTM":
-            #self.expReplayer = ExpReplay(parameters)
-            if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
-                self.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
-                                                           parameters.MEMORY_BETA)
-            else:
-                self.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
+        # if type == "NN" and self.parameters.NEURON_TYPE == "LSTM":
+        #     #self.expReplayer = ExpReplay(parameters)
+        #     if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+        #         self.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
+        #                                                    parameters.MEMORY_BETA)
+        #     else:
+        #         self.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
 
         self.secondLastSelfGrid = None
         self.lastSelfGrid = None
@@ -665,3 +672,6 @@ class Bot(object):
 
     def getGridSquaresPerFov(self):
         return self.parameters.GRID_SQUARES_PER_FOV
+
+    def getExpReplayer(self):
+        return self.expReplayer
