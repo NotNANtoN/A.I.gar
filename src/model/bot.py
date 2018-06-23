@@ -78,14 +78,12 @@ class Bot(object):
         if parameters.JOB_TRAINING_STEPS != 0 and parameters.JOB_STEP_START > 0:
             with open(path + 'replay_buffer.pkl', 'rb') as input:
                 cls.expReplayer = pkl.load(input)
-                print(len(cls.expReplayer), "AA")
 
         elif parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
             cls.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
                                                       parameters.MEMORY_BETA)
         else:
             cls.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
-        #cls.expReplayer = ExpReplay(parameters)
 
     @property
     def greedyId(self):

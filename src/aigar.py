@@ -304,7 +304,6 @@ def updateTestResults(testResults, model, percentage, parameters):
 
 def exportTestResults(testResults, path, name):
     filePath = path + name + ".txt"
-    print(filePath)
     with open(filePath, "a") as f:
         for val in testResults:
             # write as: "mean\n"
@@ -337,7 +336,6 @@ def plotTesting(testResults, path, timeBetween, end, name, idxOfMean):
     ax.set_ylabel(yLabel)
     ax.set_title(title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval")
     ax.grid()
-    print("PATH: ", path)
     fig.savefig(path + title + ".pdf")
 
     plt.close()
@@ -497,12 +495,15 @@ if __name__ == '__main__':
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
 
-
-
-
     model = Model(guiEnabled, viewEnabled, parameters, True)
+    if parameters.JOB_TRAINING_STEPS != 0 and parameters.JOB_STEP_START > 0:
+        model.loadModel(loadedModelName)
+        print("Loaded into load path: " + model.getPath())
 
-    model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
+    else:
+        model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
+        print("Created new path: " + model.getPath())
+
 
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
@@ -560,6 +561,7 @@ if __name__ == '__main__':
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
 
+    testResults = None
     if guiEnabled:
         view = View(model, screenWidth, screenHeight, parameters)
         controller = Controller(model, viewEnabled, view, mouseEnabled)
@@ -574,7 +576,11 @@ if __name__ == '__main__':
         print("max:", maxSteps, "start:", jobStart, "steps:", jobSteps)
         smallPart = max(int(maxSteps / 100), 1) # constitues one percent of total training time
         testPercentage = smallPart * 5
-        testResults = []
+        if jobStart == 0:
+            testResults = []
+        else:
+            with open(model.getPath() + 'testResults.pkl', 'rb') as input:
+                testResults = pkl.load(input)
         for step in range(jobStart, jobStart + jobSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
@@ -583,12 +589,12 @@ if __name__ == '__main__':
             if step % testPercentage == 0:
                  testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
-        # with open(model.getPath() + "replay_buffer.pkl", 'wb') as output:
-        #     print(len(model.getBots()[0].getExpReplayer()), "buffLength")
-        #     pkl.dump(model.getBots()[0].getExpReplayer(), output, pkl.HIGHEST_PROTOCOL)
-        #     paramLineNumber = checkValidParameter("JOB_STEP_START")
-        #     tweaked = [["JOB_STEP_START", jobStart + jobSteps, paramLineNumber]]
-        #     modifyParameterValue(tweaked, model)
+        jobStart_line = checkValidParameter("JOB_STEP_START")
+        epsilon_line = checkValidParameter("EPSILON")
+        endParams = []
+        endParams.append(["JOB_STEP_START", jobStart + jobSteps, jobStart_line])
+        endParams.append(["EPSILON", model.getBots()[0].getLearningAlg().getNoise(), epsilon_line])
+        modifyParameterValue(endParams, model)
 
         if parameters.JOB_TRAINING_STEPS == 0 or \
                 parameters.JOB_SIMULATION_STEPS + parameters.JOB_STEP_START >= parameters.MAX_SIMULATION_STEPS:
@@ -602,7 +608,6 @@ if __name__ == '__main__':
                 meanMassesOfGreedyResults = [val[4] for val in testResults]
                 exportTestResults(meanMassesOfGreedyResults, model.getPath() + "data/", "VS_1_GreedyMassOverTime")
                 plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
-
             plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
             plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
             print("Training done.")
@@ -640,15 +645,11 @@ if __name__ == '__main__':
                 variance = numpy.std(massList)
                 print("Median = ", median, " Mean = ", mean, " Std = ", variance)
                 print("")
-        else:
+        elif testResults is not None:
             with open(model.getPath() + "replay_buffer.pkl", 'wb') as output:
                 print(len(model.getBots()[0].getExpReplayer()), "buffLength")
                 pkl.dump(model.getBots()[0].getExpReplayer(), output, pkl.HIGHEST_PROTOCOL)
-                paramLineNumber = checkValidParameter("JOB_STEP_START")
-                maxSteps = parameters.MAX_SIMULATION_STEPS
-                jobSteps = maxSteps if parameters.JOB_SIMULATION_STEPS == 0 else parameters.JOB_SIMULATION_STEPS
-                jobStart = parameters.JOB_STEP_START
-                tweaked = [["JOB_STEP_START", jobStart + jobSteps, paramLineNumber]]
-                modifyParameterValue(tweaked, model)
+            with open(model.getPath() + "testResults.pkl", 'wb') as output:
+                pkl.dump(testResults, output, pkl.HIGHEST_PROTOCOL)
 
 
