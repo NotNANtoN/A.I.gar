@@ -586,8 +586,8 @@ if __name__ == '__main__':
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
-            # if step % testPercentage == 0:
-            #      testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
+            if step % testPercentage == 0:
+                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
         jobStart_line = checkValidParameter("JOB_STEP_START")
         epsilon_line = checkValidParameter("EPSILON")
