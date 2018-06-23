@@ -2,6 +2,7 @@ import numpy
 from .parameters import *
 from .spatialHashTable import spatialHashTable
 from .replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
+import pickle as pkl
 
 
 class ExpReplay:
@@ -72,13 +73,17 @@ class Bot(object):
     num_Greedybots = 0
 
     @classmethod
-    def init_exp_replayer(cls, parameters):
-        if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+    def init_exp_replayer(cls, parameters, path):
+        cls.expReplayer = None
+        if parameters.JOB_TRAINING_STEPS != 0 and parameters.JOB_STEP_START > 0:
+            with open(path + 'replay_buffer.pkl', 'rb') as input:
+                cls.expReplayer = pkl.load(input)
+
+        elif parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
             cls.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
                                                       parameters.MEMORY_BETA)
         else:
             cls.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
-        #cls.expReplayer = ExpReplay(parameters)
 
     @property
     def greedyId(self):
@@ -134,13 +139,13 @@ class Bot(object):
         self.totalMasses = []
         self.memories = []
         # If using lstm the memories have to be ordered correctly in time for this bot.
-        if type == "NN" and self.parameters.NEURON_TYPE == "LSTM":
-            #self.expReplayer = ExpReplay(parameters)
-            if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
-                self.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
-                                                           parameters.MEMORY_BETA)
-            else:
-                self.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
+        # if type == "NN" and self.parameters.NEURON_TYPE == "LSTM":
+        #     #self.expReplayer = ExpReplay(parameters)
+        #     if parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
+        #         self.expReplayer = PrioritizedReplayBuffer(parameters.MEMORY_CAPACITY, parameters.MEMORY_ALPHA,
+        #                                                    parameters.MEMORY_BETA)
+        #     else:
+        #         self.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
 
         self.secondLastSelfGrid = None
         self.lastSelfGrid = None
@@ -308,39 +313,26 @@ class Bot(object):
         stateRepr = None
         if self.player.getIsAlive():
             if self.parameters.GRID_VIEW_ENABLED:
-                gridView = self.getGridStateRepresentation()
                 if self.parameters.CNN_REPR:
                     if self.parameters.CNN_P_REPR:
-                        stateRepr = self.rgbGenerator.get_cnn_inputRGB(self.player)
-                        self.lastPixelGrid = stateRepr
+                        gridView = self.rgbGenerator.get_cnn_inputRGB(self.player)
+                        self.lastPixelGrid = gridView
                         if self.parameters.CNN_LAST_GRID:
-                            stateRepr = numpy.concatenate((stateRepr,self.lastPixelGrid), axis=2)
+                            gridView = numpy.concatenate((gridView, self.lastPixelGrid), axis=2)
+                    else:
+                        gridView = self.getGridStateRepresentation()
+
+                    if self.parameters.EXTRA_INPUT:
+                        additionalFeatures = self.getAdditionalFeatures()
+                        stateRepr = [gridView, additionalFeatures]
                     else:
                         stateRepr = gridView
-                else:
-                    gridView = gridView.flatten()
-                    additionalFeatures = []
-                    if self.parameters.USE_LAST_FOVSIZE:
-                        self.lastFovSize = self.fovSize
-                        additionalFeatures.append(self.lastFovSize)
-                    if self.parameters.USE_FOVSIZE:
-                        self.fovSize = self.player.getFovSize()
-                        additionalFeatures.append(self.fovSize)
-                    if self.parameters.USE_TOTALMASS:
-                        mass = self.player.getTotalMass()
-                        additionalFeatures.append(mass)
-                    if self.parameters.USE_LAST_ACTION:
-                        last_action = self.currentAction if self.currentAction is not None else [0, 0, 0, 0]
-                        additionalFeatures.extend(last_action)
-                        if len(last_action) < 4:
-                            additionalFeatures.extend(numpy.zeros(4 - len(last_action)))
-                    if self.parameters.USE_SECOND_LAST_ACTION:
-                        second_last_action = self.lastAction if self.lastAction is not None else [0, 0, 0, 0]
-                        additionalFeatures.extend(second_last_action)
-                        if len(second_last_action) < 4:
-                            additionalFeatures.extend(numpy.zeros(4 - len(second_last_action)))
 
-                    if len(additionalFeatures) > 0:
+                else:
+                    gridView = self.getGridStateRepresentation()
+                    gridView = gridView.flatten()
+                    if self.parameters.EXTRA_INPUT:
+                        additionalFeatures = self.getAdditionalFeatures()
                         stateRepr = numpy.concatenate((gridView, additionalFeatures))
                     else:
                         stateRepr = gridView
@@ -351,6 +343,30 @@ class Bot(object):
                 stateRepr = self.getSimpleStateRepresentation()
 
         return stateRepr
+
+
+    def getAdditionalFeatures(self):
+        additionalFeatures = []
+        if self.parameters.USE_LAST_FOVSIZE:
+            self.lastFovSize = self.fovSize
+            additionalFeatures.append(self.lastFovSize)
+        if self.parameters.USE_FOVSIZE:
+            self.fovSize = self.player.getFovSize()
+            additionalFeatures.append(self.fovSize)
+        if self.parameters.USE_TOTALMASS:
+            mass = self.player.getTotalMass()
+            additionalFeatures.append(mass)
+        if self.parameters.USE_LAST_ACTION:
+            last_action = self.currentAction if self.currentAction is not None else [0, 0, 0, 0]
+            additionalFeatures.extend(last_action)
+            if len(last_action) < 4:
+                additionalFeatures.extend(numpy.zeros(4 - len(last_action)))
+        if self.parameters.USE_SECOND_LAST_ACTION:
+            second_last_action = self.lastAction if self.lastAction is not None else [0, 0, 0, 0]
+            additionalFeatures.extend(second_last_action)
+            if len(second_last_action) < 4:
+                additionalFeatures.extend(numpy.zeros(4 - len(second_last_action)))
+        return additionalFeatures
 
 
     def getGridStateRepresentation(self):
@@ -673,3 +689,6 @@ class Bot(object):
 
     def getGridSquaresPerFov(self):
         return self.parameters.GRID_SQUARES_PER_FOV
+
+    def getExpReplayer(self):
+        return self.expReplayer

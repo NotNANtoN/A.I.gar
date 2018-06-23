@@ -3,14 +3,12 @@ import sys
 import importlib
 from controller.controller import Controller
 from model.qLearning import *
-from model.nsSarsa import *
-from model.expectedSarsa import *
-from model.treeBackup import *
 from model.parameters import *
 from model.actorCritic import *
 from model.bot import *
 from model.model import Model
 import matplotlib.pyplot as plt
+import pickle as pkl
 
 from view.view import View
 from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
@@ -87,16 +85,10 @@ def setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, ena
 def algorithmNumberToName(val):
     if val == 0:
         return "Q-Learning"
-    elif val == 1:
-        return "n-step Sarsa"
     elif val == 2:
         return "CACLA"
     elif val == 3:
         return "Discrete ACLA"
-    elif val == 4:
-        return "Expected Sarsa"
-    elif val == 5:
-        return "Tree Backup"
     else:
         print("Wrong algorithm selected...")
         quit()
@@ -105,16 +97,10 @@ def algorithmNumberToName(val):
 def algorithmNameToNumber(name):
     if name == "Q-learning":
         return 0
-    elif name == "n-step Sarsa":
-        return 1
     elif name == "AC":
         return 2
     elif name == "Discrete ACLA":
         return 3
-    elif name == "Expected Sarsa":
-        return 4
-    elif name == "Tree Backup":
-        return 5
     else:
         print("ALGORITHM in networkParameters not found.\n")
         quit()
@@ -206,14 +192,8 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
             # Create algorithm instance
             if algorithm == 0:
                 learningAlg = QLearn(numberOfNNBots, numberOfHumans, parameters)
-            elif algorithm == 1:
-                learningAlg = nsSarsa(numberOfNNBots, numberOfHumans, parameters)
             elif algorithm == 2:
                 learningAlg = ActorCritic(parameters)
-            elif algorithm == 3:
-                learningAlg = ExpectedSarsa(numberOfNNBots, numberOfHumans, parameters)
-            elif algorithm == 4:
-                learningAlg = TreeBackup(numberOfNNBots, numberOfHumans, parameters)
             else:
                 print("Please enter a valid algorithm.\n")
                 quit()
@@ -292,6 +272,7 @@ def updateTestResults(testResults, model, percentage, parameters):
     clonedModel = cloneModel(model)
     currentAlg.setNoise(0)
 
+    originalTemp = None
     if str(currentAlg) != "AC":
         originalTemp = currentAlg.getTemperature()
         currentAlg.setTemperature(0)
@@ -355,7 +336,6 @@ def plotTesting(testResults, path, timeBetween, end, name, idxOfMean):
     ax.set_ylabel(yLabel)
     ax.set_title(title + " mean value (" + str(round(meanY, 1)) + ") $\pm$ $\sigma$ interval")
     ax.grid()
-    print("PATH: ", path)
     fig.savefig(path + title + ".pdf")
 
     plt.close()
@@ -496,8 +476,7 @@ if __name__ == '__main__':
         parameters = importlib.import_module('.networkParameters', package="model")
 
         algorithm = int(input("What learning algorithm do you want to use?\n" + \
-                              "'Q-Learning' == 0, 'n-step Sarsa' == 1, 'Actor-Critic' == 2,\n" + \
-                              " 'Tree Backup' == 3, 'Expected Sarsa' == 4\n"))
+                              "'Q-Learning' == 0, 'Actor-Critic' == 2,\n"))
     tweaking = int(input("Do you want to tweak parameters? (1 == yes)\n"))
     tweakedTotal = []
     if tweaking == 1:
@@ -516,12 +495,15 @@ if __name__ == '__main__':
         modelPath = "savedModels/" + str(input("Input folder name:\n"))
 
 
-
-
-
     model = Model(guiEnabled, viewEnabled, parameters, True)
+    if parameters.JOB_TRAINING_STEPS != 0 and parameters.JOB_STEP_START > 0:
+        model.loadModel(loadedModelName)
+        print("Loaded into load path: " + model.getPath())
 
-    model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
+    else:
+        model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
+        print("Created new path: " + model.getPath())
+
 
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
@@ -559,7 +541,7 @@ if __name__ == '__main__':
     numberOfGreedyBots = parameters.NUM_GREEDY_BOTS
     numberOfBots = numberOfNNBots + numberOfGreedyBots
 
-    Bot.init_exp_replayer(parameters)
+    Bot.init_exp_replayer(parameters, loadedModelName)
 
     setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode)
 
@@ -578,8 +560,8 @@ if __name__ == '__main__':
     model.initialize(loadModel)
 
     screenWidth, screenHeight = defineScreenSize(numberOfHumans)
-    # model.setScreenSize(screenWidth, screenHeight)
 
+    testResults = None
     if guiEnabled:
         view = View(model, screenWidth, screenHeight, parameters)
         controller = Controller(model, viewEnabled, view, mouseEnabled)
@@ -589,58 +571,85 @@ if __name__ == '__main__':
             model.update()
     else:
         maxSteps = parameters.MAX_SIMULATION_STEPS
-        smallPart = max(int(maxSteps / 100), 1) # constitues one percent of total training time
+        jobSteps = maxSteps if parameters.JOB_SIMULATION_STEPS == 0 else parameters.JOB_SIMULATION_STEPS
+        jobStart = parameters.JOB_STEP_START
+        smallPart = max(int(maxSteps / 100), 1) # constitutes one percent of total training time
         testPercentage = smallPart * 5
-        testResults = []
-        for step in range(maxSteps):
+        if jobStart == 0:
+            testResults = []
+        else:
+            print("max:", maxSteps, "start:", jobStart, "steps:", jobSteps)
+            with open(model.getPath() + 'testResults.pkl', 'rb') as input:
+                testResults = pkl.load(input)
+        for step in range(jobStart, jobStart + jobSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
-            if step % testPercentage == 0:
-                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
-        testResults = updateTestResults(testResults, model, 100, parameters)
-        meanMassesOfTestResults = [val[0] for val in testResults]
-        exportTestResults(meanMassesOfTestResults, model.getPath() + "/data/", "testMassOverTime")
-        meanMassesOfPelletResults = [val[2] for val in testResults]
-        exportTestResults(meanMassesOfPelletResults, model.getPath() + "/data/", "Pellet_CollectionMassOverTime")
-        if parameters.MULTIPLE_BOTS_PRESENT:
-            meanMassesOfGreedyResults = [val[4] for val in testResults]
-            exportTestResults(meanMassesOfGreedyResults, model.getPath() + "/data/", "VS_1_GreedyMassOverTime")
-            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
+            # if step % testPercentage == 0:
+            #      testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
-        plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
-        plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
-        print("Training done.")
-        print("")
+        jobStart_line = checkValidParameter("JOB_STEP_START")
+        epsilon_line = checkValidParameter("EPSILON")
+        endParams = []
+        endParams.append(["JOB_STEP_START", jobStart + jobSteps, jobStart_line])
+        endParams.append(["EPSILON", model.getBots()[0].getLearningAlg().getNoise(), epsilon_line])
+        modifyParameterValue(endParams, model)
+
+        if parameters.JOB_TRAINING_STEPS == 0 or \
+                parameters.JOB_SIMULATION_STEPS + parameters.JOB_STEP_START >= parameters.MAX_SIMULATION_STEPS:
+            testResults = updateTestResults(testResults, model, 100, parameters)
+            meanMassesOfTestResults = [val[0] for val in testResults]
+            exportTestResults(meanMassesOfTestResults, model.getPath() + "data/", "testMassOverTime")
+            meanMassesOfPelletResults = [val[2] for val in testResults]
+            exportTestResults(meanMassesOfPelletResults, model.getPath() + "data/", "Pellet_CollectionMassOverTime")
+
+            if parameters.MULTIPLE_BOTS_PRESENT:
+                meanMassesOfGreedyResults = [val[4] for val in testResults]
+                exportTestResults(meanMassesOfGreedyResults, model.getPath() + "data/", "VS_1_GreedyMassOverTime")
+                plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
+            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
+            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
+            print("Training done.")
+            print("")
 
     if model.getTrainingEnabled():
         model.save(True)
         model.saveModels()
+        if parameters.JOB_TRAINING_STEPS == 0 or \
+                parameters.JOB_SIMULATION_STEPS + parameters.JOB_STEP_START >= parameters.MAX_SIMULATION_STEPS:
 
-        runTests(model)
-        if model_in_subfolder:
-            print(os.path.join(modelPath))
-            createCombinedModelGraphs(os.path.join(modelPath))
+            runTests(model)
+            if model_in_subfolder:
+                print(os.path.join(modelPath))
+                createCombinedModelGraphs(os.path.join(modelPath))
 
-        print("Total average time per update: ", round(numpy.mean(model.timings), 5))
+            print("Total average time per update: ", round(numpy.mean(model.timings), 5))
 
-        bots = model.getBots()
-        for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
-            player = bot.getPlayer()
-            print("")
-            print("Network parameters for ", player, ":")
-            attributes = dir(parameters)
-            for attribute in attributes:
-                if not attribute.startswith('__'):
-                    print(attribute, " = ", getattr(parameters, attribute))
-            print("")
-            print("Mass Info for ", player, ":")
-            massListPath = model.getPath() + "/data/" +  model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
-            with open(massListPath, 'r') as f:
-                massList = list(map(float, f))
-            mean = numpy.mean(massList)
-            median = numpy.median(massList)
-            variance = numpy.std(massList)
-            print("Median = ", median, " Mean = ", mean, " Std = ", variance)
-            print("")
+            bots = model.getBots()
+            for bot_idx, bot in enumerate([bot for bot in model.getBots() if bot.getType() == "NN"]):
+                player = bot.getPlayer()
+                print("")
+                print("Network parameters for ", player, ":")
+                attributes = dir(parameters)
+                for attribute in attributes:
+                    if not attribute.startswith('__'):
+                        print(attribute, " = ", getattr(parameters, attribute))
+                print("")
+                print("Mass Info for ", player, ":")
+                massListPath = model.getPath() + "/data/" +  model.getDataFiles()["NN" + str(bot_idx) + "_mass"]
+                with open(massListPath, 'r') as f:
+                    massList = list(map(float, f))
+                mean = numpy.mean(massList)
+                median = numpy.median(massList)
+                variance = numpy.std(massList)
+                print("Median = ", median, " Mean = ", mean, " Std = ", variance)
+                print("")
+        elif testResults is not None:
+            with open(model.getPath() + "replay_buffer.pkl", 'wb') as output:
+                print(len(model.getBots()[0].getExpReplayer()), "buffLength")
+                pkl.dump(model.getBots()[0].getExpReplayer(), output, pkl.HIGHEST_PROTOCOL)
+            with open(model.getPath() + "testResults.pkl", 'wb') as output:
+                pkl.dump(testResults, output, pkl.HIGHEST_PROTOCOL)
+
+

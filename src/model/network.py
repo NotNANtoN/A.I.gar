@@ -276,8 +276,13 @@ class Network(object):
             layerIterable = iter(self.layers)
 
             if parameters.CNN_REPR:
+                extraInputSize = self.parameters.EXTRA_INPUT
+                if extraInputSize > 0:
+                    extraInput = Input(shape=(extraInputSize,))
+                    self.input = [self.input, extraInput]
+                    denseInput = keras.layers.concatenate([self.valueNetwork, extraInput])
                 previousLayer = Dense(next(layerIterable), activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)(self.valueNetwork)
+                                    bias_initializer=initializer, kernel_initializer=initializer)(denseInput)
             else:
                 self.input = Input(shape=(inputDim,))
                 previousLayer = self.input
@@ -430,9 +435,13 @@ class Network(object):
                 return self.valueNetwork.predict(stateRepr)[0]
 
             else:
-                shape = numpy.shape(state)
-                reshape = numpy.array([batch_len]+list(shape))
-                state = state.reshape(reshape)
+                if len(state) == 2:
+                    grid = numpy.array([state[0]])
+                    extra = numpy.array([state[1]])
+
+                    state = [grid, extra]
+                else:
+                    state = numpy.array([state])
                 return self.valueNetwork.predict(state)[0]
         else:
             return self.valueNetwork.predict(state)[0]
@@ -459,9 +468,13 @@ class Network(object):
 
                 return self.targetNetwork.predict(stateRepr)[0]
             else:
-                shape = numpy.shape(state)
-                reshape = numpy.array([batch_len]+list(shape))
-                state = state.reshape(reshape)
+                if len(state) == 2:
+                    grid = numpy.array([state[0]])
+                    extra = numpy.array([state[1]])
+
+                    state = [grid, extra]
+                else:
+                    state = numpy.array([state])
                 return self.targetNetwork.predict(state)[0]
         else:
             return self.targetNetwork.predict(state)[0]

@@ -54,6 +54,9 @@ class QLearn(object):
                 else:
                     self.input_len = (channels, self.parameters.CNN_INPUT_DIM_3,
                                       self.parameters.CNN_INPUT_DIM_3)
+            if self.parameters.EXTRA_INPUT:
+                self.input_len = [self.input_len, self.parameters.EXTRA_INPUT]
+
         elif self.parameters.USE_ACTION_AS_INPUT:
             self.input_len = parameters.STATE_REPR_LEN + 4
             self.output_len = 1
@@ -128,9 +131,12 @@ class QLearn(object):
         batch_len = len(batch[0])
         # In the case of CNN, self.input_len has several dimensions
         if self.parameters.CNN_REPR:
+            inputShape = numpy.array([batch_len] + list(self.input_len[0]))
+            inputs = numpy.zeros(inputShape)
+            if self.parameters.EXTRA_INPUT:
 
-            inputDims = numpy.array([batch_len] + list(self.input_len))
-            inputs = numpy.zeros(inputDims)
+                extraInput = numpy.zeros((batch_len, self.input_len[1]))
+                inputs = [inputs, extraInput]
         else:
             inputs = numpy.zeros((batch_len, self.input_len))
 
@@ -151,7 +157,12 @@ class QLearn(object):
                 td_e = updatedValue - oldValue
                 targets[sample_idx] = updatedValue
             else:
-                inputs[sample_idx] = old_s
+                if self.parameters.CNN_REPR and self.parameters.EXTRA_INPUT:
+                    inputs[0][sample_idx] = old_s[0]
+                    inputs[1][sample_idx] = old_s[1]
+                else:
+                    inputs[sample_idx] = old_s
+
                 targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s, not done)
             priorities[sample_idx] = td_e
 

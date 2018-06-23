@@ -15,6 +15,7 @@ import linecache
 import os
 import shutil
 import tracemalloc
+import pickle as pkl
 
 # Useful function that displays the top 3 lines that use the most total memory so far
 def display_top(snapshot, key_type='lineno', limit=3):
@@ -379,6 +380,7 @@ class Model(object):
         if self.resetLimit != 0:
             self.plotMassesOverTimeClean()
         self.plotQValuesOverTime()
+
 
     def exportData(self):
         path = self.path + "data/"
