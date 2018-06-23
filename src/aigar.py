@@ -573,12 +573,12 @@ if __name__ == '__main__':
         maxSteps = parameters.MAX_SIMULATION_STEPS
         jobSteps = maxSteps if parameters.JOB_SIMULATION_STEPS == 0 else parameters.JOB_SIMULATION_STEPS
         jobStart = parameters.JOB_STEP_START
-        print("max:", maxSteps, "start:", jobStart, "steps:", jobSteps)
-        smallPart = max(int(maxSteps / 100), 1) # constitues one percent of total training time
+        smallPart = max(int(maxSteps / 100), 1) # constitutes one percent of total training time
         testPercentage = smallPart * 5
         if jobStart == 0:
             testResults = []
         else:
+            print("max:", maxSteps, "start:", jobStart, "steps:", jobSteps)
             with open(model.getPath() + 'testResults.pkl', 'rb') as input:
                 testResults = pkl.load(input)
         for step in range(jobStart, jobStart + jobSteps):
@@ -586,8 +586,8 @@ if __name__ == '__main__':
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
-            if step % testPercentage == 0:
-                 testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
+            # if step % testPercentage == 0:
+            #      testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
         jobStart_line = checkValidParameter("JOB_STEP_START")
         epsilon_line = checkValidParameter("EPSILON")
