@@ -9,6 +9,7 @@ from model.bot import *
 from model.model import Model
 import matplotlib.pyplot as plt
 import pickle as pkl
+import subprocess
 
 from view.view import View
 from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
@@ -72,6 +73,63 @@ def fix_seeds(seedNum):
         sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
         K.set_session(sess)
 
+def submitNewJob(path):
+    i = -2
+    while True:
+        if path[i] == "/":
+            break
+        else:
+            i -= 1
+    modelTimeName = path[i+1:-1]
+    if path[i-11:i] != "savedModels":
+        j = i - 1
+        while True:
+            if path[j] == "/":
+                break
+            else:
+                j -= 1
+        modelParamName = path[j+1:i]
+        fileName = modelParamName + "_" + modelTimeName + ".sh"
+        print("Sbatch file name", fileName)
+        slurmName = modelParamName + "_" + modelTimeName
+        loadLines = modelParamName + "\n" + modelTimeName + "\n"
+    else:
+        fileName = modelTimeName + ".sh"
+        print("Sbatch file name", fileName)
+        slurmName = modelTimeName
+        loadLines = modelTimeName + "\n"
+
+    script = open(fileName, "w+")
+    time = "0-20:00:00"
+    memoryLimit = 120000
+    email = "n.stolt.anso@student.rug.nl"
+    algorithmLine = str(0) + "\n"
+
+    data = "#!/bin/bash\n" \
+           + "#SBATCH --time=" + time + "\n"\
+           + "#SBATCH --mem=" + str(memoryLimit) + "\n" \
+           + "#SBATCH --nodes=1\n"\
+           + "#SBATCH --mail-type=ALL\n"\
+           + "#SBATCH --mail-user=" + email + "\n" \
+           + "#SBATCH --output=" + slurmName + "_%j.out\n" \
+           + "module load matplotlib/2.1.2-foss-2018a-Python-3.6.4\n" \
+           + "module load TensorFlow/1.6.0-foss-2018a-Python-3.6.4\n" \
+           + "module load h5py/2.7.1-foss-2018a-Python-3.6.4\n" \
+           + "python -O ./aigar.py <<EOF\n" \
+           + "0\n1\n" + loadLines + algorithmLine + "0\n0\n1\nEOF\n"
+    script.write(data)
+    script.close()
+
+    try:
+        subprocess.call(["sbatch", fileName])
+    except FileNotFoundError:
+        script.close()
+        print("Command sbatch not found or filename invalid!")
+        print("Filename: ", fileName)
+
+    os.remove(fileName)
+
+    print("Submitted job: ", fileName)
 
 def setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode):
     seedNumber = None
@@ -587,7 +645,7 @@ if __name__ == '__main__':
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
             if step % testPercentage == 0:
-                  testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
+                testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
         jobStart_line = checkValidParameter("JOB_STEP_START")
         epsilon_line = checkValidParameter("EPSILON")
@@ -651,5 +709,7 @@ if __name__ == '__main__':
                 pkl.dump(model.getBots()[0].getExpReplayer(), output, pkl.HIGHEST_PROTOCOL)
             with open(model.getPath() + "testResults.pkl", 'wb') as output:
                 pkl.dump(testResults, output, pkl.HIGHEST_PROTOCOL)
+
+            submitNewJob(model.getPath())
 
 
