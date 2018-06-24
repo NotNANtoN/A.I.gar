@@ -371,7 +371,7 @@ def runTests(model):
     if len(model.getBots()) > 1:
         greedyModel = Model(False, False, params, False)
         greedyModel.createBot("NN", trainedAlg, parameters)
-        greedyModel.createBot("Greedy")
+        greedyModel.createBot("Greedy", None, parameters)
         greedyEvaluation = testModel(greedyModel, n_test_runs, resetGreedy, model.getPath(), "vs_1_greedy")
         evaluations.append(greedyEvaluation)
     # Virus Testing:
@@ -586,8 +586,8 @@ if __name__ == '__main__':
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
-            # if step % testPercentage == 0:
-            #      testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
+            if step % testPercentage == 0:
+                  testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
         jobStart_line = checkValidParameter("JOB_STEP_START")
         epsilon_line = checkValidParameter("EPSILON")

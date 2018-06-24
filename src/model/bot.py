@@ -253,17 +253,20 @@ class Bot(object):
                 #batch.append(currentExperience)
 
                 self.learningAlg.updateNoise()
-                if self.time % self.parameters.TRAINING_WAIT_TIME == 0 and len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
+
+                if self.player.getSelected():
+                    print("Reward: ", self.cumulativeReward)
+
+                if str(self)[-1] == "0" and self.time % self.parameters.TRAINING_WAIT_TIME == 0 and\
+                        len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
                     batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
-                    if __debug__:
+                    if __debug__ and self.player.getSelected():
                         count = 0
                         rewards = []
                         for idx in range(len(batch[0])):
                             count += batch[4][idx]
-                            if batch[4][idx]:
-                                print("Death with reward: ", batch[2][idx])
-                            else:
-                             rewards.append(batch[2][idx])
+                            if not batch[4][idx]:
+                                rewards.append(batch[2][idx])
                         print(count, " deaths sampled this round.")
                         print("Mean non-death reward: ", round(numpy.mean(rewards), 2))
                         print()

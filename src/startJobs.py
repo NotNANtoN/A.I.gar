@@ -124,7 +124,7 @@ def runJobs(jobs, email):
             outputName += paramName + "-" + paramVal.replace(".", "_") + "_"
 
             if paramName == "NUM_NN_BOTS":
-                timeBotFactor *= int(paramVal) * 1.5
+                timeBotFactor *= (int(paramVal) / 6) + 1
                 resetTime = 30000
             elif paramName == "NUM_GREEDY_BOTS" and int(paramVal) > 0:
                 resetTime = 30000
@@ -148,6 +148,10 @@ def runJobs(jobs, email):
                 memoryLimit *= int(int(paramVal) / 75000) + 1
             elif paramName == "MEMORY_BATCH_LEN":
                 timeOtherFactor *= int(int(paramVal) / 32) + 1
+            elif paramName == "GRID_SQUARES_PER_FOV":
+                timeOtherFactor *= ((int(paramVal) - 11) / 10) + 1
+            elif paramName == "ENABLE_SPLIT":
+                timeOtherFactor *= 1.3
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         days = jobTime // 24
