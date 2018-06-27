@@ -237,6 +237,8 @@ class Bot(object):
             self.updateRewards()
             self.currentlySkipping = self.updateFrameSkip()
 
+
+
         if not self.currentlySkipping:
             newState = self.getStateRepresentation()
 
@@ -244,15 +246,31 @@ class Bot(object):
             if self.trainMode and self.oldState is not None:
                 self.time += 1
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
-                batch = []
+
                 if self.parameters.EXP_REPLAY_ENABLED:
                     self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
-                    if len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
-                        batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
+
                 #batch.append(currentExperience)
 
                 self.learningAlg.updateNoise()
-                if self.time % self.parameters.TRAINING_WAIT_TIME == 0 and len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
+
+                if self.player.getSelected():
+                    print("Reward: ", self.cumulativeReward)
+
+                if str(self)[-1] == "0" and self.time % self.parameters.TRAINING_WAIT_TIME == 0 and\
+                        len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
+                    batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
+                    if __debug__ and self.player.getSelected():
+                        count = 0
+                        rewards = []
+                        for idx in range(len(batch[0])):
+                            count += batch[4][idx]
+                            if not batch[4][idx]:
+                                rewards.append(batch[2][idx])
+                        print(count, " deaths sampled this round.")
+                        print("Mean non-death reward: ", round(numpy.mean(rewards), 2))
+                        print()
+
                     idxs, priorities = self.learningAlg.learn(batch, self.time)
                     if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
                         self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
@@ -601,10 +619,14 @@ class Bot(object):
         randNumEject = numpy.random.randint(0, 10000)
         self.currentAction[2] = False
         self.currentAction[3] = False
-        if randNumSplit > self.splitLikelihood:
-            self.currentAction[2] = True
-        if randNumEject > self.ejectLikelihood:
-            self.currentAction[3] = True
+        if self.parameters.ENABLE_GREEDY_SPLIT:
+            if randNumSplit > self.splitLikelihood:
+                self.currentAction[2] = True
+            if randNumEject > self.ejectLikelihood:
+                self.currentAction[3] = True
+        else:
+            self.currentAction[2] = False
+            self.currentAction[3] = False
 
     def isRelativeCellData(self, cell, left, top, size):
         return getRelativeCellPos(cell, left, top, size) + \

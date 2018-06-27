@@ -233,7 +233,7 @@ class QLearn(object):
             if __debug__:
                 bot.setExploring(False)
 
-        if __debug__  and not explore:
+        if __debug__  and not explore and bot.player.getSelected():
             average_value = round(numpy.mean(q_Values), 1)
             q_value = round(q_Values[newActionIdx], 1)
             print("Expected Q-value: ", average_value, " Q(s,a) of current action: ", q_value)
