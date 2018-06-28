@@ -113,8 +113,6 @@ class View:
                         pygame.draw.line(screen, BLACK, posLeft, posRight)
 
 
-
-
             for cell in cells:
                 pos = numpy.array(cell.getPos())
                 scaledPos = self.modelToViewScaling(pos, fovPos, fovSize)
@@ -222,7 +220,6 @@ class View:
         if __debug__:
             self.drawDebugInfo()
         pygame.display.update()
-        # self.screen.blit(pygame.surfarray.make_surface(self.get_cnn_inputRGB()), (0,0))
 
 
     def model_event(self):
