@@ -98,7 +98,7 @@ def getDistributions(directories, takeMean = True):
     return distributions
 
 
-def createEvaluationFiles(all_dists, default_dists, compareAll):
+def createEvaluationFiles(all_dists, default_dists):
     basePath = "savedModels/"
 
     for distribution_set in all_dists:
@@ -126,8 +126,7 @@ def createEvaluationFiles(all_dists, default_dists, compareAll):
                 print("default start: ", startDefault)
                 print("name start: ", currentName[:defaultIdx])
                 if startDefault != "" and currentName[:defaultIdx] != startDefault:
-                    if not compareAll:
-                        continue
+                    continue
 
 
                 try:
@@ -156,8 +155,6 @@ def createEvaluationFiles(all_dists, default_dists, compareAll):
 
 
 if __name__ == '__main__':
-    compareAll = int(input("Compare all defaults? (1==yes)"))
-
     defaults = findDefaults()
 
     default_distributions = getDistributions(defaults) # in the form of dictionaries
@@ -166,5 +163,5 @@ if __name__ == '__main__':
 
     all_distributions = getDistributions(allDirectories)
 
-    createEvaluationFiles(all_distributions, default_distributions, compareAll)
+    createEvaluationFiles(all_distributions, default_distributions)
 

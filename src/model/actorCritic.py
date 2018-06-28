@@ -514,7 +514,7 @@ class ActorCritic(object):
         if self.acType == "CACLA" or self.acType == "DPG":
             if td_e > 0:
                 mu_s = self.actor.predict(old_s)
-                target = mu_s + (a - mu_s)
+                target = mu_s + (a - mu_s) 
             elif td_e < 0 and self.parameters.CACLA_UPDATE_ON_NEGATIVE_TD:
                 mu_s = self.actor.predict(old_s)
                 target = mu_s - (a - mu_s)

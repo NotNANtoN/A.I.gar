@@ -102,7 +102,7 @@ def runJobs(jobs, email):
     outputNameLineBase = sampleLines[6][:17]
     sampleJobScriptFile.close()
 
-    standardTime = 6  # hours for 500k steps for standard Q-learning without other bots
+    standardTime = 9.5  # hours for 500k steps for standard Q-learning without other bots
 
     for idx, job in enumerate(jobs):
         paramData = ""

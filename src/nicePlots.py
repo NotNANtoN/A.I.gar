@@ -20,12 +20,20 @@ def produceAverageRun(inits):
         allMeanRuns.append(meanRun)
     return allMeanRuns
 
+def getTitleName(name):
+    if name == "pellet_collection":
+        return "Post-Training Pellet Collection Performance"
+    if name == "test":
+        return "Performance During Training Without Noise"
+    if name == "Pellet_Collection":
+        return "Pellet Collection Performance During Training"
+
 
 def plot(name, dict):
     print("Plotting ", name, "...")
 
 
-    colors = "rbcmgky"
+    colors = "rbgcmky"
     markers = "sovx8^D"
     if len(dict) > 6:
         print("Plotting is not (yet) supported for more than 6 curves! Add more markers and colors.")
@@ -49,12 +57,12 @@ def plot(name, dict):
 
 
         y, ysigma = getMeanAndStDev(dataList, dataLen)
-        #print("Plotting: ", y)
+        print("Plotting: ", name)
 
 
         lenY = len(y)
 
-        maxPoints = 150
+        maxPoints = 100
         if lenY > maxPoints:
             meanStep = int(lenY / maxPoints)
             y = [numpy.mean(y[idx:idx+meanStep]) for idx in range(0, lenY, meanStep)]
@@ -71,30 +79,41 @@ def plot(name, dict):
         plt.ticklabel_format(axis='x', style='sci', scilimits=(1, 4))
         maxMarkers = 10
         if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
-            x = range(0, 105, 5)
+            x = range(0, 101, 5)
         else:
             x = range(0, lenY * meanStep, meanStep)
 
         if lenY > maxMarkers:
-
-            smallPartIdxs = range(0,(lenY * meanStep),int(lenY / maxMarkers * meanStep))
+            smallPartIdxs = range(0,(lenY * meanStep) + 1,lenY // maxMarkers * meanStep)
             if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
-                smallPartIdxs = range(0, 101, int(100/maxMarkers))
+                smallPartIdxs = range(0, 101, 100 // maxMarkers)
+                idxs = range(0, lenY + 1, lenY // maxMarkers)
+                smallPart = [y[idx] for idx in idxs]
+            else:
+                idxs = range(0, lenY, lenY // maxMarkers)
+                smallPart = [y[idx] for idx in idxs]
+                smallPart.append(y[-1])
 
-            smallPart = y[0:(lenY):int(lenY / maxMarkers)]
-            plt.plot(smallPartIdxs, smallPart, label=lineName, color=color, marker=marker, markersize=10,
-                     linestyle='None', markerfacecolor=color, markeredgecolor=color)
+            print("marker idxs:", idxs)
+            
+
+            print(smallPartIdxs)
+            print(smallPart)
+            print(lenY)
+
+            plt.plot(smallPartIdxs, smallPart, label=lineName, color=color, marker=marker, markersize=9, linestyle='None', markerfacecolor=color, markeredgecolor=color)
             plt.plot(x, y, lw=2, color=color)
         else:
-            plt.plot(x, y, lw=2, label=lineName, color=color, marker=marker, markersize=10)
-        ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor=color, alpha=0.35)
+            plt.plot(x, y, lw=2, label=lineName, color=color, marker=marker, markersize=9)
+        ax.fill_between(x, y_lower_bound, y_upper_bound, facecolor=color, alpha=0.325)
 
     if name == "test" or name == "Pellet_Collection" or name == "VS_1_Greedy":
         ax.set_xlabel("Percentage of training time")
     else:
         ax.set_xlabel("Testing Steps")
     ax.set_ylabel("Mass")
-    plt.title(name)
+    titleName = getTitleName(name)
+    plt.title(titleName)
 
     ax.legend(loc='upper left')
 
@@ -141,6 +160,8 @@ if __name__ == '__main__':
     #print("Dirs: ", dirs)
 
     distributions = getDistributions(dirs, takeMean=False)
+
+    distributions.sort(key = lambda distr: distr["name"])
 
     #print("Distributions: ", distributions)
 
