@@ -24,6 +24,7 @@ class QLearn(object):
         self.latestTDerror = None
         self.qValues = []
         self.output_len = self.parameters.NUM_ACTIONS * (1 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT)
+        self.discount = 0 if parameters.END_DISCOUNT else parameters.DISCOUNT
         if self.parameters.CNN_REPR:
             if self.parameters.CNN_P_REPR:
                 if self.parameters.CNN_P_RGB:
@@ -102,7 +103,7 @@ class QLearn(object):
         if alive:
             action_Q_values = self.network.predictTargetQValues(newState)
             newActionIdx = numpy.argmax(action_Q_values)
-            target += self.network.getDiscount() * action_Q_values[newActionIdx]
+            target += self.discount * action_Q_values[newActionIdx]
         return target
 
     def calculateTarget(self, old_s, a, r, new_s, alive):
@@ -122,7 +123,7 @@ class QLearn(object):
             # The target is the reward plus the discounted prediction of the value network
             action_Q_values = self.network.predict_single_trace_LSTM(new_s, False)
             newActionIdx = numpy.argmax(action_Q_values)
-            target += self.network.getDiscount() * action_Q_values[newActionIdx]
+            target += self.discount * action_Q_values[newActionIdx]
         q_value_of_action = state_Q_values[a]
         td_error = target - q_value_of_action
         return td_error
@@ -196,6 +197,8 @@ class QLearn(object):
     def updateNoise(self):
         self.epsilon *= self.parameters.NOISE_DECAY
         self.temperature *= self.parameters.TEMPERATURE_DECAY
+        if self.parameters.END_DISCOUNT:
+            self.discount = 1 - self.parameters.DISCOUNT_INCREASE_FACTOR * (1 - self.discount)
 
     def updateNetworks(self, time):
         self.updateTargetModel(time)

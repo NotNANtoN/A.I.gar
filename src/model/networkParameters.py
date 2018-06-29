@@ -6,7 +6,7 @@ Default = False
 # Game
 PELLET_SPAWN = True
 VIRUS_SPAWN = False
-RESET_LIMIT = 15000
+RESET_LIMIT = 20000
 EXPORT_POINT_AVERAGING = 500
 NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
@@ -21,9 +21,8 @@ MEMORY_BATCH_LEN = 32
 MEMORY_ALPHA = 0.6
 MEMORY_BETA = 0.4
 
-# General RL:
-FRAME_SKIP_RATE_BOTS = 8
-FRAME_SKIP_RATE = 12 if NUM_GREEDY_BOTS + NUM_NN_BOTS == 1 else FRAME_SKIP_RATE_BOTS
+# General Training:
+FRAME_SKIP_RATE = 10 
 JOB_TRAINING_STEPS = 0
 JOB_SIMULATION_STEPS = JOB_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 JOB_STEP_START = 0
@@ -32,6 +31,10 @@ MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
+# General RL:
+DISCOUNT = 0.85 
+END_DISCOUNT = 0#0.85 # set to 0 to disable
+DISCOUNT_INCREASE_FACTOR = END_DISCOUNT ** (1 / MAX_TRAINING_STEPS) if MAX_TRAINING_STEPS != 0 else 0
 # Noise and Exploration:
 NOISE_TYPE = "Gaussian"  # "Gaussian" / "Orn-Uhl"
 GAUSSIAN_NOISE = 1 # Initial noise
@@ -53,8 +56,6 @@ DEATH_FACTOR = 1.5
 
 # State representation parameters:
 MULTIPLE_BOTS_PRESENT = True if NUM_GREEDY_BOTS + NUM_NN_BOTS > 1 else False
-if MULTIPLE_BOTS_PRESENT:
-    RESET_LIMIT = 25000
 NORMALIZE_GRID_BY_MAX_MASS = False
 PELLET_GRID = True
 SELF_GRID = ENABLE_SPLIT
@@ -93,7 +94,6 @@ ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if
 ACTIVATION_FUNC_OUTPUT = 'linear'
 GRID_VIEW_ENABLED = True
 TARGET_NETWORK_STEPS = 1500
-DISCOUNT = 0.85 # Higher discount seems to lead to much more stable learning, less variance
 USE_ACTION_AS_INPUT = False
 TD = 0
 Q_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disable

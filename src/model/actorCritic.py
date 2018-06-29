@@ -280,6 +280,7 @@ class ActorCritic(object):
         return "AC"
 
     def __init__(self, parameters):
+        self.discount = 0 if parameters.END_DISCOUNT else parameters.DISCOUNT
         self.discrete = False
         self.acType = parameters.ACTOR_CRITIC_TYPE
         self.parameters = parameters
@@ -340,6 +341,8 @@ class ActorCritic(object):
 
     def updateNoise(self):
         self.std *= self.noise_decay_factor
+        if self.parameters.END_DISCOUNT:
+            self.discount = 1 - self.parameters.DISCOUNT_INCREASE_FACTOR * (1 - self.discount)
 
     def updateCriticNetworks(self, time):
         if time % self.parameters.TARGET_NETWORK_STEPS == 0:
@@ -453,7 +456,7 @@ class ActorCritic(object):
                 updated_prediction = self.critic.predict_target_model(new_s, numpy.array([a]))
             else:
                 updated_prediction = self.critic.predict_target_model(new_s)
-            target += self.parameters.DISCOUNT * updated_prediction
+            target += self.discount * updated_prediction
         td_error = target - old_state_value
         return target, td_error
 
@@ -476,7 +479,7 @@ class ActorCritic(object):
                     estimationNewState = self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
                 else:
                     estimationNewState = self.critic.predict(new_s, numpy.array([self.actor.predict(new_s)]))
-                target += self.parameters.DISCOUNT * estimationNewState
+                target += self.discount * estimationNewState
             estimationOldState = self.critic.predict(old_s, numpy.array([a]))
             td_e = target - estimationOldState
             priorities[sample_idx] = td_e
