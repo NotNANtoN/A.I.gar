@@ -38,20 +38,21 @@ MAX_TRAINING_STEPS 2000000 &
   ENABLE_SPLIT True 5x:
 
 MAX_TRAINING_STEPS 300000 &
- Default "ShortQ" 5x:
- ACTOR_CRITIC_TYPE "CACLA" &
-  Default "ShortCACLA" 5x:
+ MEMORY_CAPACITY 20000 &
+  Default "ShortQ" 5x:
+  ACTOR_CRITIC_TYPE "CACLA" &
+   Default "ShortCACLA" 5x:
+   NUM_NN_BOTS 5 &
+    Default "ShortCACLASelf" 5x:
+    ENABLE_SPLIT True 5x:
+  ACTOR_CRITIC_TYPE "DPG" &
+   Default "ShortDPG" 5x:
+   NUM_NN_BOTS 5 &
+    Default "ShortDPGSelf" 5x:
+    ENABLE_SPLIT True 5x:
   NUM_NN_BOTS 5 &
-   Default "ShortCACLASelf" 5x:
+   Default "ShortQSelf" 5x:
    ENABLE_SPLIT True 5x:
- ACTOR_CRITIC_TYPE "DPG" &
-  Default "ShortDPG" 5x:
-  NUM_NN_BOTS 5 &
-   Default "ShortDPGSelf" 5x:
-   ENABLE_SPLIT True 5x:
- NUM_NN_BOTS 5 &
-  Default "ShortQSelf" 5x:
-  ENABLE_SPLIT True 5x:
 
 
 
