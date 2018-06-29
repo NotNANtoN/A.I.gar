@@ -10,6 +10,7 @@ RESET_LIMIT = 15000
 EXPORT_POINT_AVERAGING = 500
 NUM_GREEDY_BOTS = 0
 NUM_NN_BOTS = 1
+NUM_RANDOM_BOTS = 0
 ENABLE_GREEDY_SPLIT = False
 
 # Experience replay:
@@ -95,6 +96,8 @@ TARGET_NETWORK_STEPS = 1500
 DISCOUNT = 0.85 # Higher discount seems to lead to much more stable learning, less variance
 USE_ACTION_AS_INPUT = False
 TD = 0
+Q_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disable
+
 
 # Actor-critic:
 AC_DELAY_ACTOR_TRAINING = 0
@@ -115,6 +118,8 @@ CACLA_ACTOR_LAYERS  = (100, 100, 100)
 CACLA_ACTOR_ALPHA   = 0.0005
 CACLA_TAU = 0.02
 CACLA_UPDATE_ON_NEGATIVE_TD = False
+CACLA_CRITIC_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disable
+
 
 # Deterministic Policy Gradient (DPG):
 DPG_TAU                    = 0.001 # How quickly the weights of the target networks are updated

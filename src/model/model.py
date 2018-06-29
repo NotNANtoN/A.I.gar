@@ -330,7 +330,7 @@ class Model(object):
         savedTypes = []
         for bot in self.bots:
             botType = bot.getType()
-            if botType != "Greedy" and botType not in savedTypes:
+            if botType == "NN" and botType not in savedTypes:
                 bot.saveModel(self.path)
                 savedTypes.append(botType)
         if end:

@@ -43,14 +43,19 @@ class ValueNetwork(object):
         self.input = Input(shape=(self.stateReprLen,))
         previousLayer = self.input
 
+
+        regularizer = keras.regularizers.l2(self.parameters.CACLA_CRITIC_WEIGHT_DECAY)
+
+
         for layer in self.layers:
             previousLayer = Dense(layer, activation=self.activationFuncHidden,
-                                bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
+                                bias_initializer=initializer, kernel_initializer=initializer,
+                                  kernel_regularizer=regularizer)(previousLayer)
             if self.parameters.ACTIVATION_FUNC_HIDDEN_POLICY == "elu":
                 previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
 
-        output = Dense(1, activation="linear", bias_initializer=initializer
-                            , kernel_initializer=initializer)(previousLayer)
+        output = Dense(1, activation="linear", bias_initializer=initializer, kernel_initializer=initializer,
+                       kernel_regularizer=regularizer)(previousLayer)
 
         self.model = Model(inputs=self.input, outputs=output)
 
@@ -142,8 +147,8 @@ class PolicyNetwork(object):
             previousLayer = Dense(neuronNumber, activation=self.activationFuncHidden, bias_initializer=initializer,
                                   kernel_initializer=initializer)(previousLayer)
 
-        output = Dense(self.num_outputs, activation="sigmoid", bias_initializer=initializer, kernel_initializer=initializer)(
-            previousLayer)
+        output = Dense(self.num_outputs, activation="sigmoid", bias_initializer=initializer,
+                       kernel_initializer=initializer)(previousLayer)
         self.model = keras.models.Model(inputs=inputState, outputs=output)
 
         optimizer = keras.optimizers.Adam(lr=self.learningRate)

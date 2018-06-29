@@ -261,6 +261,9 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
         Bot.num_Greedybots = number
         for i in range(number):
             model.createBot(botType, None, parameters)
+    elif botType == "Random":
+        for i in range(number):
+            model.createBot(botType, None, parameters)
 
 
 def testModel(testingModel, n_training, reset_time, modelPath, name, plotting=True):
@@ -604,9 +607,8 @@ if __name__ == '__main__':
     setSeedAccordingToFolderNumber(model_in_subfolder, loadModel, modelPath, enableTrainMode)
 
     createBots(numberOfNNBots, model, "NN", parameters, algorithm, loadModel)
-
-    if fitsLimitations(numberOfGreedyBots, 1000):
-        createBots(numberOfGreedyBots, model, "Greedy", parameters)
+    createBots(numberOfGreedyBots, model, "Greedy", parameters)
+    createBots(parameters.NUM_RANDOM_BOTS, model, "Random", parameters)
     model.addDataFilesToDictionary()
 
     if numberOfNNBots == 0:

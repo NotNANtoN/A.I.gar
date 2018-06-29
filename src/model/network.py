@@ -275,6 +275,8 @@ class Network(object):
 
             layerIterable = iter(self.layers)
 
+            regularizer = keras.regularizers.l2(self.parameters.Q_WEIGHT_DECAY)
+
             if parameters.CNN_REPR:
                 extraInputSize = self.parameters.EXTRA_INPUT
                 if extraInputSize > 0:
@@ -282,7 +284,8 @@ class Network(object):
                     self.input = [self.input, extraInput]
                     denseInput = keras.layers.concatenate([self.valueNetwork, extraInput])
                 previousLayer = Dense(next(layerIterable), activation=self.activationFuncHidden,
-                                    bias_initializer=initializer, kernel_initializer=initializer)(denseInput)
+                                    bias_initializer=initializer, kernel_initializer=initializer,
+                                      kernel_regularizer=regularizer)(denseInput)
             else:
                 self.input = Input(shape=(inputDim,))
                 previousLayer = self.input
@@ -290,12 +293,13 @@ class Network(object):
             for layer in layerIterable:
                 if layer > 0:
                     previousLayer = Dense(layer, activation=self.activationFuncHidden,
-                                        bias_initializer=initializer, kernel_initializer=initializer)(previousLayer)
+                                        bias_initializer=initializer, kernel_initializer=initializer,
+                                          kernel_regularizer=regularizer)(previousLayer)
                     if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
                         previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
 
             output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer
-                                , kernel_initializer=initializer)(previousLayer)
+                                , kernel_initializer=initializer, kernel_regularizer=regularizer)(previousLayer)
 
             self.valueNetwork = keras.models.Model(inputs=self.input, outputs=output)
 

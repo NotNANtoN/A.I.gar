@@ -69,6 +69,7 @@ def getRelativeCellPos(cell, left, top, size):
 class Bot(object):
     _greedyId = 0
     _nnId = 0
+    _randomId = 0
     num_NNbots = 0
     num_Greedybots = 0
 
@@ -84,6 +85,17 @@ class Bot(object):
                                                       parameters.MEMORY_BETA)
         else:
             cls.expReplayer = ReplayBuffer(parameters.MEMORY_CAPACITY)
+
+
+
+
+    @property
+    def randomId(self):
+        return type(self)._randomId
+
+    @randomId.setter
+    def randomId(self, val):
+        type(self)._randomId = val
 
     @property
     def greedyId(self):
@@ -111,6 +123,9 @@ class Bot(object):
         elif bot_type == "NN":
             self.id = self.nnId
             self.nnId += 1
+        elif bot_type == "Random":
+            self.id = self.randomId
+            self.randomId += 1
         self.rgbGenerator = rgbGenerator
         self.trainMode = trainMode
         self.parameters = parameters
@@ -203,7 +218,7 @@ class Bot(object):
             self.lastEnemyGrid = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
             self.fovSize = 0
             self.lastFovSize = 0
-        elif self.type == "Greedy":
+        elif self.type == "Greedy" or self.type == "Random":
             self.currentAction = [0, 0, 0, 0]
 
     def updateRewards(self):
@@ -294,6 +309,15 @@ class Bot(object):
     def setMassesOverTime(self, array):
         self.totalMasses = array
 
+    def make_random_bot_move(self):
+        if self.time % self.parameters.FRAME_SKIP_RATE == 0:
+            self.currentAction[0] = numpy.random.random()
+            self.currentAction[1] = numpy.random.random()
+            self.currentAction[2] = numpy.random.random() if self.parameters.ENABLE_SPLIT else False
+            self.currentAction[3] = numpy.random.random() if self.parameters.ENABLE_EJECT else False
+        self.time += 1
+
+
     def makeMove(self):
         self.totalMasses.append(self.player.getTotalMass())
         if self.type == "NN":
@@ -305,6 +329,8 @@ class Bot(object):
         if self.type == "Greedy":
             self.make_greedy_bot_move()
 
+        if self.type == "Random":
+            self.make_random_bot_move()
 
         action_taken = list(self.currentAction)
         if self.currentlySkipping:

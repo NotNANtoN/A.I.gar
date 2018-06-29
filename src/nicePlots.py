@@ -27,7 +27,10 @@ def getTitleName(name):
         return "Performance During Training Without Noise"
     if name == "Pellet_Collection":
         return "Pellet Collection Performance During Training"
-
+    if name == "vs_1_greedy":
+        return "Post-Training Vs Greedy Fighting Performance"
+    if name == "VS_1_Greedy":
+        return "Vs Greedy Fighting Performance During Training"
 
 def plot(name, dict):
     print("Plotting ", name, "...")
