@@ -252,8 +252,6 @@ class Bot(object):
             self.updateRewards()
             self.currentlySkipping = self.updateFrameSkip()
 
-
-
         if not self.currentlySkipping:
             newState = self.getStateRepresentation()
 
@@ -285,7 +283,6 @@ class Bot(object):
                         print(count, " deaths sampled this round.")
                         print("Mean non-death reward: ", round(numpy.mean(rewards), 2))
                         print()
-                    print("training: ", len(batch))
                     idxs, priorities = self.learningAlg.learn(batch, self.time)
                     if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
                         self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
