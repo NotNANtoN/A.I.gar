@@ -110,10 +110,9 @@ def runJobs(jobs, email):
         timeBotFactor = 1
         timeStepFactor = 1
         timeOtherFactor = 1
-        resetTime = 15000
         algorithmType = 0
         memoryLimit = 20000
-        cnnTime = False
+        cnn = False
         for paramIdx in range(len(job[0])):
             paramName = job[0][paramIdx]
             paramVal = job[1][paramIdx]
@@ -125,9 +124,7 @@ def runJobs(jobs, email):
 
             if paramName == "NUM_NN_BOTS":
                 timeBotFactor *= (int(paramVal) / 6) + 1
-                resetTime = 30000
             elif paramName == "NUM_GREEDY_BOTS" and int(paramVal) > 0:
-                resetTime = 30000
                 timeBotFactor *= (1 + 0.2 * int(paramVal))
             elif paramName == "MAX_TRAINING_STEPS":
                 timeStepFactor *= int(paramVal) / 500000
@@ -142,8 +139,7 @@ def runJobs(jobs, email):
                 elif paramVal == "\"CACLA\"":
                     timeOtherFactor *= 1.1
             elif paramName == "CNN_REPRESENTATION":
-                memoryLimit = 120000
-                cnnTime = True
+                cnn = True
             elif paramName == "MEMORY_CAPACITY":
                 memoryLimit *= int(int(paramVal) / 75000) + 1
             elif paramName == "MEMORY_BATCH_LEN":
@@ -157,15 +153,16 @@ def runJobs(jobs, email):
         days = jobTime // 24
         hours = jobTime % 24
 
-        if cnnTime:
-            timeLine = timeLineBase + "2-23:00:00\n"
+        if cnn:
+            timeLine = timeLineBase + "2-00:00:00\n"
+            memoryLimit = 120000
+
         else:
             timeLine = timeLineBase + str(days) + "-"
             timeLine += str(hours) if hours >= 10 else "0" + str(hours)
             timeLine += ":00:00\n"
 
         outputNameLine = outputNameLineBase + outputName + "%j.out\n"
-        resetLine = str(resetTime) + "\n"
         algorithmLine = str(algorithmType) + "\n"
         fileName = outputName[:-1] + ".sh"
         script = open(fileName, "w+")
