@@ -138,7 +138,7 @@ def runJobs(jobs, email):
                     timeOtherFactor *= 1.25
                 elif paramVal == "\"CACLA\"":
                     timeOtherFactor *= 1.1
-            elif paramName == "CNN_REPRESENTATION":
+            elif paramName == "CNN_REPR":
                 cnn = True
             elif paramName == "MEMORY_CAPACITY":
                 memoryLimit *= int(int(paramVal) / 75000) + 1
@@ -154,7 +154,7 @@ def runJobs(jobs, email):
         hours = jobTime % 24
 
         if cnn:
-            timeLine = timeLineBase + "2-00:00:00\n"
+            timeLine = timeLineBase + "2-23:00:00\n"
             memoryLimit = 120000
 
         else:
