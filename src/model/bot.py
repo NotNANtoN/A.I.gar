@@ -673,9 +673,9 @@ class Bot(object):
     def getReward(self):
         if self.parameters.MASS_AS_REWARD:
             if self.player.getIsAlive():
-                return self.player.getTotalMass()
+                return self.player.getTotalMass() - self.parameters.REWARD_TERM
             else:
-                return self.parameters.DEATH_TERM
+                return self.parameters.DEATH_TERM - self.parameters.REWARD_TERM
         if self.lastMass is None:
             return None
         if not self.player.getIsAlive():
@@ -683,7 +683,7 @@ class Bot(object):
         else:
             currentMass = self.player.getTotalMass()
             reward = currentMass - self.lastMass
-        return reward * self.parameters.REWARD_SCALE
+        return reward * self.parameters.REWARD_SCALE - self.parameters.REWARD_TERM
 
     def getFrameSkipRate(self):
         return self.parameters.FRAME_SKIP_RATE

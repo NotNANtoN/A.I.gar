@@ -305,7 +305,11 @@ class ActorCritic(object):
         #mergeLayer = keras.layers.concatenate([actor.inputs[0], actor.outputs[0]])
         nonTrainableCritic = critic.model([actor.model.inputs[0], actor.model.outputs[0]])
         combinedModel = keras.models.Model(inputs=actor.model.inputs, outputs=nonTrainableCritic)
-        combinedModel.compile(optimizer=keras.optimizers.Adam(lr=actor.learningRate), loss="mse")
+        if self.parameters.DPG_ACTOR_OPTIMIZER == "Adam":
+            optimizer = keras.optimizers.Adam(lr=actor.learningRate)
+        elif self.parameters.DPG_ACTOR_OPTIMIZER == "SGD":
+            optimizer = keras.optimizers.SGD(lr=actor.learningRate)
+        combinedModel.compile(optimizer=optimizer, loss="mse")
         return combinedModel
 
     def initializeNetwork(self, loadPath, networks=None):

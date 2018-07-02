@@ -32,6 +32,8 @@ TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu 
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
 # General RL:
+AMSGRAD = False
+GRADIENT_CLIP_NORM = 0
 MASS_AS_REWARD = False
 DISCOUNT = 0.85 
 END_DISCOUNT = 0#0.85 # set to 0 to disable
@@ -51,6 +53,7 @@ TEMPERATURE = 7
 TEMPERATURE_AT_END_TRAINING = 0.0025
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS) if MAX_TRAINING_STEPS != 0 else 0
 #Reward function:
+REWARD_TERM = 0#-200000
 REWARD_SCALE = 2
 DEATH_TERM = -40
 DEATH_FACTOR = 1.5
@@ -140,6 +143,8 @@ DPG_CACLA_ALTERNATION      = 0 #fraction of training time in which cacla is used
 DPG_CACLA_INV_ALTERNATION  = 0 #fraction of training time after which cacla is used instead of dpg
 DPG_CACLA_STEPS            = DPG_CACLA_ALTERNATION * MAX_TRAINING_STEPS
 DPG_DPG_STEPS              = DPG_CACLA_INV_ALTERNATION * MAX_TRAINING_STEPS
+DPG_ACTOR_OPTIMIZER        = "Adam"
+
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"
