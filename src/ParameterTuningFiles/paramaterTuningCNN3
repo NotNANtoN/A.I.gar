@@ -6,17 +6,17 @@ MEMORY_CAPACITY 20000 &
      Default "CNN_IN_DEF" 7x:
      NUM_NN_BOTS 3 &
       Default "CNN_EG" 7x:
-      ALL_PLAYER_GRID True 10x:	
+      ALL_PLAYER_GRID True 10x:
     CNN_INPUT_DIM_1 42 &
      Default "CNN_IN_42" 7x:
      NUM_NN_BOTS 3 &
       Default "CNN_EG" 7x:
-      ALL_PLAYER_GRID True 10x:	
+      ALL_PLAYER_GRID True 10x:
     CNN_INPUT_DIM_1 63 &
      Default "CNN_IN_64" 7x:
      NUM_NN_BOTS 3 &
       Default "CNN_EG" 7x:
-      ALL_PLAYER_GRID True 10x:	
+      ALL_PLAYER_GRID True 10x:
     CNN_P_REPR True &
      Default "CNN_GS_DEF" 7x:
      NUM_NN_BOTS 3 7x:
@@ -30,7 +30,7 @@ MEMORY_CAPACITY 20000 &
       Default "CNN_IN_DEF" 7x:
       NUM_NN_BOTS 3 &
        Default "CNN_EG" 7x:
-       ALL_PLAYER_GRID True 10x:	
+       ALL_PLAYER_GRID True 10x:
      CNN_INPUT_DIM_1 42 &
       Default "CNN_IN_42" 7x:
       NUM_NN_BOTS 3 &
