@@ -166,6 +166,7 @@ class Bot(object):
         self.lastSelfGrid = None
         self.secondLastEnemyGrid = None
         self.lastEnemyGrid = None
+        self.lastAllPlayerGrid = None
         self.lastPixelGrid = None
 
         self.reset()
@@ -415,30 +416,51 @@ class Bot(object):
         else:
             gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
+
         pelletSHT = spatialHashTable(fovSize, gsSize, left, top)  # SHT = spatial hash table
-        enemySHT = spatialHashTable(fovSize, gsSize, left, top)
-        virusSHT = spatialHashTable(fovSize, gsSize, left, top)
-        playerSHT = spatialHashTable(fovSize, gsSize, left, top)
         totalPellets = self.field.getPelletsInFov(fovPos, fovSize)
         pelletSHT.insertAllFloatingPointObjects(totalPellets)
-        playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
-        playerSHT.insertAllFloatingPointObjects(playerCells)
+
         enemyCells = self.field.getEnemyPlayerCellsInFov(self.player)
-        enemySHT.insertAllFloatingPointObjects(enemyCells)
-        virusCells = self.field.getVirusesInFov(fovPos, fovSize)
-        virusSHT.insertAllFloatingPointObjects(virusCells)
+        playerCells = self.field.getPortionOfCellsInFov(self.player.getCells(), fovPos, fovSize)
+        allPlayerSHT = None
+        playerSHT = None
+        enemySHT = None
+        if self.parameters.ALL_PLAYER_GRID:
+            allPlayerSHT = spatialHashTable(fovSize, gsSize, left, top)
+            allPlayerSHT.insertAllFloatingPointObjects(enemyCells)
+            allPlayerSHT.insertAllFloatingPointObjects(playerCells)
+        else:
+            playerSHT = spatialHashTable(fovSize, gsSize, left, top)
+            playerSHT.insertAllFloatingPointObjects(playerCells)
+            enemySHT = spatialHashTable(fovSize, gsSize, left, top)
+            enemySHT.insertAllFloatingPointObjects(enemyCells)
+
+        virusSHT = None
+        if self.field.getVirusEnabled():
+            virusSHT = spatialHashTable(fovSize, gsSize, left, top)
+            virusCells = self.field.getVirusesInFov(fovPos, fovSize)
+            virusSHT.insertAllFloatingPointObjects(virusCells)
 
         # Calculate mass of biggest cell:
         if self.parameters.NORMALIZE_GRID_BY_MAX_MASS:
-            allCells = numpy.concatenate((totalPellets, playerCells, enemyCells, virusCells))
+            allCells = numpy.concatenate((playerCells, enemyCells))
             biggestCellMass = max(allCells, key = lambda cell: cell.getMass()).getMass()
 
         # Initialize grid squares with zeros:
-        gsBiggestEnemyCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
-        gsBiggestOwnCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
-        gsWalls = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
-        gsVirus = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsBiggestAllCellMass = None
+        gsBiggestEnemyCellMass = None
+        gsBiggestOwnCellMass = None
+        if self.parameters.ALL_PLAYER_GRID:
+            gsBiggestAllCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        else:
+            gsBiggestEnemyCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+            gsBiggestOwnCellMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsVirus = None
+        if self.field.getVirusEnabled():
+            gsVirus = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
         gsPelletMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsWalls = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
         gridView = numpy.zeros((self.parameters.NUM_OF_GRIDS, gridSquaresPerFov, gridSquaresPerFov))
         # gsMidPoint is adjusted in the loops
         gsMidPoint = [left + gsSize / 2, top + gsSize / 2]
@@ -462,23 +484,32 @@ class Bot(object):
                         gsPelletMass[c][r] = pelletMassSum
 
 
-                    # Create Enemy Cell mass representation
-                    # Make the visionGrid's enemy cell representation a percentage. The player's mass
-                    # in proportion to the biggest enemy cell's mass in each grid square.
-                    enemiesInGS = enemySHT.getBucketContent(count)
-                    if enemiesInGS:
-                        biggestEnemyInCellMass = max(enemiesInGS, key=lambda cell: cell.getMass()).getMass()
-                        if NORMALIZE_GRID_BY_MAX_MASS:
-                            biggestEnemyInCellMass /= biggestCellMass
-                        gsBiggestEnemyCellMass[c][r] = biggestEnemyInCellMass
+                    if self.parameters.ALL_PLAYER_GRID:
+                        # Create all player mass representation
+                        allPlayersInGS = allPlayerSHT.getBucketContent(count)
+                        if allPlayersInGS:
+                            biggestCellInGSMass = max(allPlayersInGS, key=lambda cell: cell.getMass()).getMass()
+                            if self.parameters.NORMALIZE_GRID_BY_MAX_MASS:
+                                biggestCellInGSMass /= biggestCellMass
+                            gsBiggestAllCellMass[c][r] = biggestCellInGSMass
+                    else:
+                        # Create Enemy Cell mass representation
+                        # Make the visionGrid's enemy cell representation a percentage. The player's cell mass
+                        # in proportion to the biggest enemy cell's mass in each grid square.
+                        enemiesInGS = enemySHT.getBucketContent(count)
+                        if enemiesInGS:
+                            biggestEnemyInGSMass = max(enemiesInGS, key=lambda cell: cell.getMass()).getMass()
+                            if self.parameters.NORMALIZE_GRID_BY_MAX_MASS:
+                                biggestEnemyInGSMass /= biggestCellMass
+                            gsBiggestEnemyCellMass[c][r] = biggestEnemyInGSMass
 
-                    # Create Own Cell mass representation
-                    playerCellsInGS = playerSHT.getBucketContent(count)
-                    if playerCellsInGS:
-                        biggestFriendInCell = max(playerCellsInGS, key=lambda cell: cell.getMass()).getMass()
-                        if NORMALIZE_GRID_BY_MAX_MASS:
-                            biggestFriendInCell /= biggestCellMass
-                        gsBiggestOwnCellMass[c][r] = biggestFriendInCell
+                        # Create Own Cell mass representation
+                        playerCellsInGS = playerSHT.getBucketContent(count)
+                        if playerCellsInGS:
+                            biggestFriendInGSMass = max(playerCellsInGS, key=lambda cell: cell.getMass()).getMass()
+                            if self.parameters.NORMALIZE_GRID_BY_MAX_MASS:
+                                biggestFriendInGSMass /= biggestCellMass
+                            gsBiggestOwnCellMass[c][r] = biggestFriendInGSMass
 
                     # Create Virus Cell representation
                     if self.field.getVirusEnabled():
@@ -517,6 +548,9 @@ class Bot(object):
             count += 1
         if self.parameters.ENEMY_GRID:
             gridView[count] = gsBiggestEnemyCellMass
+            count += 1
+        if self.parameters.ALL_PLAYER_GRID:
+            gridView[count] = gsBiggestAllCellMass
             count += 1
         if self.parameters.VIRUS_GRID:
             gridView[count] = gsVirus
