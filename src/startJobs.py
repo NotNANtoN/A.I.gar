@@ -132,12 +132,12 @@ def runJobs(jobs, email):
                 algorithmType = 2
                 timeOtherFactor *= 1.2
             elif paramName == "USE_ACTION_AS_INPUT":
-                timeOtherFactor *= 4
+                timeOtherFactor *= 5
             elif paramName == "ACTOR_CRITIC_TYPE":
                 if paramVal == "\"DPG\"":
-                    timeOtherFactor *= 1.25
+                    timeOtherFactor *= 2
                 elif paramVal == "\"CACLA\"":
-                    timeOtherFactor *= 1.1
+                    timeOtherFactor *= 1.2
             elif paramName == "CNN_REPR":
                 cnn = True
             elif paramName == "MEMORY_CAPACITY":
@@ -148,8 +148,12 @@ def runJobs(jobs, email):
                 timeOtherFactor *= ((int(paramVal) - 11) / 10) + 1
             elif paramName == "ENABLE_SPLIT":
                 timeOtherFactor *= 1.3
+            elif "Layers" in paramName:
+                timeOtherFactor *= 1.3
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
+        if jobTime > 240:
+            jobTime = 240
         days = jobTime // 24
         hours = jobTime % 24
 

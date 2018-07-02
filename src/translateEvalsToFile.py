@@ -1,3 +1,4 @@
+import os
 
 def addEvals(lines):
     defaults =[]
@@ -24,7 +25,7 @@ def addEvals(lines):
                     defaults.remove(default)
         lastSpaces = spaces
 
-        line = getEvaluatedLine(line, defaults)
+        #line = getEvaluatedLine(line, defaults)
 
 
 if __name__ == '__main__':

@@ -5,5 +5,7 @@ from distutils.extension import Extension
 extensions = [Extension("*", ["*.pyx"])]
 
 setup(
-    ext_modules = cythonize(extensions)
+    name = "Agario",
+    #ext_modules = cythonize(extensions),
+    ext_modules = cythonize(["*.py"]),
 )

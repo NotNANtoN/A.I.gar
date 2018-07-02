@@ -705,6 +705,11 @@ class Bot(object):
                 for idx in range(1)]
 
     def getReward(self):
+        if self.parameters.MASS_AS_REWARD:
+            if self.player.getIsAlive():
+                return self.player.getTotalMass()
+            else:
+                return self.parameters.DEATH_TERM
         if self.lastMass is None:
             return None
         if not self.player.getIsAlive():

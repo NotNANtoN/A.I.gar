@@ -127,7 +127,7 @@ class Player(object):
         return self.respawnTime
 
     def getTotalMass(self):
-        return sum(cell.getMass() for cell in self.cells) if self.cells else 0
+        return sum([cell.getMass() for cell in self.cells]) if self.cells else 0
 
     def getCells(self):
         return self.cells
@@ -156,8 +156,8 @@ class Player(object):
     def getFovPos(self):
         self.fovPos = None
         if self.isAlive and self.getTotalMass() != 0:
-            meanX = sum(cell.getX() * cell.getMass() for cell in self.cells) / self.getTotalMass()
-            meanY = sum(cell.getY() * cell.getMass() for cell in self.cells) / self.getTotalMass()
+            meanX = sum([cell.getX() * cell.getMass() for cell in self.cells]) / self.getTotalMass()
+            meanY = sum([cell.getY() * cell.getMass() for cell in self.cells]) / self.getTotalMass()
             self.fovPos = [meanX, meanY]
         return self.fovPos
 

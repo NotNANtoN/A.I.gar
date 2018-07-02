@@ -489,8 +489,15 @@ class Model(object):
         print("Step: ", self.counter)
         if self.trainingEnabled:
             print("Noise level: ", round(self.getCurrentNoise(),4))
+            if self.parameters.END_DISCOUNT:
+                print("Discount factor: ", round(self.getCurrentDiscount(),4))
         self.printBotMasses()
         print(" ")
+
+    def getCurrentDiscount(self):
+        for bot in self.bots:
+            if bot.getType() == "NN":
+                return bot.getLearningAlg().discount
 
     def getCurrentNoise(self):
         for bot in self.bots:

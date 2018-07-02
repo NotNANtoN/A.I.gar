@@ -1,18 +1,19 @@
+
 import os
-import sys
 import importlib
+import pyximport; pyximport.install()
 from controller.controller import Controller
 from model.qLearning import *
-from model.parameters import *
 from model.actorCritic import *
 from model.bot import *
 from model.model import Model
 import matplotlib.pyplot as plt
 import pickle as pkl
 import subprocess
+from builtins import input
 
 from view.view import View
-from modelCombiner import createCombinedModelGraphs, plot, getMeanAndStDev
+from modelCombiner import createCombinedModelGraphs, plot
 
 import numpy as np
 import tensorflow as tf
@@ -176,7 +177,7 @@ def checkValidParameter(param):
         if param == name:
             print("FOUND")
             return n
-    print("Parameter with name " + tweakedParameter + "not found.")
+    #print("Parameter with name " + tweakedParameter + "not found.")
     quit()
 
 
@@ -249,7 +250,7 @@ def createBots(number, model, botType, parameters, algorithm=None, loadModel=Non
         for i in range(number):
             # Create algorithm instance
             if algorithm == 0:
-                learningAlg = QLearn(numberOfNNBots, numberOfHumans, parameters)
+                learningAlg = QLearn(number, 0, parameters)
             elif algorithm == 2:
                 learningAlg = ActorCritic(parameters)
             else:
@@ -409,7 +410,7 @@ class Params:
         self.EXPORT_POINT_AVERAGING = point_averaging
 
 
-def runTests(model):
+def runTests(model, parameters):
     np.random.seed()
 
     print("Testing...")
@@ -461,11 +462,10 @@ def runTests(model):
                     + " Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
         file.write(data)
 
-
-if __name__ == '__main__':
+def run():
     # This is used in case we want to use a freezing program to create an .exe
-    if getattr(sys, 'frozen', False):
-        os.chdir(sys._MEIPASS)
+    #if getattr(sys, 'frozen', False):
+    #    os.chdir(sys._MEIPASS)
 
     guiEnabled = int(input("Enable GUI?: (1 == yes)\n"))
     guiEnabled = (guiEnabled == 1)
@@ -639,8 +639,8 @@ if __name__ == '__main__':
             testResults = []
         else:
             print("max:", maxSteps, "start:", jobStart, "steps:", jobSteps)
-            with open(model.getPath() + 'testResults.pkl', 'rb') as input:
-                testResults = pkl.load(input)
+            with open(model.getPath() + 'testResults.pkl', 'rb') as inputFile:
+                testResults = pkl.load(inputFile)
         for step in range(jobStart, jobStart + jobSteps):
             model.update()
             if step % smallPart == 0 and step != 0:
@@ -679,7 +679,7 @@ if __name__ == '__main__':
         if parameters.JOB_TRAINING_STEPS == 0 or \
                 parameters.JOB_SIMULATION_STEPS + parameters.JOB_STEP_START >= parameters.MAX_SIMULATION_STEPS:
 
-            runTests(model)
+            runTests(model, parameters)
             if model_in_subfolder:
                 print(os.path.join(modelPath))
                 createCombinedModelGraphs(os.path.join(modelPath))
@@ -714,4 +714,5 @@ if __name__ == '__main__':
 
             submitNewJob(model.getPath())
 
-
+if __name__ == '__main__':
+    run()
