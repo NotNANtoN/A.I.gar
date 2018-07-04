@@ -308,7 +308,13 @@ class ActorCritic(object):
         if self.parameters.DPG_ACTOR_OPTIMIZER == "Adam":
             optimizer = keras.optimizers.Adam(lr=actor.learningRate)
         elif self.parameters.DPG_ACTOR_OPTIMIZER == "SGD":
-            optimizer = keras.optimizers.SGD(lr=actor.learningRate)
+            if self.parameters.DPG_ACTOR_NESTEROV:
+                optimizer = keras.optimizers.SGD(lr=actor.learningRate,momentum=self.parameters.DPG_ACTOR_NESTEROV,
+                                                 nesterov=True)
+            else:
+                optimizer = keras.optimizers.SGD(lr=actor.learningRate)
+
+
         combinedModel.compile(optimizer=optimizer, loss="mse")
         return combinedModel
 

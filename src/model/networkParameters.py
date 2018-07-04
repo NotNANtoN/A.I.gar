@@ -32,6 +32,8 @@ TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu 
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
 # General RL:
+OPTIMIZER = "Adam" #SGD has much worse performance
+NESTEROV = 0
 AMSGRAD = False
 GRADIENT_CLIP_NORM = 0
 MASS_AS_REWARD = False
@@ -96,7 +98,6 @@ Q_LAYERS = (256, 256, 256)
 ALPHA = 0.0001
 SQUARE_ACTIONS = True
 NUM_ACTIONS = 25
-OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu'
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
 ACTIVATION_FUNC_OUTPUT = 'linear'
@@ -148,7 +149,7 @@ DPG_CACLA_INV_ALTERNATION  = 0 #fraction of training time after which cacla is u
 DPG_CACLA_STEPS            = DPG_CACLA_ALTERNATION * MAX_TRAINING_STEPS
 DPG_DPG_STEPS              = DPG_CACLA_INV_ALTERNATION * MAX_TRAINING_STEPS
 DPG_ACTOR_OPTIMIZER        = "Adam"
-
+DPG_ACTOR_NESTEROV         = 0
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"

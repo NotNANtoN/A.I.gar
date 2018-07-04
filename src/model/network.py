@@ -271,8 +271,6 @@ class Network(object):
 
         # Fully connected layers
         if self.parameters.NEURON_TYPE == "MLP":
-
-
             layerIterable = iter(self.layers)
 
             regularizer = keras.regularizers.l2(self.parameters.Q_WEIGHT_DECAY)
@@ -348,6 +346,12 @@ class Network(object):
             optimizer = keras.optimizers.Nadam(lr=self.learningRate)
         elif self.parameters.OPTIMIZER == "Adamax":
             optimizer = keras.optimizers.Adamax(lr=self.learningRate)
+        elif self.parameters.OPTIMIZER == "SGD":
+            if self.parameters.NESTEROV:
+                optimizer = keras.optimizers.SGD(lr=self.learningRate,momentum=self.parameters.NESTEROV, nesterov=True)
+            else:
+                optimizer = keras.optimizers.SGD(lr=self.learningRate)
+
 
         self.optimizer = optimizer
 
