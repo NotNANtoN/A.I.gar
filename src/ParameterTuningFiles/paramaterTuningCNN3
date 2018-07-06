@@ -46,6 +46,5 @@ MEMORY_CAPACITY 20000 &
       NUM_NN_BOTS 3 10x:
       CNN_P_RGB True &
        Default "CNN_OA_RGB" 10x:
-       NUM_NN_BOTS 3 10
-x:
+       NUM_NN_BOTS 3 10x:
 
