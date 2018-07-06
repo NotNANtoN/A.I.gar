@@ -95,10 +95,8 @@ class ValueNetwork(object):
         self.target_model.set_weights(newWeights)
 
     def train(self, inputs, targets, importance_weights):
-        if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
-            self.model.train_on_batch(inputs, targets, sample_weight=importance_weights)
-        else:
-            self.model.train_on_batch(inputs, targets)
+        self.model.train_on_batch(inputs, targets, sample_weight=importance_weights)
+
 
     def save(self, path, name):
         self.target_model.set_weights(self.model.get_weights())
@@ -173,8 +171,11 @@ class PolicyNetwork(object):
         return self.target_model.predict(state)
 
 
-    def train(self, inputs, targets):
-        self.model.train_on_batch(inputs, targets)
+    def train(self, inputs, targets, weights = None):
+        if self.parameters.ACTOR_IS and weights is not None:
+            self.model.train_on_batch(inputs, targets, sample_weight=weights)
+        else:
+            self.model.train_on_batch(inputs, targets)
 
     def update_target_model(self):
         if self.parameters.ACTOR_CRITIC_TYPE != "DPG":
@@ -265,10 +266,8 @@ class ActionValueNetwork(object):
         self.target_model.set_weights(newWeights)
 
     def train(self, inputs, targets, importance_weights):
-        if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
-            self.model.train_on_batch(inputs, targets, sample_weight=importance_weights)
-        else:
-            self.model.train_on_batch(inputs, targets)
+        self.model.train_on_batch(inputs, targets, sample_weight=importance_weights)
+
 
     def save(self, path, name):
         self.target_model.set_weights(self.model.get_weights())
@@ -369,6 +368,41 @@ class ActorCritic(object):
         else:
             self.updateCriticNetworks(time)
 
+    def apply_off_policy_corrections_cacla(self, batch):
+        batchLen = len(batch[0])
+        #if not self.parameters.CACLA_OFF_POLICY_CORR:
+        #    return numpy.ones(batchLen)
+
+        off_policy_weights = []
+        for idx in range(batchLen):
+            state = batch[0][idx]
+            action = batch[1][idx]
+            behavior_action = batch[4][idx]
+            action_current_policy = self.actor.predict(state)
+
+            policy_difference = action_current_policy - behavior_action
+
+            squared_sum = policy_difference[0] ** 2 + policy_difference[1] ** 2
+            if self.parameters.ENABLE_SPLIT or self.parameters.ENABLE_EJECT:
+                squared_sum += policy_difference[2] ** 2
+            if self.parameters.ENABLE_SPLIT and self.parameters.ENABLE_EJECT:
+                squared_sum += policy_difference[3] ** 2
+            magnitude_difference = math.sqrt(squared_sum)
+
+
+            off_policy_correction = 1 / ((1 + magnitude_difference) ** self.parameters.CACLA_OFF_POLICY_CORR)
+
+            if self.parameters.CACLA_OFF_POLICY_CORR_SIGN:
+                behavior_vector = action - behavior_action
+                current_policy_vector = action - action_current_policy
+                dot_prod = numpy.dot(behavior_vector, current_policy_vector)
+                if dot_prod < 0:
+                    off_policy_correction = 0
+                #TODO: make more sophisticated by making it scale depending on angle: 0deg is 1, 90 deg is 0
+
+            off_policy_weights.append(off_policy_correction)
+
+        return off_policy_weights
 
     def learn(self, batch, steps):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
@@ -380,9 +414,10 @@ class ActorCritic(object):
                     or steps > self.parameters.DPG_DPG_STEPS) and steps > self.parameters.AC_ACTOR_TRAINING_START:
                 self.train_actor_batch(batch, priorities)
         else:
-            idxs, priorities = self.train_critic(batch)
+            off_policy_weights = self.apply_off_policy_corrections_cacla(batch)
+            idxs, priorities = self.train_critic(batch, off_policy_weights)
             if steps > self.parameters.AC_ACTOR_TRAINING_START:
-                self.train_actor_batch(batch, priorities)
+                self.train_actor_batch(batch, priorities, off_policy_weights)
         self.latestTDerror = numpy.mean(priorities[-1])
         return idxs, priorities
 
@@ -390,40 +425,52 @@ class ActorCritic(object):
         batch_len = len(batch)
         inputs = numpy.zeros((batch_len, self.parameters.STATE_REPR_LEN))
         targets = numpy.zeros((batch_len, 1))
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
+
 
         # Calculate input and target for actor
         for sample_idx in range(batch_len):
-            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
-                sample_idx], batch[4][sample_idx]
+            old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx]
             oldPrediction = self.combinedActorCritic.predict(old_s)[0]
             inputs[sample_idx] = old_s
             targets[sample_idx] = oldPrediction + self.parameters.DPG_Q_VAL_INCREASE
 
-        self.combinedActorCritic.train_on_batch(inputs, targets)
+        if self.parameters.ACTOR_IS:
+            self.combinedActorCritic.train_on_batch(inputs, targets, sample_weight=importance_weights)
+        else:
+            self.combinedActorCritic.train_on_batch(inputs, targets)
 
-
-    def train_actor_batch(self, batch, priorities):
+    def train_actor_batch(self, batch, priorities, off_policy_weights = None):
         batch_len = len(batch)
         len_output = self.actor.num_outputs
         inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, len_output))
+        used_imp_weights = numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
+        if off_policy_weights is not None:
+            importance_weights *= off_policy_weights
+
 
         # Calculate input and target for actor
         count = 0
         for sample_idx in range(batch_len):
-            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
-                sample_idx], batch[4][sample_idx]
+            old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx]
+            sample_weight = importance_weights[sample_idx]
             td_e = priorities[sample_idx]
             target = self.calculateTarget_Actor(old_s, a, td_e)
             if target is not None:
-                inputs[count] = old_s
-                targets[count] = target
-                count += 1
+                if sample_weight != 0:
+                    inputs[count] = old_s
+                    targets[count] = target
+                    used_imp_weights[count] = sample_weight
+                    count += 1
 
         if count > 0:
             inputs = inputs[:count]
             targets = targets[:count]
-            self.actor.train(inputs, targets)
+            used_imp_weights = used_imp_weights[:count]
+            self.actor.train(inputs, targets, used_imp_weights)
 
     def applyNoise(self, action):
         #Gaussian Noise:
@@ -451,7 +498,7 @@ class ActorCritic(object):
                 print("Evaluation of current state V(s): ", round(self.critic.predict(state), 2))
             print("Current action:\t", numpy.round(noisyAction, 2))
 
-        return None, noisyAction
+        return action, noisyAction
 
     def calculateTargetAndTDE(self, old_s, r, new_s, alive, a):
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
@@ -477,14 +524,14 @@ class ActorCritic(object):
         inputs_critic_actions = numpy.zeros((batch_len, self.action_len))
         targets_critic = numpy.zeros((batch_len, 1))
         idxs = batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
-        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
         priorities = numpy.zeros_like(importance_weights)
 
         for sample_idx in range(batch_len):
-            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
-                sample_idx], batch[4][sample_idx]
+            old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx]
             target = r
-            if not done:
+            if new_s is not None:
                 if self.parameters.DPG_USE_TARGET_MODELS:
                     estimationNewState = self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
                 else:
@@ -503,19 +550,20 @@ class ActorCritic(object):
         return idxs, priorities
 
 
-    def train_critic(self, batch):
+    def train_critic(self, batch, off_policy_weights):
         batch_len = len(batch[0])
         inputs_critic = numpy.zeros((batch_len, self.input_len))
         targets_critic = numpy.zeros((batch_len, 1))
         # Calculate input and target for critic
         idxs = batch[6] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else None
-        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
+        importance_weights *= off_policy_weights
         priorities = numpy.zeros_like(importance_weights)
 
         for sample_idx in range(batch_len):
-            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
-                sample_idx], batch[4][sample_idx]
-            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, not done, a)
+            old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
+                sample_idx]
+            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None, a)
             priorities[sample_idx] = td_e
             inputs_critic[sample_idx] = old_s
             targets_critic[sample_idx] = target

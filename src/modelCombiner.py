@@ -31,6 +31,7 @@ def combineTestResults(path):
     modelList = [i for i in os.listdir(path) if os.path.isdir(path + i)]
 
     evaluations = {}
+    evaluations["timing"] = []
     keyList = []
     for model in modelList:
         modelPath = path + model + "/"
@@ -39,7 +40,11 @@ def combineTestResults(path):
                 continue
             resultsPath = modelPath + file
             with open(resultsPath, 'r') as f:
-                for line in f.readlines():
+                lines = f.readlines()
+                firstLine = lines[0]
+                timing = float(firstLine.split(sep=" ")[-1])
+                evaluations["timing"].append(timing)
+                for line in lines:
                     words = line.split(sep=" ")
                     # Only check for evaluation lines
                     if len(words) == 11:
@@ -62,6 +67,7 @@ def combineTestResults(path):
     with open(name_of_file, "w") as file:
         data = ""
         for key in keyList:
+            timing = str(round(numpy.mean(evaluations["timing"]),6))
             evalList = evaluations[key]
             name = key
             maxScore = str(round(max([evaluation[1] for evaluation in evalList]), 1))
@@ -69,6 +75,7 @@ def combineTestResults(path):
             stdMean = str(round(numpy.mean([evaluation[3] for evaluation in evalList]), 1))
             meanMaxScore = str(round(numpy.mean([evaluation[4] for evaluation in evalList]), 1))
             stdMax = str(round(numpy.mean([evaluation[5] for evaluation in evalList]), 1))
+            data += "Avg time for update (s): " + timing + "\n"
             data += name + " Highscore: " + maxScore + " Mean: " + meanScore + " StdMean: " + stdMean \
                     + " Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
         file.write(data)
