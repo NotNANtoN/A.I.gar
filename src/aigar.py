@@ -1,7 +1,6 @@
-
 import os
 import importlib
-import pyximport; pyximport.install()
+#import pyximport; pyximport.install()
 from controller.controller import Controller
 from model.qLearning import *
 from model.actorCritic import *
@@ -449,7 +448,7 @@ def runTests(model, parameters):
 
     name_of_file = model.getPath() + "/final_results.txt"
     with open(name_of_file, "w") as file:
-        data = "Avg run time(s): " + str(round(numpy.mean(model.timings), 5)) + "\n"
+        data = "Avg run time(s): " + str(round(numpy.mean(model.timings), 6)) + "\n"
         data += "Number of runs per testing: " + str(n_test_runs) + "\n"
         for evaluation in evaluations:
             name = evaluation[0]

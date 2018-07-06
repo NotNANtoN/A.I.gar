@@ -32,6 +32,10 @@ TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu 
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
 # General RL:
+OPTIMIZER = "Adam" #SGD has much worse performance
+NESTEROV = 0
+AMSGRAD = False
+GRADIENT_CLIP_NORM = 0
 MASS_AS_REWARD = False
 DISCOUNT = 0.85 
 END_DISCOUNT = 0#0.85 # set to 0 to disable
@@ -51,6 +55,7 @@ TEMPERATURE = 7
 TEMPERATURE_AT_END_TRAINING = 0.0025
 TEMPERATURE_DECAY = TEMPERATURE_AT_END_TRAINING ** (1 / MAX_TRAINING_STEPS) if MAX_TRAINING_STEPS != 0 else 0
 #Reward function:
+REWARD_TERM = 0#-200000
 REWARD_SCALE = 2
 DEATH_TERM = -40
 DEATH_FACTOR = 1.5
@@ -93,7 +98,6 @@ Q_LAYERS = (256, 256, 256)
 ALPHA = 0.0001
 SQUARE_ACTIONS = True
 NUM_ACTIONS = 25
-OPTIMIZER = "Adam" #SGD has much worse performance
 ACTIVATION_FUNC_HIDDEN = 'relu'
 ELU_ALPHA = 1 # TODO: only works for Q-learning so far. Test if it is useful, if so implement for others too
 ACTIVATION_FUNC_OUTPUT = 'linear'
@@ -105,6 +109,7 @@ Q_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disabl
 
 
 # Actor-critic:
+ACTOR_IS = False
 AC_DELAY_ACTOR_TRAINING = 0
 AC_ACTOR_TRAINING_START = AC_DELAY_ACTOR_TRAINING * MAX_TRAINING_STEPS
 AC_NOISE_AT_HALF = 0.03
@@ -117,13 +122,15 @@ OPTIMIZER_POLICY = "Adam"
 ACTIVATION_FUNC_HIDDEN_POLICY = "relu"
 
 # CACLA:
-CACLA_CRITIC_LAYERS = (250, 250, 250)
-CACLA_CRITIC_ALPHA  = 0.000075
-CACLA_ACTOR_LAYERS  = (100, 100, 100)
-CACLA_ACTOR_ALPHA   = 0.0005
-CACLA_TAU = 0.02
+CACLA_CRITIC_LAYERS         = (250, 250, 250)
+CACLA_CRITIC_ALPHA          = 0.000075
+CACLA_ACTOR_LAYERS          = (100, 100, 100)
+CACLA_ACTOR_ALPHA           = 0.0005
+CACLA_TAU                   = 0.02
 CACLA_UPDATE_ON_NEGATIVE_TD = False
-CACLA_CRITIC_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disable
+CACLA_CRITIC_WEIGHT_DECAY   = 0     #0.001 #0.001 L2 weight decay parameter. Set to 0 to disable
+CACLA_OFF_POLICY_CORR       = 0
+CACLA_OFF_POLICY_CORR_SIGN  = False
 
 
 # Deterministic Policy Gradient (DPG):
@@ -144,6 +151,8 @@ DPG_CACLA_ALTERNATION      = 0 #fraction of training time in which cacla is used
 DPG_CACLA_INV_ALTERNATION  = 0 #fraction of training time after which cacla is used instead of dpg
 DPG_CACLA_STEPS            = DPG_CACLA_ALTERNATION * MAX_TRAINING_STEPS
 DPG_DPG_STEPS              = DPG_CACLA_INV_ALTERNATION * MAX_TRAINING_STEPS
+DPG_ACTOR_OPTIMIZER        = "Adam"
+DPG_ACTOR_NESTEROV         = 0
 
 # LSTM
 ACTIVATION_FUNC_LSTM = "sigmoid"

@@ -236,7 +236,7 @@ class Bot(object):
                 return True
         return False
 
-    def updateValues(self, newActionIdx, newAction, newState, newLastMemory=None):
+    def updateValues(self, extraInfo, newAction, newState, newLastMemory=None):
         if newLastMemory is not None:
             self.lastMemory = newLastMemory
         # Reset frame skipping variables
@@ -245,7 +245,10 @@ class Bot(object):
         self.oldState = newState
         self.lastAction = self.currentAction
         self.currentAction = newAction
-        self.currentActionIdx = newActionIdx
+        if str(self.learningAlg) == "Q-learning":
+            self.currentActionIdx = extraInfo
+        else:
+            self.currentRawAction = extraInfo
 
     def learn_and_move_NN(self):
         self.currentlySkipping = False
@@ -262,7 +265,10 @@ class Bot(object):
                 action = self.currentActionIdx if self.learningAlg.discrete else self.currentAction
 
                 if self.parameters.EXP_REPLAY_ENABLED:
-                    self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
+                    if str(self.learningAlg) != "Q-learning":
+                        self.expReplayer.add(self.oldState, action, self.lastReward, newState, self.currentRawAction)
+                    else:
+                        self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
 
                 #batch.append(currentExperience)
 
@@ -291,8 +297,9 @@ class Bot(object):
 
             # Move
             if self.player.getIsAlive():
-                new_action_idx, new_action = self.learningAlg.decideMove(newState, self)
-                self.updateValues(new_action_idx, new_action, newState)
+                extraInfo, new_action = self.learningAlg.decideMove(newState, self)
+
+                self.updateValues(extraInfo, new_action, newState)
 
             if self.player.getIsAlive():
                 self.lastMass = self.player.getTotalMass()
@@ -707,9 +714,9 @@ class Bot(object):
     def getReward(self):
         if self.parameters.MASS_AS_REWARD:
             if self.player.getIsAlive():
-                return self.player.getTotalMass()
+                return self.player.getTotalMass() - self.parameters.REWARD_TERM
             else:
-                return self.parameters.DEATH_TERM
+                return self.parameters.DEATH_TERM - self.parameters.REWARD_TERM
         if self.lastMass is None:
             return None
         if not self.player.getIsAlive():
@@ -717,7 +724,7 @@ class Bot(object):
         else:
             currentMass = self.player.getTotalMass()
             reward = currentMass - self.lastMass
-        return reward * self.parameters.REWARD_SCALE
+        return reward * self.parameters.REWARD_SCALE - self.parameters.REWARD_TERM
 
     def getFrameSkipRate(self):
         return self.parameters.FRAME_SKIP_RATE

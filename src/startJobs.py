@@ -102,7 +102,7 @@ def runJobs(jobs, email):
     outputNameLineBase = sampleLines[6][:17]
     sampleJobScriptFile.close()
 
-    standardTime = 9.5  # hours for 500k steps for standard Q-learning without other bots
+    standardTime = 13  # hours for 500k steps for standard Q-learning without other bots
 
     for idx, job in enumerate(jobs):
         paramData = ""
@@ -128,12 +128,10 @@ def runJobs(jobs, email):
                 timeBotFactor *= (1 + 0.2 * int(paramVal))
             elif paramName == "MAX_TRAINING_STEPS":
                 timeStepFactor *= int(paramVal) / 500000
-            elif paramName == "ACTOR_CRITIC_TYPE":
-                algorithmType = 2
-                timeOtherFactor *= 1.2
             elif paramName == "USE_ACTION_AS_INPUT":
                 timeOtherFactor *= 5
             elif paramName == "ACTOR_CRITIC_TYPE":
+                algorithmType = 2
                 if paramVal == "\"DPG\"":
                     timeOtherFactor *= 2
                 elif paramVal == "\"CACLA\"":
@@ -150,6 +148,8 @@ def runJobs(jobs, email):
                 timeOtherFactor *= 1.3
             elif "Layers" in paramName:
                 timeOtherFactor *= 1.3
+            elif paramName == "NUM_ACTIONS":
+                timeOtherFactor *= 1.5
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         if jobTime > 240:
@@ -181,6 +181,8 @@ def runJobs(jobs, email):
         script.write(data)
         script.close()
 
+        print("Job: ", fileName)
+        print("Job hours: ", jobTime)
         for jobNum in range(job[2]):
             try:
                 subprocess.call(["sbatch" , fileName])
@@ -188,10 +190,11 @@ def runJobs(jobs, email):
                 script.close()
                 print("Command sbatch not found or filename invalid!")
                 print("Filename: ", fileName)
-
+        
         os.remove(fileName)
 
         print("Submitted job: ", fileName)
+        print()
         time.sleep(0.2)
 
 if __name__ == '__main__':
