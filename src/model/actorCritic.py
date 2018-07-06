@@ -517,9 +517,9 @@ class ActorCritic(object):
                 used_imp_weights[count] = sample_weight
                 count += 1
 
-        print("Batch len: ", batch_len)
-        print("Count: ", count)
-        print()
+        #print("Batch len: ", batch_len)
+        #print("Count: ", count)
+        #print()
         if count > 0:
             inputs = inputs[:count]
             targets = targets[:count]
