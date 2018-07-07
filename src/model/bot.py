@@ -662,16 +662,33 @@ class Bot(object):
         top = y - int(size / 2)
 
         cellsInFov = self.field.getPelletsInFov(midPoint, size)
+        playerCells = self.player.getCells()
+        biggestPlayerCell = playerCells[0]
+        # If the bot is split, use its biggest cell as reference
+        if len(playerCells) > 1:
+            biggestCellMass = biggestPlayerCell.getMass()
+            for playerCell in playerCells:
+                playerCellMass = playerCell.getMass()
+                if biggestCellMass < playerCellMass:
+                    biggestPlayerCell = playerCell
+                    biggestCellMass = playerCellMass
 
         playerCellsInFov = self.field.getEnemyPlayerCellsInFov(self.player)
-        firstPlayerCell = self.player.getCells()[0]
         for opponentCell in playerCellsInFov:
             # If the single celled bot can eat the opponent cell add it to list
-            if firstPlayerCell.getMass() > 1.25 * opponentCell.getMass():
+            if biggestPlayerCell.getMass() > 1.25 * opponentCell.getMass():
                 cellsInFov.append(opponentCell)
+
+        if self.field.getVirusEnabled():
+            virusCellsInFov = self.field.getVirusesInFov(midPoint, size)
+            for virus in virusCellsInFov:
+                # If the single celled bot can eat the opponent cell add it to list
+                if biggestPlayerCell.getMass() > 1.25 * virus.getMass():
+                    cellsInFov.append(virus)
+
         if cellsInFov:
             bestCell = max(cellsInFov, key=lambda p: p.getMass() / (
-                p.squaredDistance(firstPlayerCell) if p.squaredDistance(firstPlayerCell) != 0 else 1))
+                p.squaredDistance(biggestPlayerCell) if p.squaredDistance(biggestPlayerCell) != 0 else 1))
             bestCellPos = getRelativeCellPos(bestCell, left, top, size)
             self.currentAction[0] = bestCellPos[0]
             self.currentAction[1] = bestCellPos[1]
@@ -679,11 +696,11 @@ class Bot(object):
             size = int(size / 2)
             self.currentAction[0] = numpy.random.random()
             self.currentAction[1] = numpy.random.random()
-        randNumSplit = numpy.random.randint(0, 10000)
-        randNumEject = numpy.random.randint(0, 10000)
         self.currentAction[2] = False
         self.currentAction[3] = False
         if self.parameters.ENABLE_GREEDY_SPLIT:
+            randNumSplit = numpy.random.randint(0, 10000)
+            randNumEject = numpy.random.randint(0, 10000)
             if randNumSplit > self.splitLikelihood:
                 self.currentAction[2] = True
             if randNumEject > self.ejectLikelihood:
