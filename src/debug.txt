@@ -1,4 +1,13 @@
+1
+1
 0
+0
+1
+NUM_GREEDY_BOTS
+2
+1
+VIRUS_SPAWN
+True
 0
 0
 0

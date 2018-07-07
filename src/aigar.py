@@ -197,6 +197,8 @@ def modifyParameterValue(tweaked, model):
     out = open(name_of_file, 'w')
     out.writelines(lines)
     out.close()
+    parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
+    model.initParameters(parameters)
 
 
 def nameSavedModelFolder(array):
@@ -564,7 +566,6 @@ def run():
         model.initModelFolder(modelPath, loadedModelName, model_in_subfolder)
         print("Created new path: " + model.getPath())
 
-
     if tweakedTotal:
         modifyParameterValue(tweakedTotal, model)
 
@@ -591,10 +592,6 @@ def run():
     if not humanTraining:
         enableTrainMode = int(input("Do you want to train the network?: (1 == yes)\n"))
     model.setTrainingEnabled(enableTrainMode == 1)
-    # if enableTrainMode:
-    #    maxTrainSteps = str(input("For how many steps do you want to train?\n"))
-    #    paramLineNumber = checkValidParameter("MAX_TRAINING_STEPS")
-    #    modifyParameterValue([["MAX_TRAINING_STEPS", maxTrainSteps, paramLineNumber]], model)
 
     parameters = importlib.import_module('.networkParameters', package=model.getPath().replace("/", ".")[:-1])
     numberOfNNBots = parameters.NUM_NN_BOTS

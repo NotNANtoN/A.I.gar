@@ -144,9 +144,7 @@ class Network(object):
             initializer = keras.initializers.RandomUniform(minval=-weight_initializer_range,
                                                            maxval=weight_initializer_range, seed=None)
 
-
         # CNN
-            # CNN
         if self.parameters.CNN_REPR:
             if self.parameters.CNN_P_REPR:
                 if self.parameters.CNN_P_INCEPTION:

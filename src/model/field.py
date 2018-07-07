@@ -363,8 +363,6 @@ class Field(object):
             newCell.resetMergeTime(0.8)
             self.addPlayerCell(newCell)
 
-
-
     def mergeCells(self, firstCell, secondCell):
         if firstCell.getMass() > secondCell.getMass():
             biggerCell = firstCell

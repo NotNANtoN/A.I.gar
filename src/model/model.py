@@ -80,6 +80,13 @@ class Model(object):
         if __debug__:
             tracemalloc.start()
 
+    def initParameters(self, parameters):
+        self.parameters = parameters
+        self.virusEnabled = parameters.VIRUS_SPAWN
+        self.resetLimit = parameters.RESET_LIMIT
+        self.pointAveraging = parameters.EXPORT_POINT_AVERAGING
+        self.field = Field(self.virusEnabled)
+
 
     def modifySettings(self, reset_time):
         self.resetLimit = reset_time
