@@ -131,6 +131,8 @@ CACLA_UPDATE_ON_NEGATIVE_TD = False
 CACLA_CRITIC_WEIGHT_DECAY   = 0     #0.001 #0.001 L2 weight decay parameter. Set to 0 to disable
 CACLA_OFF_POLICY_CORR       = 0
 CACLA_OFF_POLICY_CORR_SIGN  = False
+OCACLA_ENABLED              = False
+OCACLA_EXPL_SAMPLES         = 0
 
 
 # Deterministic Policy Gradient (DPG):

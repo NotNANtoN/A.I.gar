@@ -330,16 +330,23 @@ class ActorCritic(object):
                 networks["Actor-Critic-Combo"] = self.combinedActorCritic
             else:
                 self.actor = PolicyNetwork(self.parameters, loadPath)
-                self.critic = ValueNetwork(self.parameters, loadPath)
                 networks["MU(S)"] = self.actor
-                networks["V(S)"] = self.critic
+                if self.parameters.OCACLA_ENABLED:
+                    self.critic = ActionValueNetwork(self.parameters, loadPath)
+                    networks["Q(S,A)"] = self.critic
+                else:
+                    self.critic = ValueNetwork(self.parameters, loadPath)
+                    networks["V(S)"] = self.critic
         else:
             self.actor  = networks["MU(S)"]
             if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
                 self.critic = networks["Q(S,A)"]
                 self.combinedActorCritic = networks["Actor-Critic-Combo"]
             else:
-                self.critic = networks["V(S)"]
+                if self.parameters.OCACLA_ENABLED:
+                    self.critic = networks["Q(S,A)"]
+                else:
+                    self.critic = networks["V(S)"]
         for network in networks:
             print(network + " summary:")
             if network == "Actor-Critic-Combo":
@@ -414,15 +421,20 @@ class ActorCritic(object):
                     or steps > self.parameters.DPG_DPG_STEPS) and steps > self.parameters.AC_ACTOR_TRAINING_START:
                 self.train_actor_batch(batch, priorities)
         else:
-            off_policy_weights = self.apply_off_policy_corrections_cacla(batch)
-            idxs, priorities = self.train_critic(batch, off_policy_weights)
-            if steps > self.parameters.AC_ACTOR_TRAINING_START:
-                self.train_actor_batch(batch, priorities, off_policy_weights)
+            if self.parameters.OCACLA_ENABLED:
+                idxs, priorities = self.train_critic_DPG(batch, get_evals=True)
+                if steps > self.parameters.AC_ACTOR_TRAINING_START:
+                    self.train_actor_OCACLA(batch, priorities)
+            else:
+                off_policy_weights = self.apply_off_policy_corrections_cacla(batch)
+                idxs, priorities = self.train_critic(batch, off_policy_weights)
+                if steps > self.parameters.AC_ACTOR_TRAINING_START:
+                    self.train_actor_batch(batch, priorities, off_policy_weights)
         self.latestTDerror = numpy.mean(priorities[-1])
         return idxs, priorities
 
     def train_actor_DPG(self, batch):
-        batch_len = len(batch)
+        batch_len = len(batch[0])
         inputs = numpy.zeros((batch_len, self.parameters.STATE_REPR_LEN))
         targets = numpy.zeros((batch_len, 1))
         importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
@@ -442,7 +454,7 @@ class ActorCritic(object):
             self.combinedActorCritic.train_on_batch(inputs, targets)
 
     def train_actor_batch(self, batch, priorities, off_policy_weights = None):
-        batch_len = len(batch)
+        batch_len = len(batch[0])
         len_output = self.actor.num_outputs
         inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, len_output))
@@ -471,6 +483,50 @@ class ActorCritic(object):
             targets = targets[:count]
             used_imp_weights = used_imp_weights[:count]
             self.actor.train(inputs, targets, used_imp_weights)
+
+    def train_actor_OCACLA(self, batch, evals):
+        batch_len = len(batch[0])
+        len_output = self.actor.num_outputs
+
+        inputs = numpy.zeros((batch_len, self.input_len))
+        targets = numpy.zeros((batch_len, len_output))
+        used_imp_weights = numpy.zeros(batch_len)
+        importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
+
+        count = 0
+        for sample_idx in range(batch_len):
+            old_s, a = batch[0][sample_idx], batch[1][sample_idx]
+            sample_weight = importance_weights[sample_idx]
+            eval = evals[sample_idx]
+            current_policy_action = self.actor.predict(old_s)
+            eval_of_current_policy = self.critic.predict(old_s, numpy.array([current_policy_action]))
+            best_action = a
+            best_action_eval = eval
+            # Conduct offline exploration in action space:
+            if self.parameters.OCACLA_EXPL_SAMPLES:
+                samples = [(current_policy_action, eval_of_current_policy)]
+                for x in range(self.parameters.OCACLA_EXPL_SAMPLES):
+                    noisy_sample_action = self.applyNoise(current_policy_action)
+                    eval_of_noisy_action = self.critic.predict(old_s, numpy.array([noisy_sample_action]))
+                    samples.append((noisy_sample_action, eval_of_noisy_action))
+                best_action = max(samples, key=lambda sample: sample[1])[0]
+            # Check if one of the noisy actions is better than our current prediction
+            if best_action_eval > eval_of_current_policy:
+                inputs[count] = old_s
+                targets[count] = best_action
+                used_imp_weights[count] = sample_weight
+                count += 1
+
+        #print("Batch len: ", batch_len)
+        #print("Count: ", count)
+        #print()
+        if count > 0:
+            inputs = inputs[:count]
+            targets = targets[:count]
+            used_imp_weights = used_imp_weights[:count]
+            self.actor.train(inputs, targets, used_imp_weights)
+
+
 
     def applyNoise(self, action):
         #Gaussian Noise:
@@ -518,7 +574,7 @@ class ActorCritic(object):
         return target, td_error
 
 
-    def train_critic_DPG(self, batch):
+    def train_critic_DPG(self, batch, get_evals = False):
         batch_len = len(batch[0])
         inputs_critic_states = numpy.zeros((batch_len, self.input_len))
         inputs_critic_actions = numpy.zeros((batch_len, self.action_len))
@@ -539,7 +595,10 @@ class ActorCritic(object):
                 target += self.discount * estimationNewState
             estimationOldState = self.critic.predict(old_s, numpy.array([a]))
             td_e = target - estimationOldState
-            priorities[sample_idx] = td_e
+            if get_evals:
+                priorities[sample_idx] = estimationOldState
+            else:
+                priorities[sample_idx] = td_e
             inputs_critic_states[sample_idx]  = old_s
             inputs_critic_actions[sample_idx] = a
             targets_critic[sample_idx] = target
