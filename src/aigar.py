@@ -645,8 +645,9 @@ def run():
             if step % smallPart == 0 and step != 0:
                 print("Trained: ", round(step / maxSteps * 100, 1), "%")
                 # Test every 5% of training
-            if step % testPercentage == 0:
-                testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
+            if parameters.ENABLE_TESTING:
+                if step % testPercentage == 0:
+                    testResults = updateTestResults(testResults, model, round(step / maxSteps * 100, 1), parameters)
 
         jobStart_line = checkValidParameter("JOB_STEP_START")
         epsilon_line = checkValidParameter("EPSILON")
@@ -655,7 +656,7 @@ def run():
         endParams.append(["EPSILON", model.getBots()[0].getLearningAlg().getNoise(), epsilon_line])
         modifyParameterValue(endParams, model)
 
-        if parameters.JOB_TRAINING_STEPS == 0 or \
+        if parameters.ENABLE_TESTING and parameters.JOB_TRAINING_STEPS == 0 or \
                 parameters.JOB_SIMULATION_STEPS + parameters.JOB_STEP_START >= parameters.MAX_SIMULATION_STEPS:
             testResults = updateTestResults(testResults, model, 100, parameters)
             meanMassesOfTestResults = [val[0] for val in testResults]

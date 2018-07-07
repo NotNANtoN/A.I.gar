@@ -285,6 +285,8 @@ class ActorCritic(object):
         self.parameters = parameters
         self.std = self.parameters.GAUSSIAN_NOISE
         self.noise_decay_factor = self.parameters.AC_NOISE_DECAY
+        self.ocacla_noise = 1
+        self.ocacla_noise_decay = self.parameters.OCACLA_NOISE_DECAY
         self.steps = 0
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
@@ -357,6 +359,7 @@ class ActorCritic(object):
 
     def updateNoise(self):
         self.std *= self.noise_decay_factor
+        self.ocacla_noise *= self.ocacla_noise_decay
         if self.parameters.END_DISCOUNT:
             self.discount = 1 - self.parameters.DISCOUNT_INCREASE_FACTOR * (1 - self.discount)
 
@@ -504,13 +507,19 @@ class ActorCritic(object):
             best_action_eval = eval
             # Conduct offline exploration in action space:
             if self.parameters.OCACLA_EXPL_SAMPLES:
-                samples = [(current_policy_action, eval_of_current_policy)]
+                if eval_of_current_policy > best_action_eval:
+                    best_action_eval = eval_of_current_policy
+                    best_action = current_policy_action
                 for x in range(self.parameters.OCACLA_EXPL_SAMPLES):
-                    noisy_sample_action = self.applyNoise(current_policy_action)
+                    if self.parameters.OCACLA_MOVING_GAUSSIAN:
+                        noisy_sample_action = self.applyNoise(best_action, self.ocacla_noise)
+                    else:
+                        noisy_sample_action = self.applyNoise(current_policy_action, self.ocacla_noise)
                     eval_of_noisy_action = self.critic.predict(old_s, numpy.array([noisy_sample_action]))
-                    samples.append((noisy_sample_action, eval_of_noisy_action))
-                best_action = max(samples, key=lambda sample: sample[1])[0]
-            # Check if one of the noisy actions is better than our current prediction
+                    if eval_of_noisy_action > best_action_eval:
+                        best_action_eval = eval_of_noisy_action
+                        best_action = noisy_sample_action
+            # Check if the best sampled action is better than our current prediction
             if best_action_eval > eval_of_current_policy:
                 inputs[count] = old_s
                 targets[count] = best_action
@@ -528,10 +537,12 @@ class ActorCritic(object):
 
 
 
-    def applyNoise(self, action):
+    def applyNoise(self, action, std = None):
+        if std is None:
+            std = self.std
         #Gaussian Noise:
         if self.parameters.NOISE_TYPE == "Gaussian":
-            action = [numpy.random.normal(output, self.std) for output in action]
+            action = [numpy.random.normal(output, std) for output in action]
         elif self.parameters.NOISE_TYPE == "Orn-Uhl":
             for idx in range(len(action)):
                 noise = self.ornUhlPrev[idx] + self.parameters.ORN_UHL_THETA * (self.parameters.ORN_UHL_MU -

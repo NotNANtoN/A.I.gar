@@ -150,6 +150,10 @@ def runJobs(jobs, email):
                 timeOtherFactor *= 1.3
             elif paramName == "NUM_ACTIONS":
                 timeOtherFactor *= 1.5
+            elif paramName == "OCACLA_ENABLED":
+                timeOtherFactor *= 1.2
+            elif paramName == "OCACLA_EXPL_SAMPLES":
+                timeOtherFactor *= int(paramVal) / 5 + 1
 
         jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
         if jobTime > 240:
