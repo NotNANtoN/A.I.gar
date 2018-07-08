@@ -291,7 +291,7 @@ class ActorCritic(object):
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
         self.ornUhlPrev = numpy.zeros(self.action_len)
-
+        self.counts = [] # For SPG: count how much actor training we do each step
 
         # Bookkeeping:
         self.latestTDerror = None
@@ -526,9 +526,7 @@ class ActorCritic(object):
                 used_imp_weights[count] = sample_weight
                 count += 1
 
-        #print("Batch len: ", batch_len)
-        #print("Count: ", count)
-        #print()
+        self.counts.append(count)
         if count > 0:
             inputs = inputs[:count]
             targets = targets[:count]

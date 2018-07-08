@@ -1,0 +1,3445 @@
+/home/anton/anaconda3/envs/keras/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+Enable GUI?: (1 == yes)
+Do you want to load a model? (1 == yes)
+What learning algorithm do you want to use?
+'Q-Learning' == 0, 'Actor-Critic' == 2,
+Do you want to tweak parameters? (1 == yes)
+Enter name of parameter to be tweaked:
+FOUND
+Enter parameter value:
+Tweak another parameter? (1 == yes)
+Give saveModel folder a custom name? (1 == yes)
+Super Path:  savedModels/ACTOR_CRITIC_TYPE="DPG"/
+Path:  savedModels/ACTOR_CRITIC_TYPE="DPG"/$Jul-08_00:01:00:374606$/
+Created new path: savedModels/ACTOR_CRITIC_TYPE="DPG"/$Jul-08_00:01:00:374606$/
+ACTOR_CRITIC_TYPE
+Do you want to train the network?: (1 == yes)
+2018-07-08 00:01:00.707524: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+MU(S) summary:
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+input_1 (InputLayer)         (None, 123)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 100)               12400     
+_________________________________________________________________
+dense_2 (Dense)              (None, 100)               10100     
+_________________________________________________________________
+dense_3 (Dense)              (None, 100)               10100     
+_________________________________________________________________
+dense_4 (Dense)              (None, 2)                 202       
+=================================================================
+Total params: 32,802
+Trainable params: 32,802
+Non-trainable params: 0
+_________________________________________________________________
+Q(S,A) summary:
+__________________________________________________________________________________________________
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+input_2 (InputLayer)            (None, 123)          0                                            
+__________________________________________________________________________________________________
+input_3 (InputLayer)            (None, 2)            0                                            
+__________________________________________________________________________________________________
+concatenate_1 (Concatenate)     (None, 125)          0           input_2[0][0]                    
+                                                                 input_3[0][0]                    
+__________________________________________________________________________________________________
+dense_5 (Dense)                 (None, 250)          31500       concatenate_1[0][0]              
+__________________________________________________________________________________________________
+dense_6 (Dense)                 (None, 250)          62750       dense_5[0][0]                    
+__________________________________________________________________________________________________
+dense_7 (Dense)                 (None, 250)          62750       dense_6[0][0]                    
+__________________________________________________________________________________________________
+dense_8 (Dense)                 (None, 1)            251         dense_7[0][0]                    
+==================================================================================================
+Total params: 314,502
+Trainable params: 157,251
+Non-trainable params: 157,251
+__________________________________________________________________________________________________
+Actor-Critic-Combo summary:
+__________________________________________________________________________________________________
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+input_1 (InputLayer)            (None, 123)          0                                            
+__________________________________________________________________________________________________
+dense_1 (Dense)                 (None, 100)          12400       input_1[0][0]                    
+__________________________________________________________________________________________________
+dense_2 (Dense)                 (None, 100)          10100       dense_1[0][0]                    
+__________________________________________________________________________________________________
+dense_3 (Dense)                 (None, 100)          10100       dense_2[0][0]                    
+__________________________________________________________________________________________________
+dense_4 (Dense)                 (None, 2)            202         dense_3[0][0]                    
+__________________________________________________________________________________________________
+model_2 (Model)                 (None, 1)            157251      input_1[0][0]                    
+                                                                 dense_4[0][0]                    
+==================================================================================================
+Total params: 190,053
+Trainable params: 32,802
+Non-trainable params: 157,251
+__________________________________________________________________________________________________
+Initializing model...
+Simulation:
+Start datetime - Jul-08_00:01:00
+Running for - 0:00:01.044955
+steps - 0
+number of rl bots - 1
+number of greedy bots - 0
+Virus Enabled - False
+Reset every x steps - 20000
+
+Reinforcement learning:
+Algorithm - AC
+Epsilon - 1
+Discount factor - 0.85
+Frame skip rate - 10
+State representation - Grid
+CNN representation - False
+Grid - 11x11
+Experience Replay - Enabled
+Target Network steps until update - 1500
+
+ANN:
+Input layer neurons(stateReprLen) - 123
+Output layer neurons(number of actions) - 
+Learning rate - 0.0001
+Activation function hidden layer(s) - relu
+Activation function output layer - linear
+Optimizer - Adam
+
+Testing  test ...
+Initializing model...
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  1 :  4.349943285141141
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  2 :  4.442730073088196
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  3 :  4.442251746540512
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  4 :  5.311979471713728
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  5 :  4.64119380528546
+Testing  pellet ...
+Initializing model...
+Resetting field and players!
+Mean mass for run  1 :  4.995198537785459
+Resetting field and players!
+Mean mass for run  2 :  4.590350384256072
+Resetting field and players!
+Mean mass for run  3 :  5.139321519489438
+Resetting field and players!
+Mean mass for run  4 :  4.589061263118807
+Resetting field and players!
+Mean mass for run  5 :  6.395329142364447
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  1000
+Noise level:  0.9987
+Mass of  NN0 :  26.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  2000
+Noise level:  0.9975
+Mass of  NN0 :  19.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  3000
+Noise level:  0.9962
+Mass of  NN0 :  31.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  4000
+Noise level:  0.9949
+Mass of  NN0 :  49.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  5000
+Noise level:  0.9937
+Mass of  NN0 :  58.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  6000
+Noise level:  0.9924
+Mass of  NN0 :  45.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  7000
+Noise level:  0.9911
+Mass of  NN0 :  32.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  8000
+Noise level:  0.9899
+Mass of  NN0 :  27.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  9000
+Noise level:  0.9886
+Mass of  NN0 :  25.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  10000
+Noise level:  0.9873
+Mass of  NN0 :  18.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  11000
+Noise level:  0.9861
+Mass of  NN0 :  13.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  12000
+Noise level:  0.9848
+Mass of  NN0 :  12.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  13000
+Noise level:  0.9836
+Mass of  NN0 :  15.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  14000
+Noise level:  0.9823
+Mass of  NN0 :  12.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  15000
+Noise level:  0.9811
+Mass of  NN0 :  11.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  16000
+Noise level:  0.9798
+Mass of  NN0 :  14.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.017
+Step:  17000
+Noise level:  0.9786
+Mass of  NN0 :  15.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.016
+Step:  18000
+Noise level:  0.9773
+Mass of  NN0 :  14.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  19000
+Noise level:  0.9761
+Mass of  NN0 :  27.3
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  20000
+Noise level:  0.9748
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  21000
+Noise level:  0.9736
+Mass of  NN0 :  40.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  22000
+Noise level:  0.9724
+Mass of  NN0 :  48.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  23000
+Noise level:  0.9711
+Mass of  NN0 :  58.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  24000
+Noise level:  0.9699
+Mass of  NN0 :  82.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  25000
+Noise level:  0.9686
+Mass of  NN0 :  65.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  26000
+Noise level:  0.9674
+Mass of  NN0 :  68.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  27000
+Noise level:  0.9662
+Mass of  NN0 :  89.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  28000
+Noise level:  0.9649
+Mass of  NN0 :  68.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  29000
+Noise level:  0.9637
+Mass of  NN0 :  66.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  30000
+Noise level:  0.9625
+Mass of  NN0 :  110.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  31000
+Noise level:  0.9612
+Mass of  NN0 :  87.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  32000
+Noise level:  0.96
+Mass of  NN0 :  89.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  33000
+Noise level:  0.9588
+Mass of  NN0 :  71.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  34000
+Noise level:  0.9576
+Mass of  NN0 :  83.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  35000
+Noise level:  0.9564
+Mass of  NN0 :  100.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  36000
+Noise level:  0.9551
+Mass of  NN0 :  108.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  37000
+Noise level:  0.9539
+Mass of  NN0 :  142.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  38000
+Noise level:  0.9527
+Mass of  NN0 :  147.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  39000
+Noise level:  0.9515
+Mass of  NN0 :  154.7
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  40000
+Noise level:  0.9503
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  41000
+Noise level:  0.9491
+Mass of  NN0 :  25.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  42000
+Noise level:  0.9479
+Mass of  NN0 :  76.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  43000
+Noise level:  0.9467
+Mass of  NN0 :  86.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  44000
+Noise level:  0.9455
+Mass of  NN0 :  88.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  45000
+Noise level:  0.9442
+Mass of  NN0 :  122.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  46000
+Noise level:  0.943
+Mass of  NN0 :  131.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  47000
+Noise level:  0.9418
+Mass of  NN0 :  135.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  48000
+Noise level:  0.9406
+Mass of  NN0 :  152.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  49000
+Noise level:  0.9394
+Mass of  NN0 :  135.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  50000
+Noise level:  0.9382
+Mass of  NN0 :  127.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  51000
+Noise level:  0.937
+Mass of  NN0 :  131.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  52000
+Noise level:  0.9359
+Mass of  NN0 :  137.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  53000
+Noise level:  0.9347
+Mass of  NN0 :  146.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  54000
+Noise level:  0.9335
+Mass of  NN0 :  126.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  55000
+Noise level:  0.9323
+Mass of  NN0 :  149.7
+ 
+Trained:  1.0 %
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  56000
+Noise level:  0.9311
+Mass of  NN0 :  150.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  57000
+Noise level:  0.9299
+Mass of  NN0 :  145.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  58000
+Noise level:  0.9287
+Mass of  NN0 :  146.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  59000
+Noise level:  0.9275
+Mass of  NN0 :  159.6
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  60000
+Noise level:  0.9264
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  61000
+Noise level:  0.9252
+Mass of  NN0 :  29.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  62000
+Noise level:  0.924
+Mass of  NN0 :  74.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  63000
+Noise level:  0.9228
+Mass of  NN0 :  122.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  64000
+Noise level:  0.9216
+Mass of  NN0 :  111.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  65000
+Noise level:  0.9205
+Mass of  NN0 :  130.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  66000
+Noise level:  0.9193
+Mass of  NN0 :  157.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  67000
+Noise level:  0.9181
+Mass of  NN0 :  155.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  68000
+Noise level:  0.917
+Mass of  NN0 :  152.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  69000
+Noise level:  0.9158
+Mass of  NN0 :  166.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  70000
+Noise level:  0.9146
+Mass of  NN0 :  169.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  71000
+Noise level:  0.9135
+Mass of  NN0 :  157.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  72000
+Noise level:  0.9123
+Mass of  NN0 :  141.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  73000
+Noise level:  0.9111
+Mass of  NN0 :  122.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  74000
+Noise level:  0.91
+Mass of  NN0 :  155.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  75000
+Noise level:  0.9088
+Mass of  NN0 :  151.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  76000
+Noise level:  0.9077
+Mass of  NN0 :  154.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  77000
+Noise level:  0.9065
+Mass of  NN0 :  154.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  78000
+Noise level:  0.9053
+Mass of  NN0 :  138.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  79000
+Noise level:  0.9042
+Mass of  NN0 :  146.1
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  80000
+Noise level:  0.903
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  81000
+Noise level:  0.9019
+Mass of  NN0 :  44.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  82000
+Noise level:  0.9007
+Mass of  NN0 :  87.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  83000
+Noise level:  0.8996
+Mass of  NN0 :  146.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  84000
+Noise level:  0.8984
+Mass of  NN0 :  160.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  85000
+Noise level:  0.8973
+Mass of  NN0 :  148.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  86000
+Noise level:  0.8962
+Mass of  NN0 :  156.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  87000
+Noise level:  0.895
+Mass of  NN0 :  151.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  88000
+Noise level:  0.8939
+Mass of  NN0 :  177.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  89000
+Noise level:  0.8927
+Mass of  NN0 :  178.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  90000
+Noise level:  0.8916
+Mass of  NN0 :  183.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  91000
+Noise level:  0.8905
+Mass of  NN0 :  197.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  92000
+Noise level:  0.8893
+Mass of  NN0 :  176.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.02
+Step:  93000
+Noise level:  0.8882
+Mass of  NN0 :  200.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  94000
+Noise level:  0.8871
+Mass of  NN0 :  198.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  95000
+Noise level:  0.8859
+Mass of  NN0 :  203.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  96000
+Noise level:  0.8848
+Mass of  NN0 :  207.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  97000
+Noise level:  0.8837
+Mass of  NN0 :  205.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  98000
+Noise level:  0.8825
+Mass of  NN0 :  176.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  99000
+Noise level:  0.8814
+Mass of  NN0 :  197.5
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  100000
+Noise level:  0.8803
+Mass of  NN0 :  10.0
+ 
+SAVING MODEL
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  101000
+Noise level:  0.8792
+Mass of  NN0 :  49.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  102000
+Noise level:  0.8781
+Mass of  NN0 :  96.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  103000
+Noise level:  0.8769
+Mass of  NN0 :  99.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  104000
+Noise level:  0.8758
+Mass of  NN0 :  130.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  105000
+Noise level:  0.8747
+Mass of  NN0 :  154.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  106000
+Noise level:  0.8736
+Mass of  NN0 :  196.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  107000
+Noise level:  0.8725
+Mass of  NN0 :  223.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  108000
+Noise level:  0.8714
+Mass of  NN0 :  225.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  109000
+Noise level:  0.8703
+Mass of  NN0 :  211.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  110000
+Noise level:  0.8691
+Mass of  NN0 :  220.4
+ 
+Trained:  2.0 %
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  111000
+Noise level:  0.868
+Mass of  NN0 :  238.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  112000
+Noise level:  0.8669
+Mass of  NN0 :  233.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  113000
+Noise level:  0.8658
+Mass of  NN0 :  240.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  114000
+Noise level:  0.8647
+Mass of  NN0 :  250.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  115000
+Noise level:  0.8636
+Mass of  NN0 :  239.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  116000
+Noise level:  0.8625
+Mass of  NN0 :  257.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  117000
+Noise level:  0.8614
+Mass of  NN0 :  245.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  118000
+Noise level:  0.8603
+Mass of  NN0 :  238.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  119000
+Noise level:  0.8592
+Mass of  NN0 :  249.5
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  120000
+Noise level:  0.8581
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  121000
+Noise level:  0.857
+Mass of  NN0 :  65.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  122000
+Noise level:  0.856
+Mass of  NN0 :  109.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  123000
+Noise level:  0.8549
+Mass of  NN0 :  157.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  124000
+Noise level:  0.8538
+Mass of  NN0 :  183.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  125000
+Noise level:  0.8527
+Mass of  NN0 :  196.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  126000
+Noise level:  0.8516
+Mass of  NN0 :  208.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  127000
+Noise level:  0.8505
+Mass of  NN0 :  196.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  128000
+Noise level:  0.8494
+Mass of  NN0 :  189.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  129000
+Noise level:  0.8483
+Mass of  NN0 :  210.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  130000
+Noise level:  0.8473
+Mass of  NN0 :  241.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  131000
+Noise level:  0.8462
+Mass of  NN0 :  193.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  132000
+Noise level:  0.8451
+Mass of  NN0 :  140.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  133000
+Noise level:  0.844
+Mass of  NN0 :  179.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.016
+Step:  134000
+Noise level:  0.843
+Mass of  NN0 :  211.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  135000
+Noise level:  0.8419
+Mass of  NN0 :  217.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  136000
+Noise level:  0.8408
+Mass of  NN0 :  216.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  137000
+Noise level:  0.8397
+Mass of  NN0 :  196.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  138000
+Noise level:  0.8387
+Mass of  NN0 :  232.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  139000
+Noise level:  0.8376
+Mass of  NN0 :  251.6
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  140000
+Noise level:  0.8365
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  141000
+Noise level:  0.8355
+Mass of  NN0 :  96.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  142000
+Noise level:  0.8344
+Mass of  NN0 :  150.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  143000
+Noise level:  0.8333
+Mass of  NN0 :  196.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  144000
+Noise level:  0.8323
+Mass of  NN0 :  207.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  145000
+Noise level:  0.8312
+Mass of  NN0 :  214.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  146000
+Noise level:  0.8302
+Mass of  NN0 :  183.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  147000
+Noise level:  0.8291
+Mass of  NN0 :  209.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  148000
+Noise level:  0.828
+Mass of  NN0 :  195.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  149000
+Noise level:  0.827
+Mass of  NN0 :  217.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  150000
+Noise level:  0.8259
+Mass of  NN0 :  222.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  151000
+Noise level:  0.8249
+Mass of  NN0 :  265.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  152000
+Noise level:  0.8238
+Mass of  NN0 :  263.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  153000
+Noise level:  0.8228
+Mass of  NN0 :  266.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  154000
+Noise level:  0.8217
+Mass of  NN0 :  263.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  155000
+Noise level:  0.8207
+Mass of  NN0 :  234.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  156000
+Noise level:  0.8196
+Mass of  NN0 :  245.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  157000
+Noise level:  0.8186
+Mass of  NN0 :  186.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  158000
+Noise level:  0.8175
+Mass of  NN0 :  189.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  159000
+Noise level:  0.8165
+Mass of  NN0 :  206.0
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  160000
+Noise level:  0.8155
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  161000
+Noise level:  0.8144
+Mass of  NN0 :  91.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  162000
+Noise level:  0.8134
+Mass of  NN0 :  155.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  163000
+Noise level:  0.8124
+Mass of  NN0 :  211.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  164000
+Noise level:  0.8113
+Mass of  NN0 :  220.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  165000
+Noise level:  0.8103
+Mass of  NN0 :  226.9
+ 
+Trained:  3.0 %
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  166000
+Noise level:  0.8093
+Mass of  NN0 :  250.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  167000
+Noise level:  0.8082
+Mass of  NN0 :  243.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  168000
+Noise level:  0.8072
+Mass of  NN0 :  227.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  169000
+Noise level:  0.8062
+Mass of  NN0 :  236.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  170000
+Noise level:  0.8051
+Mass of  NN0 :  248.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  171000
+Noise level:  0.8041
+Mass of  NN0 :  252.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  172000
+Noise level:  0.8031
+Mass of  NN0 :  246.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  173000
+Noise level:  0.8021
+Mass of  NN0 :  244.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  174000
+Noise level:  0.801
+Mass of  NN0 :  233.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  175000
+Noise level:  0.8
+Mass of  NN0 :  263.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  176000
+Noise level:  0.799
+Mass of  NN0 :  259.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  177000
+Noise level:  0.798
+Mass of  NN0 :  275.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  178000
+Noise level:  0.797
+Mass of  NN0 :  258.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  179000
+Noise level:  0.7959
+Mass of  NN0 :  226.7
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  180000
+Noise level:  0.7949
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  181000
+Noise level:  0.7939
+Mass of  NN0 :  74.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  182000
+Noise level:  0.7929
+Mass of  NN0 :  142.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  183000
+Noise level:  0.7919
+Mass of  NN0 :  170.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  184000
+Noise level:  0.7909
+Mass of  NN0 :  225.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  185000
+Noise level:  0.7899
+Mass of  NN0 :  266.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  186000
+Noise level:  0.7889
+Mass of  NN0 :  252.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  187000
+Noise level:  0.7879
+Mass of  NN0 :  257.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  188000
+Noise level:  0.7869
+Mass of  NN0 :  262.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  189000
+Noise level:  0.7859
+Mass of  NN0 :  300.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  190000
+Noise level:  0.7849
+Mass of  NN0 :  291.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  191000
+Noise level:  0.7839
+Mass of  NN0 :  264.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  192000
+Noise level:  0.7829
+Mass of  NN0 :  269.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  193000
+Noise level:  0.7819
+Mass of  NN0 :  297.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  194000
+Noise level:  0.7809
+Mass of  NN0 :  288.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  195000
+Noise level:  0.7799
+Mass of  NN0 :  301.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  196000
+Noise level:  0.7789
+Mass of  NN0 :  257.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  197000
+Noise level:  0.7779
+Mass of  NN0 :  228.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  198000
+Noise level:  0.7769
+Mass of  NN0 :  256.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  199000
+Noise level:  0.7759
+Mass of  NN0 :  253.0
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  200000
+Noise level:  0.7749
+Mass of  NN0 :  10.0
+ 
+SAVING MODEL
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  201000
+Noise level:  0.7739
+Mass of  NN0 :  78.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  202000
+Noise level:  0.773
+Mass of  NN0 :  156.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  203000
+Noise level:  0.772
+Mass of  NN0 :  198.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  204000
+Noise level:  0.771
+Mass of  NN0 :  206.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  205000
+Noise level:  0.77
+Mass of  NN0 :  222.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  206000
+Noise level:  0.769
+Mass of  NN0 :  267.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  207000
+Noise level:  0.768
+Mass of  NN0 :  251.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  208000
+Noise level:  0.7671
+Mass of  NN0 :  200.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  209000
+Noise level:  0.7661
+Mass of  NN0 :  228.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  210000
+Noise level:  0.7651
+Mass of  NN0 :  241.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  211000
+Noise level:  0.7641
+Mass of  NN0 :  291.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  212000
+Noise level:  0.7632
+Mass of  NN0 :  269.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  213000
+Noise level:  0.7622
+Mass of  NN0 :  290.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  214000
+Noise level:  0.7612
+Mass of  NN0 :  273.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  215000
+Noise level:  0.7602
+Mass of  NN0 :  285.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  216000
+Noise level:  0.7593
+Mass of  NN0 :  288.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  217000
+Noise level:  0.7583
+Mass of  NN0 :  270.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  218000
+Noise level:  0.7573
+Mass of  NN0 :  281.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  219000
+Noise level:  0.7564
+Mass of  NN0 :  322.0
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  220000
+Noise level:  0.7554
+Mass of  NN0 :  10.0
+ 
+Trained:  4.0 %
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  221000
+Noise level:  0.7545
+Mass of  NN0 :  69.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  222000
+Noise level:  0.7535
+Mass of  NN0 :  133.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  223000
+Noise level:  0.7525
+Mass of  NN0 :  179.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  224000
+Noise level:  0.7516
+Mass of  NN0 :  207.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  225000
+Noise level:  0.7506
+Mass of  NN0 :  217.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  226000
+Noise level:  0.7497
+Mass of  NN0 :  223.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  227000
+Noise level:  0.7487
+Mass of  NN0 :  238.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  228000
+Noise level:  0.7477
+Mass of  NN0 :  237.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  229000
+Noise level:  0.7468
+Mass of  NN0 :  272.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  230000
+Noise level:  0.7458
+Mass of  NN0 :  286.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  231000
+Noise level:  0.7449
+Mass of  NN0 :  284.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  232000
+Noise level:  0.7439
+Mass of  NN0 :  266.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  233000
+Noise level:  0.743
+Mass of  NN0 :  272.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  234000
+Noise level:  0.7421
+Mass of  NN0 :  284.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  235000
+Noise level:  0.7411
+Mass of  NN0 :  271.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  236000
+Noise level:  0.7402
+Mass of  NN0 :  282.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  237000
+Noise level:  0.7392
+Mass of  NN0 :  286.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  238000
+Noise level:  0.7383
+Mass of  NN0 :  242.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  239000
+Noise level:  0.7373
+Mass of  NN0 :  292.0
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  240000
+Noise level:  0.7364
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  241000
+Noise level:  0.7355
+Mass of  NN0 :  79.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  242000
+Noise level:  0.7345
+Mass of  NN0 :  138.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  243000
+Noise level:  0.7336
+Mass of  NN0 :  178.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  244000
+Noise level:  0.7326
+Mass of  NN0 :  223.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  245000
+Noise level:  0.7317
+Mass of  NN0 :  241.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  246000
+Noise level:  0.7308
+Mass of  NN0 :  261.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  247000
+Noise level:  0.7298
+Mass of  NN0 :  299.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  248000
+Noise level:  0.7289
+Mass of  NN0 :  285.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  249000
+Noise level:  0.728
+Mass of  NN0 :  289.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  250000
+Noise level:  0.7271
+Mass of  NN0 :  272.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  251000
+Noise level:  0.7261
+Mass of  NN0 :  284.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  252000
+Noise level:  0.7252
+Mass of  NN0 :  282.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  253000
+Noise level:  0.7243
+Mass of  NN0 :  298.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  254000
+Noise level:  0.7234
+Mass of  NN0 :  281.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  255000
+Noise level:  0.7224
+Mass of  NN0 :  262.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  256000
+Noise level:  0.7215
+Mass of  NN0 :  283.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  257000
+Noise level:  0.7206
+Mass of  NN0 :  287.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  258000
+Noise level:  0.7197
+Mass of  NN0 :  275.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  259000
+Noise level:  0.7188
+Mass of  NN0 :  243.6
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  260000
+Noise level:  0.7178
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  261000
+Noise level:  0.7169
+Mass of  NN0 :  76.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  262000
+Noise level:  0.716
+Mass of  NN0 :  137.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  263000
+Noise level:  0.7151
+Mass of  NN0 :  211.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  264000
+Noise level:  0.7142
+Mass of  NN0 :  242.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  265000
+Noise level:  0.7133
+Mass of  NN0 :  256.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  266000
+Noise level:  0.7124
+Mass of  NN0 :  278.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  267000
+Noise level:  0.7115
+Mass of  NN0 :  265.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  268000
+Noise level:  0.7106
+Mass of  NN0 :  277.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  269000
+Noise level:  0.7097
+Mass of  NN0 :  274.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  270000
+Noise level:  0.7088
+Mass of  NN0 :  267.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  271000
+Noise level:  0.7079
+Mass of  NN0 :  285.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  272000
+Noise level:  0.707
+Mass of  NN0 :  269.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  273000
+Noise level:  0.7061
+Mass of  NN0 :  296.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  274000
+Noise level:  0.7052
+Mass of  NN0 :  286.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  275000
+Noise level:  0.7043
+Mass of  NN0 :  322.2
+ 
+Trained:  5.0 %
+Testing  test ...
+Initializing model...
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  1 :  237.5795631764133
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  2 :  247.43698523134705
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  3 :  253.60716827091366
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  4 :  277.35024442820867
+Resetting field and players!
+Resetting field and players!
+Mean mass for run  5 :  230.6451136666589
+Testing  pellet ...
+Initializing model...
+Resetting field and players!
+Mean mass for run  1 :  254.33752385503246
+Resetting field and players!
+Mean mass for run  2 :  223.8561360391669
+Resetting field and players!
+Mean mass for run  3 :  257.7590911062658
+Resetting field and players!
+Mean mass for run  4 :  254.3906418998868
+Resetting field and players!
+Mean mass for run  5 :  287.38634115683476
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  276000
+Noise level:  0.7034
+Mass of  NN0 :  239.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  277000
+Noise level:  0.7025
+Mass of  NN0 :  266.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  278000
+Noise level:  0.7016
+Mass of  NN0 :  286.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  279000
+Noise level:  0.7007
+Mass of  NN0 :  261.1
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  280000
+Noise level:  0.6998
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  281000
+Noise level:  0.6989
+Mass of  NN0 :  78.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  282000
+Noise level:  0.698
+Mass of  NN0 :  130.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  283000
+Noise level:  0.6971
+Mass of  NN0 :  163.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  284000
+Noise level:  0.6962
+Mass of  NN0 :  202.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  285000
+Noise level:  0.6953
+Mass of  NN0 :  247.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  286000
+Noise level:  0.6944
+Mass of  NN0 :  276.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  287000
+Noise level:  0.6936
+Mass of  NN0 :  278.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  288000
+Noise level:  0.6927
+Mass of  NN0 :  299.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  289000
+Noise level:  0.6918
+Mass of  NN0 :  309.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  290000
+Noise level:  0.6909
+Mass of  NN0 :  317.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  291000
+Noise level:  0.69
+Mass of  NN0 :  313.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  292000
+Noise level:  0.6892
+Mass of  NN0 :  348.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  293000
+Noise level:  0.6883
+Mass of  NN0 :  352.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  294000
+Noise level:  0.6874
+Mass of  NN0 :  318.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  295000
+Noise level:  0.6865
+Mass of  NN0 :  328.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  296000
+Noise level:  0.6856
+Mass of  NN0 :  310.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  297000
+Noise level:  0.6848
+Mass of  NN0 :  326.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  298000
+Noise level:  0.6839
+Mass of  NN0 :  336.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  299000
+Noise level:  0.683
+Mass of  NN0 :  324.9
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  300000
+Noise level:  0.6822
+Mass of  NN0 :  11.0
+ 
+SAVING MODEL
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  301000
+Noise level:  0.6813
+Mass of  NN0 :  72.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  302000
+Noise level:  0.6804
+Mass of  NN0 :  146.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  303000
+Noise level:  0.6796
+Mass of  NN0 :  193.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  304000
+Noise level:  0.6787
+Mass of  NN0 :  231.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  305000
+Noise level:  0.6778
+Mass of  NN0 :  245.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  306000
+Noise level:  0.677
+Mass of  NN0 :  286.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  307000
+Noise level:  0.6761
+Mass of  NN0 :  314.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  308000
+Noise level:  0.6752
+Mass of  NN0 :  338.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  309000
+Noise level:  0.6744
+Mass of  NN0 :  356.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  310000
+Noise level:  0.6735
+Mass of  NN0 :  357.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  311000
+Noise level:  0.6727
+Mass of  NN0 :  376.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  312000
+Noise level:  0.6718
+Mass of  NN0 :  328.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  313000
+Noise level:  0.671
+Mass of  NN0 :  303.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  314000
+Noise level:  0.6701
+Mass of  NN0 :  304.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  315000
+Noise level:  0.6692
+Mass of  NN0 :  323.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  316000
+Noise level:  0.6684
+Mass of  NN0 :  319.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  317000
+Noise level:  0.6675
+Mass of  NN0 :  321.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  318000
+Noise level:  0.6667
+Mass of  NN0 :  327.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  319000
+Noise level:  0.6658
+Mass of  NN0 :  354.5
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  320000
+Noise level:  0.665
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  321000
+Noise level:  0.6641
+Mass of  NN0 :  88.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  322000
+Noise level:  0.6633
+Mass of  NN0 :  161.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  323000
+Noise level:  0.6625
+Mass of  NN0 :  198.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  324000
+Noise level:  0.6616
+Mass of  NN0 :  248.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  325000
+Noise level:  0.6608
+Mass of  NN0 :  281.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  326000
+Noise level:  0.6599
+Mass of  NN0 :  296.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  327000
+Noise level:  0.6591
+Mass of  NN0 :  275.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  328000
+Noise level:  0.6582
+Mass of  NN0 :  323.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  329000
+Noise level:  0.6574
+Mass of  NN0 :  332.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  330000
+Noise level:  0.6566
+Mass of  NN0 :  332.5
+ 
+Trained:  6.0 %
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  331000
+Noise level:  0.6557
+Mass of  NN0 :  320.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  332000
+Noise level:  0.6549
+Mass of  NN0 :  327.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  333000
+Noise level:  0.6541
+Mass of  NN0 :  361.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  334000
+Noise level:  0.6532
+Mass of  NN0 :  372.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  335000
+Noise level:  0.6524
+Mass of  NN0 :  372.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  336000
+Noise level:  0.6516
+Mass of  NN0 :  373.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  337000
+Noise level:  0.6507
+Mass of  NN0 :  350.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  338000
+Noise level:  0.6499
+Mass of  NN0 :  362.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  339000
+Noise level:  0.6491
+Mass of  NN0 :  329.1
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  340000
+Noise level:  0.6482
+Mass of  NN0 :  11.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  341000
+Noise level:  0.6474
+Mass of  NN0 :  81.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  342000
+Noise level:  0.6466
+Mass of  NN0 :  146.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  343000
+Noise level:  0.6458
+Mass of  NN0 :  216.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  344000
+Noise level:  0.6449
+Mass of  NN0 :  272.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  345000
+Noise level:  0.6441
+Mass of  NN0 :  257.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  346000
+Noise level:  0.6433
+Mass of  NN0 :  235.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  347000
+Noise level:  0.6425
+Mass of  NN0 :  248.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  348000
+Noise level:  0.6417
+Mass of  NN0 :  270.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  349000
+Noise level:  0.6408
+Mass of  NN0 :  294.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  350000
+Noise level:  0.64
+Mass of  NN0 :  320.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  351000
+Noise level:  0.6392
+Mass of  NN0 :  287.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.017
+Step:  352000
+Noise level:  0.6384
+Mass of  NN0 :  296.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.02
+Step:  353000
+Noise level:  0.6376
+Mass of  NN0 :  300.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.016
+Step:  354000
+Noise level:  0.6368
+Mass of  NN0 :  296.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  355000
+Noise level:  0.636
+Mass of  NN0 :  300.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  356000
+Noise level:  0.6352
+Mass of  NN0 :  298.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  357000
+Noise level:  0.6343
+Mass of  NN0 :  303.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  358000
+Noise level:  0.6335
+Mass of  NN0 :  322.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  359000
+Noise level:  0.6327
+Mass of  NN0 :  340.3
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.016
+Step:  360000
+Noise level:  0.6319
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  361000
+Noise level:  0.6311
+Mass of  NN0 :  82.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  362000
+Noise level:  0.6303
+Mass of  NN0 :  156.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  363000
+Noise level:  0.6295
+Mass of  NN0 :  234.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  364000
+Noise level:  0.6287
+Mass of  NN0 :  261.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  365000
+Noise level:  0.6279
+Mass of  NN0 :  284.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  366000
+Noise level:  0.6271
+Mass of  NN0 :  306.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  367000
+Noise level:  0.6263
+Mass of  NN0 :  315.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  368000
+Noise level:  0.6255
+Mass of  NN0 :  339.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  369000
+Noise level:  0.6247
+Mass of  NN0 :  359.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  370000
+Noise level:  0.6239
+Mass of  NN0 :  380.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  371000
+Noise level:  0.6231
+Mass of  NN0 :  363.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  372000
+Noise level:  0.6223
+Mass of  NN0 :  379.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  373000
+Noise level:  0.6215
+Mass of  NN0 :  366.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  374000
+Noise level:  0.6207
+Mass of  NN0 :  379.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  375000
+Noise level:  0.62
+Mass of  NN0 :  379.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  376000
+Noise level:  0.6192
+Mass of  NN0 :  349.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  377000
+Noise level:  0.6184
+Mass of  NN0 :  356.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  378000
+Noise level:  0.6176
+Mass of  NN0 :  346.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  379000
+Noise level:  0.6168
+Mass of  NN0 :  328.8
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  380000
+Noise level:  0.616
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  381000
+Noise level:  0.6152
+Mass of  NN0 :  100.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  382000
+Noise level:  0.6144
+Mass of  NN0 :  148.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  383000
+Noise level:  0.6137
+Mass of  NN0 :  189.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  384000
+Noise level:  0.6129
+Mass of  NN0 :  238.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  385000
+Noise level:  0.6121
+Mass of  NN0 :  263.2
+ 
+Trained:  7.0 %
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  386000
+Noise level:  0.6113
+Mass of  NN0 :  280.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  387000
+Noise level:  0.6105
+Mass of  NN0 :  304.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  388000
+Noise level:  0.6098
+Mass of  NN0 :  340.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  389000
+Noise level:  0.609
+Mass of  NN0 :  352.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  390000
+Noise level:  0.6082
+Mass of  NN0 :  349.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  391000
+Noise level:  0.6074
+Mass of  NN0 :  352.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  392000
+Noise level:  0.6067
+Mass of  NN0 :  353.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  393000
+Noise level:  0.6059
+Mass of  NN0 :  337.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  394000
+Noise level:  0.6051
+Mass of  NN0 :  316.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.018
+Step:  395000
+Noise level:  0.6043
+Mass of  NN0 :  323.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  396000
+Noise level:  0.6036
+Mass of  NN0 :  336.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  397000
+Noise level:  0.6028
+Mass of  NN0 :  346.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  398000
+Noise level:  0.602
+Mass of  NN0 :  347.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  399000
+Noise level:  0.6013
+Mass of  NN0 :  352.2
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  400000
+Noise level:  0.6005
+Mass of  NN0 :  11.0
+ 
+SAVING MODEL
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  401000
+Noise level:  0.5997
+Mass of  NN0 :  76.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  402000
+Noise level:  0.599
+Mass of  NN0 :  145.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  403000
+Noise level:  0.5982
+Mass of  NN0 :  205.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  404000
+Noise level:  0.5974
+Mass of  NN0 :  248.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  405000
+Noise level:  0.5967
+Mass of  NN0 :  279.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  406000
+Noise level:  0.5959
+Mass of  NN0 :  303.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  407000
+Noise level:  0.5952
+Mass of  NN0 :  305.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  408000
+Noise level:  0.5944
+Mass of  NN0 :  314.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  409000
+Noise level:  0.5936
+Mass of  NN0 :  377.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.016
+Step:  410000
+Noise level:  0.5929
+Mass of  NN0 :  354.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  411000
+Noise level:  0.5921
+Mass of  NN0 :  338.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  412000
+Noise level:  0.5914
+Mass of  NN0 :  340.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  413000
+Noise level:  0.5906
+Mass of  NN0 :  365.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  414000
+Noise level:  0.5899
+Mass of  NN0 :  385.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  415000
+Noise level:  0.5891
+Mass of  NN0 :  376.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  416000
+Noise level:  0.5884
+Mass of  NN0 :  386.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  417000
+Noise level:  0.5876
+Mass of  NN0 :  363.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  418000
+Noise level:  0.5869
+Mass of  NN0 :  345.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  419000
+Noise level:  0.5861
+Mass of  NN0 :  384.2
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  420000
+Noise level:  0.5854
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  421000
+Noise level:  0.5846
+Mass of  NN0 :  87.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  422000
+Noise level:  0.5839
+Mass of  NN0 :  137.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  423000
+Noise level:  0.5832
+Mass of  NN0 :  170.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  424000
+Noise level:  0.5824
+Mass of  NN0 :  196.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  425000
+Noise level:  0.5817
+Mass of  NN0 :  234.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  426000
+Noise level:  0.5809
+Mass of  NN0 :  258.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  427000
+Noise level:  0.5802
+Mass of  NN0 :  270.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  428000
+Noise level:  0.5794
+Mass of  NN0 :  255.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  429000
+Noise level:  0.5787
+Mass of  NN0 :  297.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  430000
+Noise level:  0.578
+Mass of  NN0 :  306.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  431000
+Noise level:  0.5772
+Mass of  NN0 :  329.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  432000
+Noise level:  0.5765
+Mass of  NN0 :  337.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  433000
+Noise level:  0.5758
+Mass of  NN0 :  363.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  434000
+Noise level:  0.575
+Mass of  NN0 :  376.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  435000
+Noise level:  0.5743
+Mass of  NN0 :  407.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  436000
+Noise level:  0.5736
+Mass of  NN0 :  391.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  437000
+Noise level:  0.5728
+Mass of  NN0 :  360.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  438000
+Noise level:  0.5721
+Mass of  NN0 :  371.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  439000
+Noise level:  0.5714
+Mass of  NN0 :  336.0
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  440000
+Noise level:  0.5706
+Mass of  NN0 :  10.0
+ 
+Trained:  8.0 %
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  441000
+Noise level:  0.5699
+Mass of  NN0 :  85.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  442000
+Noise level:  0.5692
+Mass of  NN0 :  131.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  443000
+Noise level:  0.5685
+Mass of  NN0 :  193.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  444000
+Noise level:  0.5677
+Mass of  NN0 :  259.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  445000
+Noise level:  0.567
+Mass of  NN0 :  283.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  446000
+Noise level:  0.5663
+Mass of  NN0 :  310.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  447000
+Noise level:  0.5656
+Mass of  NN0 :  326.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  448000
+Noise level:  0.5649
+Mass of  NN0 :  330.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  449000
+Noise level:  0.5641
+Mass of  NN0 :  327.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  450000
+Noise level:  0.5634
+Mass of  NN0 :  344.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  451000
+Noise level:  0.5627
+Mass of  NN0 :  362.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  452000
+Noise level:  0.562
+Mass of  NN0 :  336.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  453000
+Noise level:  0.5613
+Mass of  NN0 :  355.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  454000
+Noise level:  0.5606
+Mass of  NN0 :  373.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  455000
+Noise level:  0.5598
+Mass of  NN0 :  374.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  456000
+Noise level:  0.5591
+Mass of  NN0 :  370.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  457000
+Noise level:  0.5584
+Mass of  NN0 :  369.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  458000
+Noise level:  0.5577
+Mass of  NN0 :  377.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  459000
+Noise level:  0.557
+Mass of  NN0 :  369.9
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  460000
+Noise level:  0.5563
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  461000
+Noise level:  0.5556
+Mass of  NN0 :  101.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  462000
+Noise level:  0.5549
+Mass of  NN0 :  154.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  463000
+Noise level:  0.5542
+Mass of  NN0 :  212.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  464000
+Noise level:  0.5534
+Mass of  NN0 :  242.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  465000
+Noise level:  0.5527
+Mass of  NN0 :  282.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  466000
+Noise level:  0.552
+Mass of  NN0 :  308.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  467000
+Noise level:  0.5513
+Mass of  NN0 :  331.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  468000
+Noise level:  0.5506
+Mass of  NN0 :  330.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  469000
+Noise level:  0.5499
+Mass of  NN0 :  343.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.017
+Step:  470000
+Noise level:  0.5492
+Mass of  NN0 :  390.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  471000
+Noise level:  0.5485
+Mass of  NN0 :  390.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.016
+Step:  472000
+Noise level:  0.5478
+Mass of  NN0 :  421.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  473000
+Noise level:  0.5471
+Mass of  NN0 :  409.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  474000
+Noise level:  0.5464
+Mass of  NN0 :  368.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  475000
+Noise level:  0.5457
+Mass of  NN0 :  395.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  476000
+Noise level:  0.545
+Mass of  NN0 :  421.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.017
+Step:  477000
+Noise level:  0.5443
+Mass of  NN0 :  390.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  478000
+Noise level:  0.5437
+Mass of  NN0 :  400.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  479000
+Noise level:  0.543
+Mass of  NN0 :  422.2
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  480000
+Noise level:  0.5423
+Mass of  NN0 :  11.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  481000
+Noise level:  0.5416
+Mass of  NN0 :  82.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  482000
+Noise level:  0.5409
+Mass of  NN0 :  138.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  483000
+Noise level:  0.5402
+Mass of  NN0 :  203.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  484000
+Noise level:  0.5395
+Mass of  NN0 :  253.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  485000
+Noise level:  0.5388
+Mass of  NN0 :  298.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  486000
+Noise level:  0.5381
+Mass of  NN0 :  344.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  487000
+Noise level:  0.5375
+Mass of  NN0 :  344.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  488000
+Noise level:  0.5368
+Mass of  NN0 :  369.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  489000
+Noise level:  0.5361
+Mass of  NN0 :  399.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  490000
+Noise level:  0.5354
+Mass of  NN0 :  411.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  491000
+Noise level:  0.5347
+Mass of  NN0 :  411.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  492000
+Noise level:  0.534
+Mass of  NN0 :  405.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  493000
+Noise level:  0.5334
+Mass of  NN0 :  424.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  494000
+Noise level:  0.5327
+Mass of  NN0 :  432.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  495000
+Noise level:  0.532
+Mass of  NN0 :  443.1
+ 
+Trained:  9.0 %
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  496000
+Noise level:  0.5313
+Mass of  NN0 :  435.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  497000
+Noise level:  0.5306
+Mass of  NN0 :  422.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  498000
+Noise level:  0.53
+Mass of  NN0 :  424.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  499000
+Noise level:  0.5293
+Mass of  NN0 :  413.9
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  500000
+Noise level:  0.5286
+Mass of  NN0 :  10.0
+ 
+SAVING MODEL
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  501000
+Noise level:  0.5279
+Mass of  NN0 :  97.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.01
+Step:  502000
+Noise level:  0.5273
+Mass of  NN0 :  169.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  503000
+Noise level:  0.5266
+Mass of  NN0 :  235.7
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  504000
+Noise level:  0.5259
+Mass of  NN0 :  240.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  505000
+Noise level:  0.5253
+Mass of  NN0 :  281.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  506000
+Noise level:  0.5246
+Mass of  NN0 :  301.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  507000
+Noise level:  0.5239
+Mass of  NN0 :  351.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  508000
+Noise level:  0.5233
+Mass of  NN0 :  376.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  509000
+Noise level:  0.5226
+Mass of  NN0 :  384.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  510000
+Noise level:  0.5219
+Mass of  NN0 :  421.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  511000
+Noise level:  0.5213
+Mass of  NN0 :  378.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  512000
+Noise level:  0.5206
+Mass of  NN0 :  392.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  513000
+Noise level:  0.5199
+Mass of  NN0 :  394.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  514000
+Noise level:  0.5193
+Mass of  NN0 :  422.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  515000
+Noise level:  0.5186
+Mass of  NN0 :  441.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  516000
+Noise level:  0.5179
+Mass of  NN0 :  399.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  517000
+Noise level:  0.5173
+Mass of  NN0 :  400.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  518000
+Noise level:  0.5166
+Mass of  NN0 :  447.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  519000
+Noise level:  0.516
+Mass of  NN0 :  441.4
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  520000
+Noise level:  0.5153
+Mass of  NN0 :  10.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  521000
+Noise level:  0.5147
+Mass of  NN0 :  112.5
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  522000
+Noise level:  0.514
+Mass of  NN0 :  166.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.011
+Step:  523000
+Noise level:  0.5133
+Mass of  NN0 :  237.3
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  524000
+Noise level:  0.5127
+Mass of  NN0 :  269.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  525000
+Noise level:  0.512
+Mass of  NN0 :  280.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  526000
+Noise level:  0.5114
+Mass of  NN0 :  331.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  527000
+Noise level:  0.5107
+Mass of  NN0 :  361.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  528000
+Noise level:  0.5101
+Mass of  NN0 :  369.2
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  529000
+Noise level:  0.5094
+Mass of  NN0 :  394.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  530000
+Noise level:  0.5088
+Mass of  NN0 :  421.8
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  531000
+Noise level:  0.5081
+Mass of  NN0 :  412.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  532000
+Noise level:  0.5075
+Mass of  NN0 :  425.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.015
+Step:  533000
+Noise level:  0.5068
+Mass of  NN0 :  397.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  534000
+Noise level:  0.5062
+Mass of  NN0 :  428.9
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  535000
+Noise level:  0.5055
+Mass of  NN0 :  415.1
+ 
+ 
+Avg time since update start for the last  500  steps:  0.014
+Step:  536000
+Noise level:  0.5049
+Mass of  NN0 :  404.4
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  537000
+Noise level:  0.5043
+Mass of  NN0 :  382.6
+ 
+ 
+Avg time since update start for the last  500  steps:  0.013
+Step:  538000
+Noise level:  0.5036
+Mass of  NN0 :  382.0
+ 
+ 
+Avg time since update start for the last  500  steps:  0.012
+Step:  539000
+Noise level:  0.503
+Mass of  NN0 :  358.0
+ 
+Resetting field and players!
+ 
+Avg time since update start for the last  500  steps:  0.012
