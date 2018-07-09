@@ -270,16 +270,18 @@ class Bot(object):
                     else:
                         self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
 
-                #batch.append(currentExperience)
-
                 self.learningAlg.updateNoise()
 
                 if self.player.getSelected():
                     print("Reward: ", self.cumulativeReward)
 
                 if str(self)[-1] == "0" and self.time % self.parameters.TRAINING_WAIT_TIME == 0 and\
-                        len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN:
-                    batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
+                        (len(self.expReplayer) >= self.parameters.MEMORY_BATCH_LEN
+                         or not self.parameters.EXP_REPLAY_ENABLED):
+                    if self.parameters.EXP_REPLAY_ENABLED:
+                        batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
+                    else:
+                        batch = ([self.oldState], [action], [self.lastReward], [newState], newState is not None)
                     if __debug__ and self.player.getSelected():
                         count = 0
                         rewards = []
