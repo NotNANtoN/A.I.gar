@@ -60,7 +60,7 @@ class ValueNetwork(object):
         self.model = Model(inputs=self.input, outputs=output)
 
 
-        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
 
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
@@ -149,7 +149,7 @@ class PolicyNetwork(object):
                        kernel_initializer=initializer)(previousLayer)
         self.model = keras.models.Model(inputs=inputState, outputs=output)
 
-        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
 
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
@@ -234,7 +234,7 @@ class ActionValueNetwork(object):
         self.model = keras.models.Model(inputs=[inputState, inputAction], outputs=output)
 
 
-        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
 
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
@@ -307,7 +307,7 @@ class ActorCritic(object):
         nonTrainableCritic = critic.model([actor.model.inputs[0], actor.model.outputs[0]])
         combinedModel = keras.models.Model(inputs=actor.model.inputs, outputs=nonTrainableCritic)
         if self.parameters.DPG_ACTOR_OPTIMIZER == "Adam":
-            optimizer = keras.optimizers.Adam(lr=actor.learningRate)
+            optimizer = keras.optimizers.Adam(lr=actor.learningRate, amsgrad=self.parameters.AMSGRAD)
         elif self.parameters.DPG_ACTOR_OPTIMIZER == "SGD":
             if self.parameters.DPG_ACTOR_NESTEROV:
                 optimizer = keras.optimizers.SGD(lr=actor.learningRate,momentum=self.parameters.DPG_ACTOR_NESTEROV,
