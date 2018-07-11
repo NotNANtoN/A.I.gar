@@ -1,18 +1,16 @@
-1
-1
 0
-0
-1
-NUM_NN_BOTS
-0
-1
-NUM_GREEDY_BOTS
-5
 0
 0
 1
-Player
+CNN_REPR
+True
+1
+USE_FOVSIZE
+False
+1
+USE_TOTALMASS
+False
+0
 0
 1
-0
 
