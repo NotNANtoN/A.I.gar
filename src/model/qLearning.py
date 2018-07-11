@@ -135,7 +135,6 @@ class QLearn(object):
             inputShape = numpy.array([batch_len] + list(self.input_len[0]))
             inputs = numpy.zeros(inputShape)
             if self.parameters.EXTRA_INPUT:
-
                 extraInput = numpy.zeros((batch_len, self.input_len[1]))
                 inputs = [inputs, extraInput]
         else:

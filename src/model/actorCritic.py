@@ -60,7 +60,7 @@ class ValueNetwork(object):
         self.model = Model(inputs=self.input, outputs=output)
 
 
-        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
 
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
@@ -149,7 +149,7 @@ class PolicyNetwork(object):
                        kernel_initializer=initializer)(previousLayer)
         self.model = keras.models.Model(inputs=inputState, outputs=output)
 
-        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
 
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
@@ -234,7 +234,7 @@ class ActionValueNetwork(object):
         self.model = keras.models.Model(inputs=[inputState, inputAction], outputs=output)
 
 
-        optimizer = keras.optimizers.Adam(lr=self.learningRate)
+        optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
 
         self.target_model = keras.models.clone_model(self.model)
         self.target_model.set_weights(self.model.get_weights())
@@ -291,7 +291,7 @@ class ActorCritic(object):
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
         self.ornUhlPrev = numpy.zeros(self.action_len)
-
+        self.counts = [] # For SPG: count how much actor training we do each step
 
         # Bookkeeping:
         self.latestTDerror = None
@@ -307,7 +307,7 @@ class ActorCritic(object):
         nonTrainableCritic = critic.model([actor.model.inputs[0], actor.model.outputs[0]])
         combinedModel = keras.models.Model(inputs=actor.model.inputs, outputs=nonTrainableCritic)
         if self.parameters.DPG_ACTOR_OPTIMIZER == "Adam":
-            optimizer = keras.optimizers.Adam(lr=actor.learningRate)
+            optimizer = keras.optimizers.Adam(lr=actor.learningRate, amsgrad=self.parameters.AMSGRAD)
         elif self.parameters.DPG_ACTOR_OPTIMIZER == "SGD":
             if self.parameters.DPG_ACTOR_NESTEROV:
                 optimizer = keras.optimizers.SGD(lr=actor.learningRate,momentum=self.parameters.DPG_ACTOR_NESTEROV,
@@ -526,9 +526,7 @@ class ActorCritic(object):
                 used_imp_weights[count] = sample_weight
                 count += 1
 
-        #print("Batch len: ", batch_len)
-        #print("Count: ", count)
-        #print()
+        self.counts.append(count)
         if count > 0:
             inputs = inputs[:count]
             targets = targets[:count]
@@ -598,7 +596,11 @@ class ActorCritic(object):
             old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
                 sample_idx]
             target = r
-            if new_s is not None:
+            if self.parameters.EXP_REPLAY_ENABLED:
+                alive = new_s.size > 1
+            else:
+                alive = new_s is not None
+            if alive:
                 if self.parameters.DPG_USE_TARGET_MODELS:
                     estimationNewState = self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
                 else:
@@ -633,7 +635,11 @@ class ActorCritic(object):
         for sample_idx in range(batch_len):
             old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
                 sample_idx]
-            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None, a)
+            if self.parameters.EXP_REPLAY_ENABLED:
+                alive = new_s.size > 1
+            else:
+                alive = new_s is not None
+            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
             priorities[sample_idx] = td_e
             inputs_critic[sample_idx] = old_s
             targets_critic[sample_idx] = target
@@ -650,7 +656,7 @@ class ActorCritic(object):
         if self.acType == "CACLA" or self.acType == "DPG":
             if td_e > 0:
                 mu_s = self.actor.predict(old_s)
-                target = mu_s + (a - mu_s) 
+                target = mu_s + (a - mu_s)
             elif td_e < 0 and self.parameters.CACLA_UPDATE_ON_NEGATIVE_TD:
                 mu_s = self.actor.predict(old_s)
                 target = mu_s - (a - mu_s)
