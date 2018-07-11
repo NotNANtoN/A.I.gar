@@ -147,12 +147,16 @@ class QLearn(object):
         priorities = numpy.zeros_like(importance_weights)
 
         for sample_idx in range(batch_len):
-            old_s, a, r, new_s, done = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx], batch[4][sample_idx]
+            old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx]
             # No new state: dead
             if self.parameters.USE_ACTION_AS_INPUT:
                 stateAction =  numpy.concatenate((old_s[0], self.network.actions[a]))  #old_s.extend(a)
                 inputs[sample_idx] = stateAction
-                updatedValue = self.calculateTargetForAction(new_s, r, not done)
+                if self.parameters.EXP_REPLAY_ENABLED:
+                    alive = new_s.size > 1
+                else:
+                    alive = new_s is not None
+                updatedValue = self.calculateTargetForAction(new_s, r, alive)
                 oldValue = self.network.predict(numpy.array([numpy.concatenate((old_s[0], self.network.actions[a]))]))
                 td_e = updatedValue - oldValue
                 targets[sample_idx] = updatedValue
@@ -162,8 +166,11 @@ class QLearn(object):
                     inputs[1][sample_idx] = old_s[1]
                 else:
                     inputs[sample_idx] = old_s
-
-                targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s, not done)
+                if self.parameters.EXP_REPLAY_ENABLED:
+                    alive = new_s.size > 1
+                else:
+                    alive = new_s is not None
+                targets[sample_idx], td_e = self.calculateTarget(old_s, a, r, new_s, alive)
             priorities[sample_idx] = td_e
 
         if self.parameters.CNN_TOWER:

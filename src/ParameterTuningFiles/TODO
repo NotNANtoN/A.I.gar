@@ -1,0 +1,38 @@
+
+
+ACTOR_CRITIC_TYPE "CACLA" &
+ Default "CACLA" 3x:
+ 
+ CACLA_OFF_POLICY_CORR_SIGN True 3x:
+
+ OCACLA_ENABLED True &
+  Default "SPG" 3x:
+
+  OCACLA_EXPL_SAMPLES 3x:
+  
+  OCACLA_MOVING_GAUSSIAN &
+   OCACLA_EXPL_SAMPLES 3  5x:
+   OCACLA_EXPL_SAMPLES 6  3x:
+   OCACLA_EXPL_SAMPLES 9 3x: 
+
+   OCACLA_EXPL_SAMPLES 3 &
+    OCACLA_END_NOISE 0.001  3x:
+    OCACLA_END_NOISE 0.004  3x:
+    OCACLA_END_NOISE 0.01   3x:
+
+# Test delayed actor start properly! Also for CACLA and DPG - done in Remo
+
+# TODO: test learning rates(testing Actor in Marco), tau.
+
+# Maybe add dynamic exploration decreasal instead of exponential (decrease when no better action can be found in a batch)
+
+
+
+# Test prioritized exp replay in CACLA/DPG using TDE of actor
+
+# Test to have replay buffer full of useful, high TDE transitions!
+
+# Test, AMSGrad(Remo), Nadam(Remo), negative Reward Term(-20k,-200k)(Remo), Adamax(Remo), End Discount(Remo), AC_ACTOR_TRAIN_START delay(Remo), CACLA lower memory capacity(already done)
+
+
+

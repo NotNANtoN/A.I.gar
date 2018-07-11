@@ -387,6 +387,9 @@ class Model(object):
         if self.resetLimit != 0:
             self.plotMassesOverTimeClean()
         self.plotQValuesOverTime()
+        if self.parameters.OCACLA_ENABLED:
+            self.plotSPGTrainingCounts()
+
 
 
     def exportData(self):
@@ -427,6 +430,29 @@ class Model(object):
                         meanQ = numpy.mean(qValuesInRange) if len(qValuesInRange) > 0 else float("NaN")
 
                         f.write("%s\n" % meanQ)
+
+    def plotSPGTrainingCounts(self):
+        for bot_idx, bot in enumerate(self.bots):
+            playerName = str(bot.getPlayer())
+            name = "BatchSizeOverTime" + playerName
+            if bot.learningAlg is not None and str(bot.learningAlg) == "AC":
+                counts = bot.learningAlg.counts
+                len_counts = len(counts)
+                y = [numpy.mean(counts[idx:idx + self.pointAveraging]) for idx in range(0, len_counts, self.pointAveraging)]
+                timeAxis = list(range(0, len_counts, self.pointAveraging))
+
+                plt.plot(timeAxis, y)
+                plt.title("SPG Actor Training Batch Size")
+                plt.xlabel("Training Steps")
+                plt.ylabel("Batch Size")
+                plt.savefig(self.path + name + ".pdf")
+                plt.close()
+
+                # Export counts:
+                with open(self.path + "data/" + name + ".txt", "w") as f:
+                    for item in counts:
+                        f.write("%s\n" % item)
+
 
 
     def getRelevantModelData(self, bot, end = False):
@@ -484,7 +510,6 @@ class Model(object):
         for bot in self.bots:
             mass = bot.getPlayer().getTotalMass()
             print("Mass of ", bot.getPlayer(), ": ", round(mass, 1) if mass is not None else "Dead")
-
 
     def visualize(self):
         print(" ")

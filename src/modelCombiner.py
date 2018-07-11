@@ -9,7 +9,7 @@ import numpy
 import scipy.stats
 
 POINT_AVERAGING = 500
-RESET_INTERVAL = 10000
+RESET_INTERVAL = 20000
 
 
 def createCombinedModelGraphs(path):
