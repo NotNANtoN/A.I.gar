@@ -596,7 +596,11 @@ class ActorCritic(object):
             old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
                 sample_idx]
             target = r
-            if new_s is not None:
+            if self.parameters.EXP_REPLAY_ENABLED:
+                alive = new_s.size > 1
+            else:
+                alive = new_s is not None
+            if alive:
                 if self.parameters.DPG_USE_TARGET_MODELS:
                     estimationNewState = self.critic.predict_target_model(new_s, self.actor.predict_target_model(new_s))
                 else:
@@ -631,7 +635,11 @@ class ActorCritic(object):
         for sample_idx in range(batch_len):
             old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][
                 sample_idx]
-            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, new_s is not None, a)
+            if self.parameters.EXP_REPLAY_ENABLED:
+                alive = new_s.size > 1
+            else:
+                alive = new_s is not None
+            target, td_e = self.calculateTargetAndTDE(old_s, r, new_s, alive, a)
             priorities[sample_idx] = td_e
             inputs_critic[sample_idx] = old_s
             targets_critic[sample_idx] = target

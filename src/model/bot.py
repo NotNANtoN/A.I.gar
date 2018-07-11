@@ -281,7 +281,7 @@ class Bot(object):
                     if self.parameters.EXP_REPLAY_ENABLED:
                         batch = self.expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
                     else:
-                        batch = ([self.oldState], [action], [self.lastReward], [newState], newState is not None)
+                        batch = ([self.oldState], [action], [self.lastReward], [newState], [newState is not None])
                     if __debug__ and self.player.getSelected():
                         count = 0
                         rewards = []
