@@ -423,7 +423,7 @@ class ActorCritic(object):
                 self.train_actor_DPG(batch)
             if (self.parameters.DPG_USE_CACLA or steps < self.parameters.DPG_CACLA_STEPS\
                     or steps > self.parameters.DPG_DPG_STEPS) and steps > self.parameters.AC_ACTOR_TRAINING_START:
-                self.train_actor_batch(batch, priorities)
+                priorities = self.train_actor_batch(batch, priorities)
         else:
             if self.parameters.OCACLA_ENABLED:
                 idxs, priorities = self.train_critic_DPG(batch, get_evals=True)
@@ -433,8 +433,8 @@ class ActorCritic(object):
                 off_policy_weights = self.apply_off_policy_corrections_cacla(batch)
                 idxs, priorities = self.train_critic(batch, off_policy_weights)
                 if steps > self.parameters.AC_ACTOR_TRAINING_START:
-                    self.train_actor_batch(batch, priorities, off_policy_weights)
-        self.latestTDerror = numpy.mean(priorities[-1])
+                    priorities = self.train_actor_batch(batch, priorities, off_policy_weights)
+        self.latestTDerror = numpy.mean(priorities)
         return idxs, priorities
 
     def train_actor_DPG(self, batch):
@@ -480,11 +480,20 @@ class ActorCritic(object):
                 self.caclaVar = (1 - beta) * self.caclaVar + beta * (td_e ** 2)
                 train_count_cacla_var[pos_tde_count] = math.ceil(td_e / math.sqrt(self.caclaVar))
             target = self.calculateTarget_Actor(old_s, a, td_e)
+
             if target is not None and sample_weight != 0:
                 inputs[pos_tde_count] = old_s
                 targets[pos_tde_count] = target
                 used_imp_weights[pos_tde_count] = sample_weight
                 pos_tde_count += 1
+                if self.parameters.AC_ACTOR_TDE:
+                    current_action = self.actor.predict(old_s)
+                    actor_TDE = (target[0] - current_action[0]) ** 2 + (target[1] - current_action[1]) ** 2
+                    if self.parameters.ENABLE_SPLIT or self.parameters.ENABLE_EJECT:
+                        actor_TDE += (target[2] - current_action[2]) ** 2
+                        if self.parameters.ENABLE_SPLIT and self.parameters.ENABLE_EJECT:
+                            actor_TDE += (target[3] - current_action[3]) ** 2
+                    priorities[sample_idx] += math.sqrt(actor_TDE) * self.parameters.AC_ACTOR_TDE
 
         if self.parameters.CACLA_VAR_ENABLED:
             if pos_tde_count > 0:
@@ -508,6 +517,8 @@ class ActorCritic(object):
                 targets = targets[:pos_tde_count]
                 used_imp_weights = used_imp_weights[:pos_tde_count]
                 self.actor.train(inputs, targets, used_imp_weights)
+
+        return priorities
 
     def train_actor_OCACLA(self, batch, evals):
         batch_len = len(batch[0])
