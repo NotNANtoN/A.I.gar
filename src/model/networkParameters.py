@@ -133,6 +133,10 @@ CACLA_CRITIC_WEIGHT_DECAY   = 0     #0.001 #0.001 L2 weight decay parameter. Set
 CACLA_OFF_POLICY_CORR       = 0
 CACLA_OFF_POLICY_CORR_SIGN  = False
 
+CACLA_VAR_ENABLED           = False
+CACLA_VAR_START             = 1
+CACLA_VAR_BETA              = 0.001
+
 OCACLA_ENABLED              = False
 OCACLA_EXPL_SAMPLES         = 0
 OCACLA_END_NOISE            = 0.0004
