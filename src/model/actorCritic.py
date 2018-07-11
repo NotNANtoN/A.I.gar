@@ -292,6 +292,7 @@ class ActorCritic(object):
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
         self.ornUhlPrev = numpy.zeros(self.action_len)
         self.counts = [] # For SPG: count how much actor training we do each step
+        self.caclaVar = parameters.CACLA_VAR_START
 
         # Bookkeeping:
         self.latestTDerror = None
@@ -463,29 +464,50 @@ class ActorCritic(object):
         targets = numpy.zeros((batch_len, len_output))
         used_imp_weights = numpy.zeros(batch_len)
         importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
+        train_count_cacla_var = numpy.zeros(batch_len)
         if off_policy_weights is not None:
             importance_weights *= off_policy_weights
 
 
         # Calculate input and target for actor
-        count = 0
+        pos_tde_count = 0
         for sample_idx in range(batch_len):
             old_s, a, r, new_s = batch[0][sample_idx], batch[1][sample_idx], batch[2][sample_idx], batch[3][sample_idx]
             sample_weight = importance_weights[sample_idx]
             td_e = priorities[sample_idx]
+            if self.parameters.CACLA_VAR_ENABLED:
+                beta = self.parameters.CACLA_VAR_BETA
+                self.caclaVar = (1 - beta) * self.caclaVar + beta * (td_e ** 2)
+                train_count_cacla_var[pos_tde_count] = math.ceil(td_e / math.sqrt(self.caclaVar))
             target = self.calculateTarget_Actor(old_s, a, td_e)
-            if target is not None:
-                if sample_weight != 0:
-                    inputs[count] = old_s
-                    targets[count] = target
-                    used_imp_weights[count] = sample_weight
-                    count += 1
+            if target is not None and sample_weight != 0:
+                inputs[pos_tde_count] = old_s
+                targets[pos_tde_count] = target
+                used_imp_weights[pos_tde_count] = sample_weight
+                pos_tde_count += 1
 
-        if count > 0:
-            inputs = inputs[:count]
-            targets = targets[:count]
-            used_imp_weights = used_imp_weights[:count]
-            self.actor.train(inputs, targets, used_imp_weights)
+        if self.parameters.CACLA_VAR_ENABLED:
+            if pos_tde_count > 0:
+                maxEpochs = int(max(train_count_cacla_var))
+                for epoch in range(maxEpochs):
+                    training_this_epoch = 0
+                    for idx_count, train_count in enumerate(train_count_cacla_var[:pos_tde_count]):
+                        if train_count > 0:
+                            train_count_cacla_var[idx_count] -= 1
+                            inputs[training_this_epoch] = inputs[idx_count]
+                            targets[training_this_epoch] = targets[idx_count]
+                            used_imp_weights[training_this_epoch] = used_imp_weights[idx_count]
+                            training_this_epoch += 1
+                    trainInputs = inputs[:training_this_epoch]
+                    trainTargets = targets[:training_this_epoch]
+                    train_used_imp_weights = used_imp_weights[:training_this_epoch]
+                    self.actor.train(trainInputs, trainTargets, train_used_imp_weights)
+        else:
+            if pos_tde_count > 0:
+                inputs = inputs[:pos_tde_count]
+                targets = targets[:pos_tde_count]
+                used_imp_weights = used_imp_weights[:pos_tde_count]
+                self.actor.train(inputs, targets, used_imp_weights)
 
     def train_actor_OCACLA(self, batch, evals):
         batch_len = len(batch[0])
