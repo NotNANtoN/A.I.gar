@@ -111,6 +111,7 @@ Q_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disabl
 
 # Actor-critic:
 ACTOR_IS = False
+AC_ACTOR_TDE = 10 # set to False to disable
 AC_DELAY_ACTOR_TRAINING = 0
 AC_ACTOR_TRAINING_START = AC_DELAY_ACTOR_TRAINING * MAX_TRAINING_STEPS
 AC_NOISE_AT_HALF = 0.03
