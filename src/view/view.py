@@ -171,6 +171,7 @@ class View:
             blobs = self.model.getField().getBlobsInFov(fovPos, fovSize)
             viruses = self.model.getField().getVirusesInFov(fovPos, fovSize)
             playerCells = self.model.getField().getPlayerCellsInFov(fovPos, fovSize)
+
             allCells = pellets + blobs + viruses + playerCells
             allCells.sort(key = lambda p: p.getMass())
 

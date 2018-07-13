@@ -291,7 +291,6 @@ class Bot(object):
                                 rewards.append(batch[2][idx])
                         print(count, " deaths sampled this round.")
                         print("Mean non-death reward: ", round(numpy.mean(rewards), 2))
-                        print()
                     idxs, priorities = self.learningAlg.learn(batch, self.time)
                     if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
                         self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
@@ -665,7 +664,7 @@ class Bot(object):
 
         cellsInFov = self.field.getPelletsInFov(midPoint, size)
         playerCells = self.player.getCells()
-        biggestPlayerCell = playerCells[0]
+        biggestPlayerCell = max(playerCells, key=lambda p: p.getMass())
         # If the bot is split, use its biggest cell as reference
         if len(playerCells) > 1:
             biggestCellMass = biggestPlayerCell.getMass()

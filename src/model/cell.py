@@ -152,7 +152,7 @@ class Cell(object):
         return False
 
     def resetMergeTime(self, factor):
-        self.mergeTime = factor * (BASE_MERGE_TIME + self.mass * 0.0233) * FPS / 2 / GAME_SPEED
+        self.mergeTime = factor * (BASE_MERGE_TIME + self.mass * MERGE_TIME_MASS_FACTOR) * FPS / 2 / GAME_SPEED
 
     # Returns the squared distance from the self cell to another cell
     def squaredDistance(self, cell):
@@ -209,7 +209,7 @@ class Cell(object):
 
     def setMass(self, val):
         self.mass = val
-        self.radius = math.sqrt(self.mass / numpy.pi)
+        self.radius = math.sqrt(val / numpy.pi) if val > 0 else 0
 
     def setBlobToBeEjected(self, val):
         self.blobToBeEjected = False

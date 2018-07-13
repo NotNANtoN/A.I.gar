@@ -154,7 +154,6 @@ class Player(object):
         return False
 
     def getFovPos(self):
-        self.fovPos = None
         if self.isAlive and self.getTotalMass() != 0:
             meanX = sum([cell.getX() * cell.getMass() for cell in self.cells]) / self.getTotalMass()
             meanY = sum([cell.getY() * cell.getMass() for cell in self.cells]) / self.getTotalMass()
