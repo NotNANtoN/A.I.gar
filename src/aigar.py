@@ -350,9 +350,18 @@ def updateTestResults(testResults, model, percentage, parameters):
     if parameters.MULTIPLE_BOTS_PRESENT:
         greedyModel = pelletModel
         greedyModel.createBot("Greedy", None, parameters)
-        vsGreedyEval = testModel(greedyModel, 5, 30000, model.getPath(), "vsGreedy", False)
+        vsGreedyEval = testModel(greedyModel, 5, 20000, model.getPath(), "vsGreedy", False)
     else:
         vsGreedyEval = (0,0,0,0)
+
+    if parameters.MULTIPLE_BOTS_PRESENT and parameters.VIRUS_SPAWN:
+        params = Params(0, True, parameters.EXPORT_POINT_AVERAGING)
+        virusModel =  Model(False, False, params, False)
+        virusModel.createBot("NN", currentAlg, parameters)
+        virusModel.createBot("Greedy", None, parameters)
+        virusEval = testModel(virusModel, 5, 20000, model.getPath(), "vsGreedy_with_virus", False)
+    else:
+        virusEval = (0,0,0,0)
 
     currentAlg.setNoise(originalNoise)
 
@@ -361,7 +370,8 @@ def updateTestResults(testResults, model, percentage, parameters):
 
     meanScore = currentEval[2]
     stdDev = currentEval[3]
-    testResults.append((meanScore, stdDev, pelletEval[2], pelletEval[3], vsGreedyEval[2], vsGreedyEval[3]))
+    testResults.append((meanScore, stdDev, pelletEval[2], pelletEval[3],
+                        vsGreedyEval[2], vsGreedyEval[3], virusEval[2], virusEval[3]))
     return testResults
 
 
@@ -665,6 +675,9 @@ def run():
                 meanMassesOfGreedyResults = [val[4] for val in testResults]
                 exportTestResults(meanMassesOfGreedyResults, model.getPath() + "data/", "VS_1_GreedyMassOverTime")
                 plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
+                if parameters.VIRUS_SPAWN:
+                    plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy_with_viruses", 6)
+
             plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
             plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
             print("Training done.")

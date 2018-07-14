@@ -225,7 +225,7 @@ class Field(object):
             if player.getIsAlive():
                 for cell in player.getCells():
                     for virus in self.virusHashTable.getNearbyObjects(cell):
-                        if cell.overlap(virus) and cell.getMass() > 1.5 * virus.getMass():
+                        if cell.overlap(virus) and cell.getMass() > 1.25 * virus.getMass():
                             self.eatVirus(cell, virus)
 
     def playerPlayerOverlap(self):
@@ -329,11 +329,14 @@ class Field(object):
         self.eatCell(playerCell, self.playerHashTable, blob, self.blobHashTable, self.blobs)
 
     def eatVirus(self, playerCell, virus):
-        self.eatCell(playerCell, self.playerHashTable, virus, self.virusHashTable, self.viruses)
+        self.eatCell(playerCell, self.playerHashTable, virus, self.virusHashTable, self.viruses, True)
         self.playerCellAteVirus(playerCell)
 
-    def eatCell(self, eatingCell, eatingCellHashtable, cell, cellHashtable, cellList):
-        adjustCellSize(eatingCell, cell.getMass(), eatingCellHashtable)
+    def eatCell(self, eatingCell, eatingCellHashtable, cell, cellHashtable, cellList, isVirus = None):
+        mass = cell.getMass()
+        if isVirus:
+            mass *= VIRUS_EAT_FACTOR
+        adjustCellSize(eatingCell, mass, eatingCellHashtable)
         cellList.remove(cell)
         cellHashtable.deleteObject(cell)
         cell.setAlive(False)
@@ -348,8 +351,9 @@ class Field(object):
         numberOfNewCells = 16 - numberOfCells
         if numberOfNewCells == 0:
             return
-        massPerCell = VIRUS_EXPLOSION_BASE_MASS + (playerCell.getMass() / numberOfNewCells - VIRUS_EXPLOSION_BASE_MASS) * 0.2
-        playerCell.resetMergeTime(0.8)
+        distributedMass = playerCell.getMass() * VIRUS_EXPLOSION_CELL_MASS_PROPORTION
+        massPerCell = distributedMass / numberOfNewCells
+        playerCell.resetMergeTime(MERGE_TIME_VIRUS_FACTOR)
         adjustCellSize(playerCell, -1 * massPerCell * numberOfNewCells, self.playerHashTable)
         for cellIdx in range(numberOfNewCells):
             cellPos = playerCell.getPos()
@@ -420,6 +424,10 @@ class Field(object):
     def getPlayerCellsInFov(self, fovPos, fovSize):
         cellsNearFov = self.getCellsFromHashTableInFov(self.playerHashTable, fovPos, fovSize)
         return self.getPortionOfCellsInFov(cellsNearFov, fovPos, fovSize)
+
+    def getFoVPlayerCellsInFov(self, fovPlayer):
+        playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovSize())
+        return [cell for cell in playerCellsInFov if cell.getPlayer() is fovPlayer]
 
     def getEnemyPlayerCellsInFov(self, fovPlayer):
         playerCellsInFov = self.getPlayerCellsInFov(fovPlayer.getFovPos(), fovPlayer.getFovSize())
