@@ -582,11 +582,6 @@ def run():
             if numberOfHumans > 0 and not humanTraining:
                 mouseEnabled = int(input("Do you want control Player1 using the mouse? (1 == yes)\n"))
 
-        if not model.hasHuman():
-            spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
-            if spectate == 1:
-                model.addPlayerSpectator()
-
 
     enableTrainMode = humanTraining if humanTraining is not None else False
     if not humanTraining:
@@ -606,6 +601,11 @@ def run():
     createBots(numberOfGreedyBots, model, "Greedy", parameters)
     createBots(parameters.NUM_RANDOM_BOTS, model, "Random", parameters)
     model.addDataFilesToDictionary()
+
+    if guiEnabled and viewEnabled and not model.hasHuman():
+        spectate = int(input("Do want to spectate an individual bot's FoV? (1 = yes)\n"))
+        if spectate == 1:
+            model.addPlayerSpectator()
 
     if numberOfNNBots == 0:
         model.setTrainingEnabled(False)

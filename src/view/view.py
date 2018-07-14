@@ -10,6 +10,14 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 
+def softmax(values):
+    maxVal = max(values)
+    shiftedVals = [value - maxVal for value in values]
+    distribution_values = [math.e ** value for value in shiftedVals]
+    distSum = 1#distSum = numpy.sum(distribution_values)
+    return [value / distSum for value in distribution_values]
+
+
 class View:
     def __init__(self, model, width, height, parameters):
         self.width = width
@@ -77,6 +85,9 @@ class View:
                     pygame.draw.line(screen, BLACK, topright, bottomright)
                     pygame.draw.line(screen, BLACK, bottomright, bottomleft)
                     pygame.draw.line(screen, BLACK, bottomleft, topleft)
+
+
+
             # Print grid for grid state representation
             for bot in self.model.getBots():
                 player = bot.getPlayer()
@@ -111,6 +122,28 @@ class View:
                         posLeft = (left, top + yIdx * distanceBetweenLines)
                         posRight = (right, top + yIdx * distanceBetweenLines )
                         pygame.draw.line(screen, BLACK, posLeft, posRight)
+
+                    # draw Q-values:
+                    if bot.learningAlg is not None and str(bot.learningAlg) == "Q-learning" \
+                            and bot.learningAlg.current_q_values is not None:
+
+                        q_vals = bot.learningAlg.current_q_values
+                        q_vals = softmax(q_vals)
+                        gridsPerSide = int(math.sqrt(bot.parameters.NUM_ACTIONS))
+                        gridSize = scaledSize / gridsPerSide
+                        for idx, q_value in enumerate(q_vals):
+                            i = idx % gridsPerSide
+                            j = idx // gridsPerSide
+                            x = left + i * gridSize
+                            y = top + j * gridSize
+                            greenPart = int(q_value * 255)
+
+                            s = pygame.Surface((gridSize, gridSize))  # the size of your rect
+                            s.set_alpha(greenPart)  # alpha level
+                            s.fill((255 - greenPart, 255, 255 - greenPart))  # this fills the entire surface
+                            screen.blit(s, (x, y))  # (0,0) are the top-left coordinates
+
+
 
 
             for cell in cells:

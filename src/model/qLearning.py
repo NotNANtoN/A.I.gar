@@ -67,6 +67,7 @@ class QLearn(object):
         self.discrete = True
         self.epsilon = parameters.EPSILON
         self.temperature = parameters.TEMPERATURE
+        self.current_q_values = None
 
     def initializeNetwork(self, loadPath, networks = None):
         if networks is None or networks == {}:
@@ -231,6 +232,7 @@ class QLearn(object):
         explore, newActionIdx = self.decideExploration(bot)
         if not explore:
             q_Values = self.network.predict_action(newState)
+            self.current_q_values = q_Values
             if self.parameters.EXPLORATION_STRATEGY == "Boltzmann" and self.temperature != 0:
                 q_Values = boltzmannDist(q_Values, self.temperature)
                 action_value = numpy.random.choice(q_Values, p=q_Values)
@@ -241,6 +243,8 @@ class QLearn(object):
             self.qValues.append(q_Values[newActionIdx])
             if __debug__:
                 bot.setExploring(False)
+        else:
+            self.current_q_values = None
 
         if __debug__  and not explore and bot.player.getSelected():
             average_value = round(numpy.mean(q_Values), 1)
