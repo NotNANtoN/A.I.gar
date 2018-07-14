@@ -21,8 +21,10 @@ ACTOR_CRITIC_TYPE "CACLA" &
     OCACLA_END_NOISE 0.01   3x:
 
 # Test delayed actor start properly! Also for CACLA and DPG - done in Remo
+#-> seems to make it worse
 
 # TODO: test learning rates(testing Actor in Marco), tau.
+#-> learning rates are quite good. tau not tested yet.
 
 # Maybe add dynamic exploration decreasal instead of exponential (decrease when no better action can be found in a batch)
 

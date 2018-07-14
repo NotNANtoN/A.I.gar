@@ -83,7 +83,11 @@ def getDistributions(directories, takeMean = True):
                 continue
             dataPath = path + subfolder + "/data/"
             localDict = {}
-            for dataFile in os.listdir(dataPath):
+            if os.path.exists(dataPath):
+                data = os.listdir(dataPath)
+            else:
+                data = []
+            for dataFile in data:
                 if "MassOverTime.txt" in dataFile:
                     massIdx = dataFile.find("Mass")
                     name = dataFile[:massIdx]
