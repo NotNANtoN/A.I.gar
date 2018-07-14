@@ -354,14 +354,17 @@ def updateTestResults(testResults, model, percentage, parameters):
     else:
         vsGreedyEval = (0,0,0,0)
 
-    if parameters.MULTIPLE_BOTS_PRESENT and parameters.VIRUS_SPAWN:
+    virusGreedyEval = (0, 0, 0, 0)
+    virusEval = (0, 0, 0, 0)
+    if parameters.VIRUS_SPAWN:
         params = Params(0, True, parameters.EXPORT_POINT_AVERAGING)
-        virusModel =  Model(False, False, params, False)
+        virusModel = Model(False, False, params, False)
         virusModel.createBot("NN", currentAlg, parameters)
-        virusModel.createBot("Greedy", None, parameters)
-        virusEval = testModel(virusModel, 5, 20000, model.getPath(), "vsGreedy_with_virus", False)
-    else:
-        virusEval = (0,0,0,0)
+        virusEval = testModel(virusModel, 5, 15000, model.getPath(), "pellet_with_virus", False)
+        if parameters.MULTIPLE_BOTS_PRESENT:
+            virusModel.createBot("Greedy", None, parameters)
+            virusGreedyEval = testModel(virusModel, 5, 20000, model.getPath(), "vsGreedy_with_virus", False)
+
 
     currentAlg.setNoise(originalNoise)
 
@@ -371,7 +374,7 @@ def updateTestResults(testResults, model, percentage, parameters):
     meanScore = currentEval[2]
     stdDev = currentEval[3]
     testResults.append((meanScore, stdDev, pelletEval[2], pelletEval[3],
-                        vsGreedyEval[2], vsGreedyEval[3], virusEval[2], virusEval[3]))
+                        vsGreedyEval[2], vsGreedyEval[3], virusEval[2], virusEval[3], virusGreedyEval[2], virusGreedyEval[3]))
     return testResults
 
 
@@ -670,16 +673,23 @@ def run():
             exportTestResults(meanMassesOfTestResults, model.getPath() + "data/", "testMassOverTime")
             meanMassesOfPelletResults = [val[2] for val in testResults]
             exportTestResults(meanMassesOfPelletResults, model.getPath() + "data/", "Pellet_CollectionMassOverTime")
-
+            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
+            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
+            
             if parameters.MULTIPLE_BOTS_PRESENT:
                 meanMassesOfGreedyResults = [val[4] for val in testResults]
                 exportTestResults(meanMassesOfGreedyResults, model.getPath() + "data/", "VS_1_GreedyMassOverTime")
                 plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy", 4)
-                if parameters.VIRUS_SPAWN:
-                    plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy_with_viruses", 6)
+            if parameters.VIRUS_SPAWN:
+                meanMassesOfPelletVirusResults = [val[6] for val in testResults]
+                exportTestResults(meanMassesOfPelletVirusResults, model.getPath() + "data/", "Pellet_Collection_Virus_MassOverTime")
+                plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection_with_Viruses", 6)
+                if parameters.MULTIPLE_BOTS_PRESENT:
+                    meanMassesOfGreedyVirusResults = [val[8] for val in testResults]
+                    exportTestResults(meanMassesOfGreedyVirusResults, model.getPath() + "data/", "VS_1_Greedy_Virus_MassOverTime")
+                    plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Vs_Greedy_with_Viruses", 8)
 
-            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Test", 0)
-            plotTesting(testResults, model.getPath(), testPercentage, maxSteps, "Pellet_Collection", 2)
+
             print("Training done.")
             print("")
 
