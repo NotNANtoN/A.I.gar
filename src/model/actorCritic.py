@@ -414,6 +414,8 @@ class ActorCritic(object):
                     channels = 1
                 if self.parameters.CNN_LAST_GRID:
                     channels = channels * 2
+                if self.parameters.COORDCONV:
+                    channels += 2
 
                 if self.parameters.CNN_USE_L1:
                     self.input_len = (self.parameters.CNN_INPUT_DIM_1,
