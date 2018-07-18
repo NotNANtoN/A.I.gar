@@ -168,6 +168,15 @@ class Bot(object):
         self.lastEnemyGrid = None
         self.lastAllPlayerGrid = None
         self.lastPixelGrid = None
+        if self.parameters.CNN_REPR:
+            if self.parameters.CNN_USE_L1:
+                self.gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_1
+            elif self.parameters.CNN_USE_L2:
+                self.gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_2
+            else:
+                self.gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_3
+        else:
+            self.gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
 
         self.reset()
 
@@ -351,9 +360,14 @@ class Bot(object):
                 if self.parameters.CNN_REPR:
                     if self.parameters.CNN_P_REPR:
                         gridView = self.rgbGenerator.get_cnn_inputRGB(self.player)
-                        self.lastPixelGrid = gridView
                         if self.parameters.CNN_LAST_GRID:
                             gridView = numpy.concatenate((gridView, self.lastPixelGrid), axis=2)
+                            self.lastPixelGrid = gridView
+                        if self.parameters.COORDCONV:
+                            coordConv_row, coordConv_col = self.getCoorConvGrids()
+                            coordConv = numpy.array([coordConv_row,coordConv_col])
+                            coordConv = coordConv.reshape((self.gridSquaresPerFov, self.gridSquaresPerFov, 2))
+                            gridView = numpy.concatenate((gridView, coordConv), axis=2)
                     else:
                         gridView = self.getGridStateRepresentation()
 
@@ -414,15 +428,7 @@ class Bot(object):
         left = x - fovSize / 2
         top = y - fovSize / 2
         # Initialize spatial hash tables:
-        if self.parameters.CNN_REPR:
-            if self.parameters.CNN_USE_L1:
-                gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_1
-            elif self.parameters.CNN_USE_L2:
-                gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_2
-            else:
-                gridSquaresPerFov = self.parameters.CNN_INPUT_DIM_3
-        else:
-            gridSquaresPerFov = self.parameters.GRID_SQUARES_PER_FOV
+        gridSquaresPerFov = self.gridSquaresPerFov
         gsSize = fovSize / gridSquaresPerFov  # (gs = grid square)
 
         pelletSHT = spatialHashTable(fovSize, gsSize, left, top)  # SHT = spatial hash table
@@ -456,6 +462,8 @@ class Bot(object):
             biggestCellMass = max(allCells, key = lambda cell: cell.getMass()).getMass()
 
         # Initialize grid squares with zeros:
+        gsPelletMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        gsWalls = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
         gsBiggestAllCellMass = None
         gsBiggestEnemyCellMass = None
         gsBiggestOwnCellMass = None
@@ -467,8 +475,12 @@ class Bot(object):
         gsVirus = None
         if self.field.getVirusEnabled():
             gsVirus = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
-        gsPelletMass = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
-        gsWalls = numpy.zeros((gridSquaresPerFov, gridSquaresPerFov))
+        coordConv_row = None
+        coordConv_col = None
+        # Create row and column grids
+        if self.parameters.COORDCONV:
+            coordConv_row, coordConv_col = self.getCoorConvGrids()
+
         gridView = numpy.zeros((self.parameters.NUM_OF_GRIDS, gridSquaresPerFov, gridSquaresPerFov))
         # gsMidPoint is adjusted in the loops
         gsMidPoint = [left + gsSize / 2, top + gsSize / 2]
@@ -563,12 +575,18 @@ class Bot(object):
         if self.parameters.VIRUS_GRID:
             gridView[count] = gsVirus
             count += 1
+
+        # CoordConv
+        if self.parameters.COORDCONV:
+            gridView[count] = coordConv_row
+            gridView[count+1] = coordConv_col
+            count += 2
+
         # Add grids about own cells and enemy cells from previous frames:
         if self.parameters.SELF_GRID_SLF:
             gridView[count] = self.secondLastSelfGrid
             self.secondLastSelfGrid = self.lastSelfGrid
             count += 1
-
         if self.parameters.SELF_GRID_LF:
             gridView[count] = self.lastSelfGrid
             self.lastSelfGrid = gsBiggestOwnCellMass
@@ -577,13 +595,23 @@ class Bot(object):
             gridView[count] = self.secondLastEnemyGrid
             self.secondLastEnemyGrid = self.lastEnemyGrid
             count += 1
-
         if self.parameters.ENEMY_GRID_LF:
             gridView[count] = self.lastEnemyGrid
             self.lastEnemyGrid = gsBiggestEnemyCellMass
             count += 1
 
         return gridView
+
+
+    def getCoorConvGrids(self):
+        dims = (self.gridSquaresPerFov, self.gridSquaresPerFov)
+        coordConv_row = numpy.zeros(dims)
+        coordConv_col = numpy.zeros(dims)
+        for c in range(dims[0]):
+            for r in range(dims[1]):
+                coordConv_row[c][r] = c
+                coordConv_col[c][r] = r
+        return coordConv_row, coordConv_col
 
 
     def getSimpleStateRepresentation(self):
@@ -778,7 +806,7 @@ class Bot(object):
         return self.parameters.EXP_REPLAY_ENABLED
 
     def getGridSquaresPerFov(self):
-        return self.parameters.GRID_SQUARES_PER_FOV
+        return self.getGridSquaresPerFov()
 
     def getExpReplayer(self):
         return self.expReplayer
