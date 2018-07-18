@@ -387,7 +387,7 @@ class Model(object):
         if self.resetLimit != 0:
             self.plotMassesOverTimeClean()
         self.plotQValuesOverTime()
-        if self.parameters.OCACLA_ENABLED:
+        if self.parameters.ACTOR_CRITIC_TYPE == "CACLA":
             self.plotSPGTrainingCounts()
 
 
@@ -442,7 +442,7 @@ class Model(object):
                 timeAxis = list(range(0, len_counts, self.pointAveraging))
 
                 plt.plot(timeAxis, y)
-                plt.title("SPG Actor Training Batch Size")
+                plt.title("Actor Training Batch Size During Training")
                 plt.xlabel("Training Steps")
                 plt.ylabel("Batch Size")
                 plt.savefig(self.path + name + ".pdf")

@@ -323,6 +323,10 @@ class Network(object):
             if self.parameters.GRADIENT_CLIP_NORM:
                 optimizer = keras.optimizers.Adam(lr=self.learningRate, clipnorm=self.parameters.GRADIENT_CLIP_NORM,
                                                   amsgrad=self.parameters.AMSGRAD)
+            elif self.parameters.GRADIENT_CLIP:
+                optimizer = keras.optimizers.Adam(lr=self.learningRate, clipvalue=self.parameters.GRADIENT_CLIP,
+                                                  amsgrad=self.parameters.AMSGRAD)
+
             else:
                 optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
         elif self.parameters.OPTIMIZER == "Nadam":

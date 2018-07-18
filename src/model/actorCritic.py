@@ -291,7 +291,7 @@ class ActorCritic(object):
         self.input_len = parameters.STATE_REPR_LEN
         self.action_len = 2 + self.parameters.ENABLE_SPLIT + self.parameters.ENABLE_EJECT
         self.ornUhlPrev = numpy.zeros(self.action_len)
-        self.counts = [] # For SPG: count how much actor training we do each step
+        self.counts = [] # For SPG/CACLA: count how much actor training we do each step
         self.caclaVar = parameters.CACLA_VAR_START
 
         # Bookkeeping:
@@ -494,7 +494,7 @@ class ActorCritic(object):
                         if self.parameters.ENABLE_SPLIT and self.parameters.ENABLE_EJECT:
                             actor_TDE += (target[3] - current_action[3]) ** 2
                     priorities[sample_idx] += math.sqrt(actor_TDE) * self.parameters.AC_ACTOR_TDE
-
+        self.counts.append(pos_tde_count)
         if self.parameters.CACLA_VAR_ENABLED:
             if pos_tde_count > 0:
                 maxEpochs = int(max(train_count_cacla_var))

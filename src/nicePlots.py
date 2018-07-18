@@ -35,10 +35,9 @@ def getTitleName(name):
 def plot(name, dict):
     print("Plotting ", name, "...")
 
-
-    colors = "rbgcmky"
-    markers = "sovx8^D"
-    if len(dict) > 6:
+    colors = [(1,0,0), (0,1,0), (0,0,0.75), (0,0,0), (0,0.75,0.75), (0,0.5,0), (0,0,0.5), (1,0.5,0),(0.5,0,0)]
+    markers = "sovx8^D^8x"
+    if len(dict) > 10:
         print("Plotting is not (yet) supported for more than 6 curves! Add more markers and colors.")
         quit()
 
@@ -59,7 +58,7 @@ def plot(name, dict):
 
 
 
-        y, ysigma = getMeanAndStDev(dataList, dataLen)
+        y, ysigma = getMeanAndStDev(dataList, dataLen, stdError=True)
         print("Plotting: ", name)
 
 
@@ -100,9 +99,9 @@ def plot(name, dict):
             print("marker idxs:", idxs)
             
 
-            print(smallPartIdxs)
-            print(smallPart)
-            print(lenY)
+            #print(smallPartIdxs)
+            #print(smallPart)
+            #print(lenY)
 
             plt.plot(smallPartIdxs, smallPart, label=lineName, color=color, marker=marker, markersize=9, linestyle='None', markerfacecolor=color, markeredgecolor=color)
             plt.plot(x, y, lw=2, color=color)
@@ -118,7 +117,7 @@ def plot(name, dict):
     titleName = getTitleName(name)
     plt.title(titleName)
 
-    ax.legend(loc='upper left')
+    ax.legend(loc='lower right')
 
     ax.grid()
     fig.savefig("savedModels/" + name +  ".pdf")

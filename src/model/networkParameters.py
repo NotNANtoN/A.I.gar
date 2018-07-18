@@ -37,6 +37,7 @@ OPTIMIZER = "Adam" #SGD has much worse performance
 NESTEROV = 0
 AMSGRAD = False
 GRADIENT_CLIP_NORM = 0
+GRADIENT_CLIP = 0
 MASS_AS_REWARD = False
 DISCOUNT = 0.85 
 END_DISCOUNT = 0#0.85 # set to 0 to disable
@@ -134,7 +135,7 @@ CACLA_CRITIC_WEIGHT_DECAY   = 0     #0.001 #0.001 L2 weight decay parameter. Set
 CACLA_OFF_POLICY_CORR       = 0
 CACLA_OFF_POLICY_CORR_SIGN  = False
 
-CACLA_VAR_ENABLED           = False
+CACLA_VAR_ENABLED           = True
 CACLA_VAR_START             = 1
 CACLA_VAR_BETA              = 0.001
 
