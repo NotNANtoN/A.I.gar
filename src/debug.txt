@@ -4,7 +4,7 @@
 0
 1
 NUM_NN_BOTS
-2
+3
 1
 VIRUS_SPAWN
 True

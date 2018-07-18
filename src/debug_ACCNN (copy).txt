@@ -7,10 +7,7 @@ True
 1
 ENABLE_TESTING
 False
-1
-ACTOR_CRITIC_TYPE
-"DPG"
-0
+10
 0
 1
 

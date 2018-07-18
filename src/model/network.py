@@ -173,6 +173,8 @@ class Network(object):
                         channels = 1
                     if self.parameters.CNN_LAST_GRID:
                         channels = channels * 2
+                    if self.parameters.COORDCONV:
+                        channels += 2
                     self.input = Input(shape=(self.stateReprLen, self.stateReprLen, channels))
                     conv = self.input
 
