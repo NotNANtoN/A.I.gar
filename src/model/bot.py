@@ -813,7 +813,7 @@ class Bot(object):
         return self.parameters.EXP_REPLAY_ENABLED
 
     def getGridSquaresPerFov(self):
-        return self.getGridSquaresPerFov()
+        return self.parameters.GRID_SQUARES_PER_FOV
 
     def getExpReplayer(self):
         return self.expReplayer
