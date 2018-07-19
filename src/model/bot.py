@@ -275,7 +275,12 @@ class Bot(object):
 
                 if self.parameters.EXP_REPLAY_ENABLED:
                     if str(self.learningAlg) != "Q-learning":
-                        self.expReplayer.add(self.oldState, action, self.lastReward, newState, self.currentRawAction)
+                        if self.parameters.ACTOR_CRITIC_TYPE == "CACLA":
+                            # Save raw action without noise in "done" field to later determine difference in policies
+                            self.expReplayer.add(self.oldState, action, self.lastReward, newState, self.currentRawAction)
+                        else:
+                            # Save None for SPG in "done" field. This will be later updated with the best sampled action
+                            self.expReplayer.add(self.oldState, action, self.lastReward, newState, None)
                     else:
                         self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
 
@@ -300,9 +305,11 @@ class Bot(object):
                                 rewards.append(batch[2][idx])
                         print(count, " deaths sampled this round.")
                         print("Mean non-death reward: ", round(numpy.mean(rewards), 2))
-                    idxs, priorities = self.learningAlg.learn(batch, self.time)
+                    idxs, priorities, updated_actions = self.learningAlg.learn(batch, self.time)
                     if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
                         self.expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
+                        if self.parameters.OCACLA_REPLACE_TRANSITIONS:
+                            self.expReplayer.update_dones(idxs, updated_actions)
                 self.learningAlg.updateNetworks(self.time)
 
             # Move

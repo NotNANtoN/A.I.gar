@@ -603,6 +603,7 @@ class ActorCritic(object):
         return off_policy_weights
 
     def learn(self, batch, steps):
+        updated_actions = None
         if self.parameters.ACTOR_CRITIC_TYPE == "DPG":
             idxs, priorities = self.train_critic_DPG(batch)
             if self.parameters.DPG_USE_DPG_ACTOR_TRAINING and steps > self.parameters.AC_ACTOR_TRAINING_START and \
@@ -615,14 +616,14 @@ class ActorCritic(object):
             if self.parameters.OCACLA_ENABLED:
                 idxs, priorities = self.train_critic_DPG(batch, get_evals=True)
                 if steps > self.parameters.AC_ACTOR_TRAINING_START:
-                    self.train_actor_OCACLA(batch, priorities)
+                    updated_actions = self.train_actor_OCACLA(batch, priorities)
             else:
                 off_policy_weights = self.apply_off_policy_corrections_cacla(batch)
                 idxs, priorities = self.train_critic(batch, off_policy_weights)
                 if steps > self.parameters.AC_ACTOR_TRAINING_START:
                     priorities = self.train_actor_batch(batch, priorities, off_policy_weights)
         self.latestTDerror = numpy.mean(priorities)
-        return idxs, priorities
+        return idxs, priorities, updated_actions
 
     def train_actor_DPG(self, batch):
         batch_len = len(batch[0])
@@ -728,11 +729,12 @@ class ActorCritic(object):
         inputs = numpy.zeros((batch_len, self.input_len))
         targets = numpy.zeros((batch_len, len_output))
         used_imp_weights = numpy.zeros(batch_len)
+        updated_actions = batch[1][:]
         importance_weights = batch[5] if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED else numpy.ones(batch_len)
 
         count = 0
         for sample_idx in range(batch_len):
-            old_s, a = batch[0][sample_idx], batch[1][sample_idx]
+            old_s, a, idx, sample_a = batch[0][sample_idx], batch[1][sample_idx], batch[6][sample_idx], batch[4][sample_idx]
             sample_weight = importance_weights[sample_idx]
             eval = evals[sample_idx]
             current_policy_action = self.actor.predict(old_s)
@@ -741,6 +743,11 @@ class ActorCritic(object):
             best_action_eval = eval
             # Conduct offline exploration in action space:
             if self.parameters.OCACLA_EXPL_SAMPLES:
+                if self.parameters.OCACLA_REPLACE_TRANSITIONS and sample_a is not None:
+                    eval_sample_a = self.critic.predict(old_s, numpy.array([sample_a]))
+                    if eval_sample_a > best_action_eval:
+                        best_action_eval = eval_sample_a
+                        best_action = sample_a
                 if eval_of_current_policy > best_action_eval:
                     best_action_eval = eval_of_current_policy
                     best_action = current_policy_action
@@ -758,15 +765,16 @@ class ActorCritic(object):
                 inputs[count] = old_s
                 targets[count] = best_action
                 used_imp_weights[count] = sample_weight
+                updated_actions[sample_idx] = best_action
                 count += 1
 
-        self.counts.append(count)
+        self.counts.append(count) # debug info
         if count > 0:
             inputs = inputs[:count]
             targets = targets[:count]
             used_imp_weights = used_imp_weights[:count]
             self.actor.train(inputs, targets, used_imp_weights)
-
+        return updated_actions
 
 
     def applyNoise(self, action, std = None):
@@ -783,10 +791,20 @@ class ActorCritic(object):
                         * numpy.random.normal()
                 self.ornUhlPrev[idx] = noise
                 action[idx] += noise
-        return numpy.clip(action, 0, 1)
+        return numpy.clip(action, 0, 1)git
 
     def decideMove(self, state, bot):
         action = self.actor.predict(state)
+
+        if self.parameters.OCACLA_ONLINE_SAMPLES:
+            action_eval = self.critic.predict(state, numpy.array([action]))
+            for sample_idx in range(self.parameters.OCACLA_ONLINE_SAMPLES):
+                noisyAction = self.applyNoise(action)
+                noisy_eval = self.critic.predict(state, numpy.array([noisyAction]))
+                if noisy_eval > action_eval:
+                    action = noisyAction
+                    action_eval = noisy_eval
+
         noisyAction = self.applyNoise(action)
 
         if __debug__ and bot.player.getSelected():

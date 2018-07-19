@@ -1,9 +1,10 @@
+1
 0
 0
-2
+0
 1
 ACTOR_CRITIC_TYPE
-"CACLA"
+"DPG"
 0
 0
 1

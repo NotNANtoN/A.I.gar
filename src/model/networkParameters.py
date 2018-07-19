@@ -32,12 +32,15 @@ MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 TRAINING_WAIT_TIME = 1 # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
-# General RL:
 OPTIMIZER = "Adam" #SGD has much worse performance
 NESTEROV = 0
 AMSGRAD = False
 GRADIENT_CLIP_NORM = 0
 GRADIENT_CLIP = 0
+DROPOUT = 0
+MAXNORM = 3
+BATCHNORM = False
+# General RL:
 MASS_AS_REWARD = False
 DISCOUNT = 0.85 
 END_DISCOUNT = 0#0.85 # set to 0 to disable
@@ -98,7 +101,7 @@ INITIALIZER = "glorot_uniform" #"Default" or "glorot_uniform" or "glorot_normal"
 # Q-learning
 NEURON_TYPE = "MLP"
 Q_LAYERS = (256, 256, 256)
-ALPHA = 0.0001
+ALPHA = 0.0001 * (1 + DROPOUT * 9)
 SQUARE_ACTIONS = True
 NUM_ACTIONS = 25
 ACTIVATION_FUNC_HIDDEN = 'relu'
@@ -143,7 +146,9 @@ CACLA_VAR_BETA              = 0.001
 # Sampled Policy Gradient (SPG):
 OCACLA_ENABLED              = False
 OCACLA_EXPL_SAMPLES         = 3
+OCACLA_ONLINE_SAMPLES       = 0
 OCACLA_MOVING_GAUSSIAN      = True
+OCACLA_REPLACE_TRANSITIONS  = False
 OCACLA_END_NOISE            = 0.0004
 OCACLA_NOISE_DECAY          = OCACLA_END_NOISE ** (1 / MAX_TRAINING_STEPS) if MAX_TRAINING_STEPS != 0 else 0
 
