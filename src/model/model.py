@@ -127,7 +127,8 @@ class Model(object):
         timeProcessStart = time.process_time()
         # Get the decisions of the bots. Update the field accordingly.
         self.takeBotActions()
-        self.trainOnExperiences()
+        if self.trainingEnabled:
+            self.trainOnExperiences()
         self.field.update()
         # Update view if view is enabled
         if self.guiEnabled and self.viewEnabled:
