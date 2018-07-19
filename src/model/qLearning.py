@@ -187,11 +187,6 @@ class QLearn(object):
         return idxs, priorities
 
     def learn(self, batch, steps):
-        #if self.parameters.NEURON_TYPE == "LSTM":
-        #    self.train_LSTM(batch)
-        #else:
-
-
         idxs, priorities =  self.train(batch)
 
         self.latestTDerror = numpy.mean(priorities[-1])

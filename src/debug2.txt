@@ -2,12 +2,13 @@
 0
 2
 1
-CNN_REPR
-True
-1
 ENABLE_TESTING
 False
-10
+1
+ACTOR_CRITIC_TYPE
+"DPG"
+0
 0
 1
+
 
