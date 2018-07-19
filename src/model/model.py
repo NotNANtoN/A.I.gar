@@ -127,8 +127,7 @@ class Model(object):
         timeProcessStart = time.process_time()
         # Get the decisions of the bots. Update the field accordingly.
         self.takeBotActions()
-        if self.counter % self.parameters.TRAINING_WAIT_TIME == 0:
-            self.trainOnExperiences()
+        self.trainOnExperiences()
         self.field.update()
         # Update view if view is enabled
         if self.guiEnabled and self.viewEnabled:
@@ -153,29 +152,37 @@ class Model(object):
                 self.save()
 
     def trainOnExperiences(self):
-        expReplayer = self.bots[0].getExpReplayer()
-        learningAlg = self.bots[0].getLearningAlg()
+        time = self.counter/(self.parameters.FRAME_SKIP_RATE + 1)
+        # Do not train if we are waiting
+        if time % self.parameters.TRAINING_WAIT_TIME != 0:
+            return
+        nnBot = self.getNNBot()
+        expReplayer = nnBot.getExpReplayer()
+        learningAlg = nnBot.getLearningAlg()
         if (len(expReplayer) >= self.parameters.MEMORY_BATCH_LEN
                  or not self.parameters.EXP_REPLAY_ENABLED):
             train_len = int(self.parameters.TRAINING_PHASE_LEN)
-            print("Training on experiences " + str(train_len) + " times...")
+            if __debug__:
+                print("Training on experiences " + str(train_len) + " times...")
             count = 0
             for i in range(train_len):
                 if self.parameters.EXP_REPLAY_ENABLED:
                     batch = expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
                 else:
-                    batch = self.bots[0].getLastMemory
-                idxs, priorities, updated_actions = learningAlg.learn(batch, i)
+                    batch = nnBot.getLastMemory
+                idxs, priorities, updated_actions = learningAlg.learn(batch, time)
                 if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
                     expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
                     if self.parameters.OCACLA_REPLACE_TRANSITIONS:
-                        print(updated_actions)
-                        expReplayer.update_dones(idxs, updated_actions)
+                        if updated_actions is not None:
+                            expReplayer.update_dones(idxs, updated_actions)
+                        else:
+                            print("Updated actions is None!")
                 if i > 0 and i % (train_len//10) == 0:
                     count += 10
                     print("Train phase - " + str(count) + "%")
 
-            learningAlg.updateNetworks(self.counter/(self.parameters.FRAME_SKIP_RATE + 1))
+            learningAlg.updateNetworks(time)
 
     def storeRewardsAndTDError(self):
         errors = []

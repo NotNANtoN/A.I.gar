@@ -29,8 +29,8 @@ JOB_SIMULATION_STEPS = JOB_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
 JOB_STEP_START = 0
 MAX_TRAINING_STEPS = 500000
 MAX_SIMULATION_STEPS = MAX_TRAINING_STEPS * (FRAME_SKIP_RATE + 1)
-TRAINING_WAIT_TIME = RESET_LIMIT # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
-TRAINING_PHASE_LEN = TRAINING_WAIT_TIME / (FRAME_SKIP_RATE + 1) if TRAINING_WAIT_TIME >= FRAME_SKIP_RATE + 1 else 1
+TRAINING_WAIT_TIME = 1 #RESET_LIMIT # Only train after the wait time is over to maximize gpu effectiveness. 1 == train every step
+TRAINING_PHASE_LEN = 1 #TRAINING_WAIT_TIME / (FRAME_SKIP_RATE + 1) if TRAINING_WAIT_TIME >= FRAME_SKIP_RATE + 1 else 1
 ENABLE_SPLIT = False
 ENABLE_EJECT = False
 OPTIMIZER = "Adam" #SGD has much worse performance
@@ -117,7 +117,7 @@ Q_WEIGHT_DECAY    = 0#0.001 #0.001 L2 weight decay parameter. Set to 0 to disabl
 
 # Actor-critic:
 ACTOR_IS = False
-AC_ACTOR_TDE = 10 # set to False to disable
+AC_ACTOR_TDE = 0 # set to False to disable
 AC_DELAY_ACTOR_TRAINING = 0
 AC_ACTOR_TRAINING_START = AC_DELAY_ACTOR_TRAINING * MAX_TRAINING_STEPS
 AC_NOISE_AT_HALF = 0.03
