@@ -7,10 +7,11 @@ import numpy
 numpy.set_printoptions(threshold=numpy.nan)
 import tensorflow as tf
 import keras.backend as K
-from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten, Input
+from keras.layers import Dense, LSTM, Softmax, Conv2D, MaxPooling2D, Flatten, Input, Dropout, BatchNormalization
 from keras.models import Sequential
 from keras.utils.training_utils import multi_gpu_model
 from keras.models import load_model, save_model
+from keras.constraints import maxnorm
 
 from .parameters import *
 
@@ -258,6 +259,10 @@ class Network(object):
             layerIterable = iter(self.layers)
 
             regularizer = keras.regularizers.l2(self.parameters.Q_WEIGHT_DECAY)
+            if self.parameters.DROPOUT:
+                constraint = maxnorm(self.parameters.MAXNORM)
+            else:
+                constraint = None
 
             if parameters.CNN_REPR:
                 previousLayer = self.input
@@ -275,14 +280,21 @@ class Network(object):
 
             for layer in layerIterable:
                 if layer > 0:
+                    if self.parameters.DROPOUT:
+                        previousLayer = Dropout(self.parameters.DROPOUT)(previousLayer)
                     previousLayer = Dense(layer, activation=self.activationFuncHidden,
                                         bias_initializer=initializer, kernel_initializer=initializer,
-                                          kernel_regularizer=regularizer)(previousLayer)
+                                          kernel_regularizer=regularizer, kernel_constraint=constraint)(previousLayer)
                     if self.parameters.ACTIVATION_FUNC_HIDDEN == "elu":
                         previousLayer = (keras.layers.ELU(alpha=self.parameters.ELU_ALPHA))(previousLayer)
+                    if self.parameters.BATCHNORM:
+                        previousLayer = BatchNormalization()(previousLayer)
+            if self.parameters.DROPOUT:
+                previousLayer = Dropout(self.parameters.DROPOUT)(previousLayer)
 
-            output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer
-                                , kernel_initializer=initializer, kernel_regularizer=regularizer)(previousLayer)
+            output = Dense(outputDim, activation=self.activationFuncOutput, bias_initializer=initializer,
+                           kernel_initializer=initializer, kernel_regularizer=regularizer,
+                           kernel_constraint=constraint)(previousLayer)
 
             self.valueNetwork = keras.models.Model(inputs=self.input, outputs=output)
 
@@ -325,6 +337,10 @@ class Network(object):
             if self.parameters.GRADIENT_CLIP_NORM:
                 optimizer = keras.optimizers.Adam(lr=self.learningRate, clipnorm=self.parameters.GRADIENT_CLIP_NORM,
                                                   amsgrad=self.parameters.AMSGRAD)
+            elif self.parameters.GRADIENT_CLIP:
+                optimizer = keras.optimizers.Adam(lr=self.learningRate, clipvalue=self.parameters.GRADIENT_CLIP,
+                                                  amsgrad=self.parameters.AMSGRAD)
+
             else:
                 optimizer = keras.optimizers.Adam(lr=self.learningRate, amsgrad=self.parameters.AMSGRAD)
         elif self.parameters.OPTIMIZER == "Nadam":

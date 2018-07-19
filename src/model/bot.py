@@ -275,7 +275,12 @@ class Bot(object):
 
                 if self.parameters.EXP_REPLAY_ENABLED:
                     if str(self.learningAlg) != "Q-learning":
-                        self.expReplayer.add(self.oldState, action, self.lastReward, newState, self.currentRawAction)
+                        if self.parameters.ACTOR_CRITIC_TYPE == "CACLA":
+                            # Save raw action without noise in "done" field to later determine difference in policies
+                            self.expReplayer.add(self.oldState, action, self.lastReward, newState, self.currentRawAction)
+                        else:
+                            # Save None for SPG in "done" field. This will be later updated with the best sampled action
+                            self.expReplayer.add(self.oldState, action, self.lastReward, newState, None)
                     else:
                         self.expReplayer.add(self.oldState, action, self.lastReward, newState, newState is None)
 
@@ -284,7 +289,6 @@ class Bot(object):
 
                 if self.player.getSelected():
                     print("Reward: ", self.cumulativeReward)
-
 
             # Move
             if self.player.getIsAlive():

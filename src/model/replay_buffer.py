@@ -193,3 +193,18 @@ class PrioritizedReplayBuffer(ReplayBuffer):
             self._it_min[idx] = priority ** self._alpha
 
             self._max_priority = max(self._max_priority, priority)
+
+    def update_dones(self, idxes, dones):
+        """
+        Updates the "done" field of idxes. Used for SPG, as in the "done" field the best sampled action is stored.
+        :param idxes:
+        :param dones:
+        :return:
+        """
+        assert len(idxes) == len(dones)
+        for idx, updated_done in zip(idxes, dones):
+            data = self._storage[idx]
+            obs_t, action, reward, obs_tp1, _ = data
+            new_data = obs_t, action, reward, obs_tp1, updated_done
+            self._storage[idx] = new_data
+

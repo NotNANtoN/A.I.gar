@@ -190,7 +190,7 @@ class QLearn(object):
         idxs, priorities =  self.train(batch)
 
         self.latestTDerror = numpy.mean(priorities[-1])
-        return idxs, priorities
+        return idxs, priorities, None
 
     def getNoise(self):
         return self.epsilon

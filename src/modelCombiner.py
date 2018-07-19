@@ -70,14 +70,16 @@ def combineTestResults(path):
             timing = str(round(numpy.mean(evaluations["timing"]),6))
             evalList = evaluations[key]
             name = key
-            maxScore = str(round(max([evaluation[1] for evaluation in evalList]), 1))
-            meanScore = str(round(numpy.mean([evaluation[2] for evaluation in evalList]), 1))
-            stdMean = str(round(numpy.mean([evaluation[3] for evaluation in evalList]), 1))
-            meanMaxScore = str(round(numpy.mean([evaluation[4] for evaluation in evalList]), 1))
-            stdMax = str(round(numpy.mean([evaluation[5] for evaluation in evalList]), 1))
+            maxScore = str(round(max([evaluation[1] for evaluation in evalList]), 3))
+            meanScore = str(round(numpy.mean([evaluation[2] for evaluation in evalList]), 3))
+            stdMean = str(round(numpy.mean([evaluation[3] for evaluation in evalList]), 3))
+            stdErrorMean = str(round(numpy.std([evaluation[2] for evaluation in evalList]) / len(evalList), 3))
+            meanMaxScore = str(round(numpy.mean([evaluation[4] for evaluation in evalList]), 3))
+            stdMax = str(round(numpy.mean([evaluation[5] for evaluation in evalList]), 3))
+            stdErrorMax = str(round(numpy.std([evaluation[4] for evaluation in evalList]) / len(evalList), 3))
             data += "Avg time for update (s): " + timing + "\n"
             data += name + " Highscore: " + maxScore + " Mean: " + meanScore + " StdMean: " + stdMean \
-                    + " Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + "\n"
+                    + " StdErrorMean: " + stdErrorMean + " Mean_Max_Score: " + meanMaxScore + " Std_Max_Score: " + stdMax + " StdErrorMax: " + stdErrorMax + "\n"
         file.write(data)
 
 
@@ -301,7 +303,7 @@ def getTimeAxis(maxLength, avgLength):
     return np.array(list(range(0, maxLength * avgLength, avgLength)))
 
 
-def getMeanAndStDev(allList, maxLength):
+def getMeanAndStDev(allList, maxLength, stdError = False):
     print("Shape of allList: ", numpy.shape(allList))
     mean_list = []
     stDev_list = []
@@ -324,6 +326,8 @@ def getMeanAndStDev(allList, maxLength):
                 continue
             sqe += (allList[j][i] - m)**2
         sd = math.sqrt(sqe / num_lists)
+        if stdError:
+             sd = sd / math.sqrt(num_lists)
         stDev_list.append(sd)
     mean_list = np.array(mean_list)
     stDev_list = np.array(stDev_list)

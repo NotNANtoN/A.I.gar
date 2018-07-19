@@ -165,9 +165,12 @@ class Model(object):
                     batch = expReplayer.sample(self.parameters.MEMORY_BATCH_LEN)
                 else:
                     batch = self.bots[0].getLastMemory
-                idxs, priorities = learningAlg.learn(batch, i)
+                idxs, priorities, updated_actions = learningAlg.learn(batch, i)
                 if self.parameters.PRIORITIZED_EXP_REPLAY_ENABLED:
                     expReplayer.update_priorities(idxs, numpy.abs(priorities) + 1e-4)
+                    if self.parameters.OCACLA_REPLACE_TRANSITIONS:
+                        print(updated_actions)
+                        expReplayer.update_dones(idxs, updated_actions)
                 if i > 0 and i % (train_len//10) == 0:
                     count += 10
                     print("Train phase - " + str(count) + "%")
@@ -410,7 +413,7 @@ class Model(object):
         if self.resetLimit != 0:
             self.plotMassesOverTimeClean()
         self.plotQValuesOverTime()
-        if self.parameters.OCACLA_ENABLED:
+        if self.parameters.ACTOR_CRITIC_TYPE == "CACLA":
             self.plotSPGTrainingCounts()
 
 
@@ -465,7 +468,7 @@ class Model(object):
                 timeAxis = list(range(0, len_counts, self.pointAveraging))
 
                 plt.plot(timeAxis, y)
-                plt.title("SPG Actor Training Batch Size")
+                plt.title("Actor Training Batch Size During Training")
                 plt.xlabel("Training Steps")
                 plt.ylabel("Batch Size")
                 plt.savefig(self.path + name + ".pdf")

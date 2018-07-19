@@ -127,8 +127,8 @@ class View:
                     if bot.learningAlg is not None and str(bot.learningAlg) == "Q-learning" \
                             and bot.learningAlg.current_q_values is not None:
 
-                        q_vals = bot.learningAlg.current_q_values
-                        q_vals = softmax(q_vals)
+                        raw_q_vals = bot.learningAlg.current_q_values
+                        q_vals = softmax(raw_q_vals)
                         gridsPerSide = int(math.sqrt(bot.parameters.NUM_ACTIONS))
                         gridSize = scaledSize / gridsPerSide
                         for idx, q_value in enumerate(q_vals):
@@ -137,10 +137,16 @@ class View:
                             x = left + i * gridSize
                             y = top + j * gridSize
                             greenPart = int(q_value * 255)
+                            font = pygame.font.SysFont(None, 65)
+                            text = str(round(raw_q_vals[idx], 1))
+                            textSurface = font.render(text, True, (0,0,0))
+                            textWidth = textSurface.get_width()
+                            textHeight = textSurface.get_height()
 
                             s = pygame.Surface((gridSize, gridSize))  # the size of your rect
-                            s.set_alpha(greenPart)  # alpha level
+                            s.set_alpha(75 + int(q_value * 175))  # alpha level
                             s.fill((255 - greenPart, 255, 255 - greenPart))  # this fills the entire surface
+                            s.blit(textSurface, ((gridSize - textWidth) / 2 , (gridSize - textHeight) / 2))
                             screen.blit(s, (x, y))  # (0,0) are the top-left coordinates
 
 
