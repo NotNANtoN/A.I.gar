@@ -797,13 +797,18 @@ class ActorCritic(object):
         action = self.actor.predict(state)
 
         if self.parameters.OCACLA_ONLINE_SAMPLES:
-            action_eval = self.critic.predict(state, numpy.array([action]))
-            for sample_idx in range(self.parameters.OCACLA_ONLINE_SAMPLES):
-                noisyAction = self.applyNoise(action)
-                noisy_eval = self.critic.predict(state, numpy.array([noisyAction]))
-                if noisy_eval > action_eval:
-                    action = noisyAction
-                    action_eval = noisy_eval
+            if self.std > 0 or self.parameters.OCACLA_ONLINE_SAMPLING_NOISE > 0:
+                action_eval = self.critic.predict(state, numpy.array([action]))
+                if self.parameters.OCACLA_ONLINE_SAMPLING_NOISE:
+                    noise = self.parameters.OCACLA_ONLINE_SAMPLING_NOISE
+                else:
+                    noise = self.std
+                for sample_idx in range(self.parameters.OCACLA_ONLINE_SAMPLES):
+                    noisyAction = self.applyNoise(action, noise)
+                    noisy_eval = self.critic.predict(state, numpy.array([noisyAction]))
+                    if noisy_eval > action_eval:
+                        action = noisyAction
+                        action_eval = noisy_eval
 
         noisyAction = self.applyNoise(action)
 

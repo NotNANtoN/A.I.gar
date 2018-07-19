@@ -145,14 +145,14 @@ CACLA_VAR_START             = 1
 CACLA_VAR_BETA              = 0.001
 
 # Sampled Policy Gradient (SPG):
-OCACLA_ENABLED              = False
-OCACLA_EXPL_SAMPLES         = 3
-OCACLA_ONLINE_SAMPLES       = 0
-OCACLA_MOVING_GAUSSIAN      = True
-OCACLA_REPLACE_TRANSITIONS  = False
-OCACLA_END_NOISE            = 0.0004
-OCACLA_NOISE_DECAY          = OCACLA_END_NOISE ** (1 / MAX_TRAINING_STEPS) if MAX_TRAINING_STEPS != 0 else 0
-
+OCACLA_ENABLED               = False
+OCACLA_EXPL_SAMPLES          = 3
+OCACLA_ONLINE_SAMPLES        = 0
+OCACLA_ONLINE_SAMPLING_NOISE = 0
+OCACLA_MOVING_GAUSSIAN       = True
+OCACLA_REPLACE_TRANSITIONS   = False
+OCACLA_END_NOISE             = 0.0004
+OCACLA_NOISE_DECAY           = OCACLA_END_NOISE ** (1 / MAX_TRAINING_STEPS) if MAX_TRAINING_STEPS != 0 else 0
 
 # Deterministic Policy Gradient (DPG):
 DPG_TAU                    = 0.001 # How quickly the weights of the target networks are updated
