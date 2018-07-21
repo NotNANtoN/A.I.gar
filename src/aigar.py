@@ -422,6 +422,7 @@ class Params:
         self.VIRUS_SPAWN = virus
         self.RESET_LIMIT = time
         self.EXPORT_POINT_AVERAGING = point_averaging
+        self.RANDOMIZE_ARENA = False
 
 
 def runTests(model, parameters):

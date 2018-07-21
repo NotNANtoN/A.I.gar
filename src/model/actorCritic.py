@@ -724,6 +724,8 @@ class ActorCritic(object):
 
     def train_actor_OCACLA(self, batch, evals):
         batch_len = len(batch[0])
+        if self.parameters.OCACLA_TRAIN_ON_ALL:
+             batch_len *= self.parameters.OCACLA_EXPL_SAMPLES + 1 + self.parameters.OCACLA_REPLACE_TRANSITIONS
         len_output = self.actor.num_outputs
 
         inputs = numpy.zeros((batch_len, self.input_len))
@@ -743,14 +745,28 @@ class ActorCritic(object):
             best_action_eval = eval
             # Conduct offline exploration in action space:
             if self.parameters.OCACLA_EXPL_SAMPLES:
+                if eval_of_current_policy > best_action_eval:
+                    best_action_eval = eval_of_current_policy
+                    best_action = current_policy_action
+                else:
+                    if self.parameters.OCACLA_TRAIN_ON_ALL:
+                        inputs[count] = old_s
+                        targets[count] = a
+                        used_imp_weights[count] = sample_weight
+                        updated_actions[sample_idx] = best_action
+                        count += 1
                 if self.parameters.OCACLA_REPLACE_TRANSITIONS and sample_a is not None:
                     eval_sample_a = self.critic.predict(old_s, numpy.array([sample_a]))
                     if eval_sample_a > best_action_eval:
                         best_action_eval = eval_sample_a
                         best_action = sample_a
-                if eval_of_current_policy > best_action_eval:
-                    best_action_eval = eval_of_current_policy
-                    best_action = current_policy_action
+                    else:
+                        if self.parameters.OCACLA_TRAIN_ON_ALL:
+                            inputs[count] = old_s
+                            targets[count] = best_action
+                            used_imp_weights[count] = sample_weight
+                            updated_actions[sample_idx] = best_action
+                            count += 1
                 for x in range(self.parameters.OCACLA_EXPL_SAMPLES):
                     if self.parameters.OCACLA_MOVING_GAUSSIAN:
                         noisy_sample_action = self.applyNoise(best_action, self.ocacla_noise)

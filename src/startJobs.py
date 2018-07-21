@@ -110,6 +110,7 @@ def runJobs(jobs, email):
         timeBotFactor = 1
         timeStepFactor = 1
         timeOtherFactor = 1
+        timeSPGFactor = 1
         algorithmType = 0
         memoryLimit = 20000
         cnn = False
@@ -151,11 +152,13 @@ def runJobs(jobs, email):
             elif paramName == "NUM_ACTIONS":
                 timeOtherFactor *= 1.5
             elif paramName == "OCACLA_ENABLED":
-                timeOtherFactor *= 1.2
+                timeSPGFactor = 8
             elif paramName == "OCACLA_EXPL_SAMPLES":
-                timeOtherFactor *= int(paramVal) / 5 + 1
+                timeOtherFactor *= int(paramVal) / 4
+            elif paramName == "OCACLA_ONLINE_SAMPLES":
+                timeOtherFactor *= 3
 
-        jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor)
+        jobTime = math.ceil(standardTime * timeBotFactor * timeStepFactor * timeOtherFactor * timeSPGFactor)
         if jobTime > 240:
             jobTime = 240
         days = jobTime // 24
