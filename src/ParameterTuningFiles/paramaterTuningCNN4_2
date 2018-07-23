@@ -1,0 +1,52 @@
+MEMORY_CAPACITY 20000 &
+ MAX_TRAINING_STEPS 300000 &
+  CNN_REPR True &
+   Q_LAYERS (512,0,0) &
+    CNN_P_REPR True &
+     CNN_INPUT_DIM_1 42 &
+      Default "CNN_GS_DEF" 5x:
+     CNN_INPUT_DIM_1 63 &
+      Default "CNN_GS_DEF" 5x:
+   Q_LAYERS (256,0,0) &
+    CNN_USE_L3 False &
+     CNN_P_REPR True &
+      CNN_INPUT_DIM_1 42 &
+       Default "CNN_GS_DEF" 5x:
+      CNN_INPUT_DIM_1 63 &
+       Default "CNN_GS_DEF" 5x:
+  CNN_REPR True &
+   Q_LAYERS (512,0,0) &
+    CNN_P_REPR True &
+     CNN_P_RGB True &
+      CNN_INPUT_DIM_1 42 &
+       Default "CNN_GS_DEF" 5x:
+      CNN_INPUT_DIM_1 63 &
+       Default "CNN_GS_DEF" 5x:
+   Q_LAYERS (256,0,0) &
+    CNN_USE_L3 False &
+     CNN_P_REPR True &
+      CNN_P_RGB True &
+       CNN_INPUT_DIM_1 42 &
+        Default "CNN_GS_DEF" 5x:
+       CNN_INPUT_DIM_1 63 &
+        Default "CNN_GS_DEF" 5x:
+
+  CNN_REPR True &
+   Q_LAYERS (512,0,0) &
+    CNN_P_REPR True &
+     CNN_INPUT_DIM_1 42 &
+      NUM_NN_BOTS 3 5x:
+     CNN_INPUT_DIM_1 63 &
+      NUM_NN_BOTS 3 5x:
+  CNN_REPR True &
+   CNN_P_RGB True &
+    Q_LAYERS (512,0,0) &
+     CNN_P_REPR True &§
+      CNN_INPUT_DIM_1 42 &
+       NUM_NN_BOTS 3 5x:
+      CNN_INPUT_DIM_1 63 &
+       NUM_NN_BOTS 3 5x:
+ 
+
+
+
