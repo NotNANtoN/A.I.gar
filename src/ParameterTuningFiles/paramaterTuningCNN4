@@ -1,15 +1,18 @@
 MAX_TRAINING_STEPS 300000 &
  MEMORY_CAPACITY 20000 &
-  Q_LAYERS (512,0,0) &
-   CNN_INPUT_DIM_1 84 &
-    Default "CNN_IN_DEF" 5x:
+  CNN_REPR True &
+   Q_LAYERS (512,0,0) &
+    CNN_INPUT_DIM_1 84 &
+     Default "CNN_IN_DEF" 5x:
   NUM_NN_BOTS 3 10x:
   Default "Q-learning" 5x:
-  Q_LAYERS (512,0,0) &
-   NUM_NN_BOTS 3 &
-    Default "CNN_EG" 5x:
-    ALL_PLAYER_GRID True 5x:
-    Default "CNN_IN_DEF" 5x:
-    Default "CNN_EG" 5x:
-    ALL_PLAYER_GRID True 5x:
+  CNN_REPR True &
+   Q_LAYERS (512,0,0) &
+    CNN_INPUT_DIM_1 84 &
+     NUM_NN_BOTS 3 &
+      Default "CNN_EG" 5x:
+      ALL_PLAYER_GRID True 5x:
+      Default "CNN_IN_DEF" 5x:
+      Default "CNN_EG" 5x:
+      ALL_PLAYER_GRID True 5x:
 
