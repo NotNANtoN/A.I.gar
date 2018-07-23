@@ -26,6 +26,7 @@ class Player(object):
 
         self.selected = False
         self.exploring = False
+        self.enabled = True
 
     def update(self, fieldWidth, fieldHeight):
         if self.isAlive:

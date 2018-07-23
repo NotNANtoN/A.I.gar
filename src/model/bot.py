@@ -180,6 +180,7 @@ class Bot(object):
 
         self.reset()
 
+
     def saveInitialModels(self, path):
         if self.learningAlg is not None:
             self.learningAlg.save(path, "init_")

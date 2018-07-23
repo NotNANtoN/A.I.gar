@@ -114,7 +114,7 @@ class Model(object):
 
     def resetModel(self):
         print("Resetting field and players!")
-        self.field.reset()
+        self.field.reset(self.parameters.RANDOMIZE_ARENA)
         self.resetBots()
 
     def update(self):
@@ -214,7 +214,8 @@ class Model(object):
 
     def takeBotActions(self):
         for bot in self.bots:
-            bot.makeMove()
+            if bot.player.enabled:
+                bot.makeMove()
 
     def resetBots(self):
         for bot in self.bots:
@@ -542,8 +543,9 @@ class Model(object):
 
     def printBotMasses(self):
         for bot in self.bots:
-            mass = bot.getPlayer().getTotalMass()
-            print("Mass of ", bot.getPlayer(), ": ", round(mass, 1) if mass is not None else "Dead")
+            if bot.player.enabled:
+                mass = bot.getPlayer().getTotalMass()
+                print("Mass of ", bot.getPlayer(), ": ", round(mass, 1) if mass is not None else "Dead")
 
     def visualize(self):
         print(" ")

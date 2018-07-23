@@ -42,6 +42,7 @@ class Field(object):
         self.virusHashTable = None
 
         self.virusEnabled = virusEnabled
+        self.removedPlayers = []
 
 
     def initializePlayer(self, player):
@@ -64,7 +65,7 @@ class Field(object):
         self.maxVirusCount = self.size * self.size * MAX_VIRUS_DENSITY
         self.spawnStuff()
 
-    def reset(self):
+    def reset(self, randomize_arena = False):
         # Clear field
         self.pellets = []
         self.blobs = []  # Ejected particles become pellets once momentum is lost
@@ -76,8 +77,19 @@ class Field(object):
         self.virusHashTable = spatialHashTable(self.size, HASH_BUCKET_SIZE)
 
         # Spawn stuff
-        for player in self.players:
-            self.initializePlayer(player)
+        self.initializePlayer(self.players[0])
+        allPlayers = self.players[1:] + self.removedPlayers
+        self.removedPlayers = []
+        self.players = [self.players[0]]
+        for player in allPlayers:
+            if not randomize_arena or numpy.random.random() > 0.5:
+                player.enabled = True
+                self.players.append(player)
+                self.initializePlayer(player)
+            else:
+                player.enabled = False
+                self.removedPlayers.append(player)
+
         self.spawnStuff()
 
     def update(self):
@@ -109,12 +121,13 @@ class Field(object):
 
     def updatePlayers(self):
         for player in self.players:
-            if player.getIsAlive():
-                player.update(self.size, self.size)
-                self.performEjections(player)
-                self.handlePlayerCollisions(player)
-            else:
-                player.updateRespawnTime()
+            if player.enabled:
+                if player.getIsAlive():
+                    player.update(self.size, self.size)
+                    self.performEjections(player)
+                    self.handlePlayerCollisions(player)
+                else:
+                    player.updateRespawnTime()
 
     def updateHashTables(self):
         self.playerHashTable.clearBuckets()
@@ -204,7 +217,7 @@ class Field(object):
 
     def playerPelletOverlap(self):
         for player in self.players:
-            if player.getIsAlive():
+            if player.getIsAlive() and player.enabled:
                 for cell in player.getCells():
                     for pellet in self.pelletHashTable.getNearbyObjects(cell):
                         if cell.overlap(pellet) and cell.canEat(pellet):
@@ -212,7 +225,7 @@ class Field(object):
 
     def playerBlobOverlap(self):
         for player in self.players:
-            if player.getIsAlive():
+            if player.getIsAlive() and player.enabled:
                 for cell in player.getCells():
                     for blob in self.blobHashTable.getNearbyObjects(cell):
                         # If the ejecter player's cell is not the one overlapping with blob
@@ -222,7 +235,7 @@ class Field(object):
 
     def playerVirusOverlap(self):
         for player in self.players:
-            if player.getIsAlive():
+            if player.getIsAlive() and player.enabled:
                 for cell in player.getCells():
                     for virus in self.virusHashTable.getNearbyObjects(cell):
                         if cell.overlap(virus) and cell.getMass() > 1.25 * virus.getMass():
@@ -230,7 +243,7 @@ class Field(object):
 
     def playerPlayerOverlap(self):
         for player in self.players:
-            if player.getIsAlive():
+            if player.getIsAlive() and player.enabled:
                 for playerCell in player.getCells():
                     opponentCells = self.playerHashTable.getNearbyEnemyObjects(playerCell)                
                     for opponentCell in opponentCells:
