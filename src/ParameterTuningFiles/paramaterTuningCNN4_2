@@ -46,7 +46,4 @@ MEMORY_CAPACITY 20000 &
        NUM_NN_BOTS 3 5x:
       CNN_INPUT_DIM_1 63 &
        NUM_NN_BOTS 3 5x:
- 
-
-
 
