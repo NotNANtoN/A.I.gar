@@ -165,7 +165,7 @@ def runJobs(jobs, email):
         hours = jobTime % 24
 
         if cnn:
-            timeLine = timeLineBase + "3-08:00:00\n"
+            timeLine = timeLineBase + "3-12:00:00\n"
             memoryLimit = 40000
 
         else:
