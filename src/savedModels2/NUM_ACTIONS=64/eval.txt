@@ -1,0 +1,9 @@
+Pellet_Collection mean value 445 and std 4
+Has a 100.0%	 probability to be better than ure's mean of 376
+
+test mean value 0.83 and std 0.01
+Has a 94.3%	 probability to be better than ure's mean of 0.8
+
+pellet_collection mean value 495 and std 44
+Has a 99.7%	 probability to be better than ure's mean of 456
+

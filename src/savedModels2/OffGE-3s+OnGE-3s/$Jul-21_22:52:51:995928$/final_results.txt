@@ -1,0 +1,3 @@
+Avg run time(s): 0.020253
+Number of runs per testing: 10
+pellet_collection Highscore: 701.8 Mean: 474.1 StdMean: 27.1 Mean_Max_Score: 652.0 Std_Max_Score: 32.0

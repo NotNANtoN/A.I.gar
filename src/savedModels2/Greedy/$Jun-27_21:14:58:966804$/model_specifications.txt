@@ -1,0 +1,28 @@
+Simulation:
+Start datetime - Jun-27_21:14:58
+Running for - 0:00:00.950365
+steps - 0
+number of rl bots - 2
+number of greedy bots - 0
+Virus Enabled - False
+Reset every x steps - 100
+
+Reinforcement learning:
+Algorithm - None
+Epsilon - 1
+Discount factor - 0.85
+Frame skip rate - 8
+State representation - Grid
+CNN representation - False
+Grid - 11x11
+Experience Replay - Enabled
+Target Network steps until update - 1500
+
+ANN:
+Input layer neurons(stateReprLen) - 365
+Output layer neurons(number of actions) - 
+Learning rate - 0.0001
+Activation function hidden layer(s) - relu
+Activation function output layer - linear
+Optimizer - Adam
+

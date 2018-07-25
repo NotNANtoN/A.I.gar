@@ -1,0 +1,9 @@
+Pellet_Collection mean value 446 and std 0
+Has a nan%	 probability to be better than 's mean of 374
+
+test mean value 0.85 and std 0.0
+Has a nan%	 probability to be better than 's mean of 0.8
+
+pellet_collection mean value 513 and std 0
+Has a nan%	 probability to be better than 's mean of 454
+

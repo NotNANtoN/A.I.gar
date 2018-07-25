@@ -1,0 +1,13 @@
+Pellet_Collection mean value 229 and std 12
+Has a 100.0%	 probability to be worse than ure's mean of 376
+
+VS_1_Greedy mean value 35 and std 1
+
+test mean value 0.53 and std 0.05
+Has a 100.0%	 probability to be worse than ure's mean of 0.8
+
+pellet_collection mean value 327 and std 58
+Has a 100.0%	 probability to be worse than ure's mean of 456
+
+vs_1_greedy mean value 44 and std 5
+

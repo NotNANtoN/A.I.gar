@@ -14,17 +14,18 @@
 #       Default "PlusSamples" 10x:
 
 ACTOR_CRITIC_TYPE "CACLA" &
- OCACLA_EXPL_SAMPLES 6 &
-  OCACLA_REPLACE_TRANSITIONS True &
-   Default "NoOnline" 10x:
-   NUM_NN_BOTS 2 10x:
-   OCACLA_ONLINE_SAMPLES 6 &
-    OCACLA_ONLINE_SAMPLING_NOISE 0.05 &
-     Default "tunedSPG" 10x:
-     NUM_NN_BOTS 2 10x:
-
-     OCACLA_END_NOISE 0.05 &
-      Default "higherNoise" 10x:
+ OCACLA_ENABLED True &
+  OCACLA_EXPL_SAMPLES 6 &
+   OCACLA_REPLACE_TRANSITIONS True &
+    Default "NoOnline" 10x:
+    NUM_NN_BOTS 2 10x:
+    OCACLA_ONLINE_SAMPLES 6 &
+     OCACLA_ONLINE_SAMPLING_NOISE 0.05 &
+      Default "tunedSPG" 10x:
       NUM_NN_BOTS 2 10x:
+
+      OCACLA_END_NOISE 0.05 &
+       Default "higherNoise" 10x:
+       NUM_NN_BOTS 2 10x:
 
 
