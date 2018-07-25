@@ -1,5 +1,0 @@
-pellet_collection mean value 527 and std 3
-Has a 100.0%	 probability to be better than ure's mean of 456
-
-vs_1_greedy mean value 551 and std 127
-

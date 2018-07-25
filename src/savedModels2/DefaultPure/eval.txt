@@ -1,6 +1,0 @@
-Pellet_Collection mean value 376 and std 15
-
-test mean value 0.8 and std 0.03
-
-pellet_collection mean value 456 and std 8
-

@@ -1,3 +1,0 @@
-pellet_collection mean value 4 and std 0
-Has a nan%	 probability to be worse than ure's mean of 456
-

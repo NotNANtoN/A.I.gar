@@ -1,2 +1,0 @@
-Avg time for update (s): 0.00433
-pellet_collection Highscore: 815.8 Mean: 495.32 StdMean: 72.4 StdErrorMean: 8.856 Mean_Max_Score: 716.32 Std_Max_Score: 86.58 StdErrorMax: 11.489
